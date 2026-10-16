@@ -24,10 +24,10 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-// ?cat=araclar  -> o kategorinin tamami (assets/models/index.json)
-// ?models=models/araclar/car_ambulance,...  (assets/ altindan) -> secili modeller
+// ?cat=araclar  -> o kategorinin tamami (portofolyo/assets/models/index.json)
+// ?models=models/araclar/car_ambulance,...  (portofolyo/assets/ altindan) -> secili modeller
 const params = new URLSearchParams(location.search);
-const index = await (await fetch('../../assets/models/index.json')).json();
+const index = await (await fetch('../../portofolyo/assets/models/index.json')).json();
 const cat = params.get('cat') || 'araclar';
 const sel = document.createElement('select');
 for (const c of Object.keys(index)) {
@@ -66,7 +66,7 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 
 const loader = new GLTFLoader();
-const base = '../../assets/';
+const base = '../../portofolyo/assets/';
 const cols = parseInt(params.get('cols') || String(models.length));
 const groundY = parseFloat(params.get('ground') || '-0.061');
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 200),

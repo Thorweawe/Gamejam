@@ -5,7 +5,7 @@ import os
 from kitgen import Model, cbox, cyl, rot
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-KAYKIT = os.path.join(ROOT, "assets", "_kaynak", "kaykit_city_builder_bits")
+KAYKIT = os.path.join(ROOT, "portofolyo", "assets", "_kaynak", "kaykit_city_builder_bits")
 
 # KayKit arabalariyla ayni teker olculeri (car_sedan.gltf'ten)
 WHEEL_R, WHEEL_W, WHEEL_Y = 0.072, 0.062, 0.0113

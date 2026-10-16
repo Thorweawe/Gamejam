@@ -10,8 +10,8 @@ import re
 import shutil
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-SRC = os.path.join(ROOT, "assets", "_kaynak")
-DST = os.path.join(ROOT, "assets", "models")
+SRC = os.path.join(ROOT, "portofolyo", "assets", "_kaynak")
+DST = os.path.join(ROOT, "portofolyo", "assets", "models")
 
 SOURCES = {
     "kaykit_city_builder_bits": ("KayKit City Builder Bits 1.0 (Kay Lousberg)", "CC0"),
@@ -124,7 +124,7 @@ def main():
         for _, name, src in items:
             lines.append(f"| `{name}` | {'AI uretimi' if src == 'ai_uretim' else SOURCES[src][0].split(' (')[0]} |")
         lines.append("")
-    with open(os.path.join(ROOT, "assets", "ASSETS.md"), "w", encoding="utf-8") as f:
+    with open(os.path.join(ROOT, "portofolyo", "assets", "ASSETS.md"), "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
     for cat in CATEGORY_INFO:
         print(f"{cat:20s} {sum(1 for r in rows if r[0] == cat)}")
