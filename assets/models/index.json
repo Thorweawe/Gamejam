@@ -1,0 +1,890 @@
+{
+ "araclar": [
+  {
+   "name": "car_hatchback",
+   "ai": false
+  },
+  {
+   "name": "car_police",
+   "ai": false
+  },
+  {
+   "name": "car_sedan",
+   "ai": false
+  },
+  {
+   "name": "car_stationwagon",
+   "ai": false
+  },
+  {
+   "name": "car_taxi",
+   "ai": false
+  },
+  {
+   "name": "car_afad_rescue",
+   "ai": true
+  },
+  {
+   "name": "car_ambulance",
+   "ai": true
+  },
+  {
+   "name": "car_bus",
+   "ai": true
+  },
+  {
+   "name": "car_cranetruck",
+   "ai": true
+  },
+  {
+   "name": "car_dumptruck",
+   "ai": true
+  },
+  {
+   "name": "car_firetruck",
+   "ai": true
+  },
+  {
+   "name": "car_tv_van",
+   "ai": true
+  }
+ ],
+ "binalar/konut": [
+  {
+   "name": "house_lv0_gecekondu",
+   "ai": true
+  },
+  {
+   "name": "house_lv0_gecekondu_collapsed",
+   "ai": true
+  },
+  {
+   "name": "house_lv0_gecekondu_damaged",
+   "ai": true
+  },
+  {
+   "name": "house_lv1",
+   "ai": true
+  },
+  {
+   "name": "house_lv1_collapsed",
+   "ai": true
+  },
+  {
+   "name": "house_lv1_damaged",
+   "ai": true
+  },
+  {
+   "name": "house_lv1_kacak",
+   "ai": true
+  },
+  {
+   "name": "house_lv1_kacak_damaged",
+   "ai": true
+  },
+  {
+   "name": "house_lv1_reinforced",
+   "ai": true
+  },
+  {
+   "name": "house_lv2",
+   "ai": true
+  },
+  {
+   "name": "house_lv2_collapsed",
+   "ai": true
+  },
+  {
+   "name": "house_lv2_damaged",
+   "ai": true
+  },
+  {
+   "name": "house_lv2_kacak",
+   "ai": true
+  },
+  {
+   "name": "house_lv2_kacak_damaged",
+   "ai": true
+  },
+  {
+   "name": "house_lv2_reinforced",
+   "ai": true
+  },
+  {
+   "name": "house_lv3",
+   "ai": true
+  },
+  {
+   "name": "house_lv3_collapsed",
+   "ai": true
+  },
+  {
+   "name": "house_lv3_damaged",
+   "ai": true
+  }
+ ],
+ "binalar/kamu": [
+  {
+   "name": "building_afad",
+   "ai": true
+  },
+  {
+   "name": "building_firestation",
+   "ai": true
+  },
+  {
+   "name": "building_hospital",
+   "ai": true
+  },
+  {
+   "name": "building_news",
+   "ai": true
+  },
+  {
+   "name": "building_school",
+   "ai": true
+  },
+  {
+   "name": "building_townhall_lv1",
+   "ai": true
+  },
+  {
+   "name": "building_townhall_lv2",
+   "ai": true
+  },
+  {
+   "name": "building_townhall_lv3",
+   "ai": true
+  }
+ ],
+ "binalar/ticari": [
+  {
+   "name": "building_A",
+   "ai": false
+  },
+  {
+   "name": "building_A_withoutBase",
+   "ai": false
+  },
+  {
+   "name": "building_B",
+   "ai": false
+  },
+  {
+   "name": "building_B_withoutBase",
+   "ai": false
+  },
+  {
+   "name": "building_C",
+   "ai": false
+  },
+  {
+   "name": "building_C_withoutBase",
+   "ai": false
+  },
+  {
+   "name": "building_D",
+   "ai": false
+  },
+  {
+   "name": "building_D_withoutBase",
+   "ai": false
+  },
+  {
+   "name": "building_E",
+   "ai": false
+  },
+  {
+   "name": "building_E_withoutBase",
+   "ai": false
+  },
+  {
+   "name": "building_F",
+   "ai": false
+  },
+  {
+   "name": "building_F_withoutBase",
+   "ai": false
+  },
+  {
+   "name": "building_G",
+   "ai": false
+  },
+  {
+   "name": "building_G_withoutBase",
+   "ai": false
+  },
+  {
+   "name": "building_H",
+   "ai": false
+  },
+  {
+   "name": "building_H_withoutBase",
+   "ai": false
+  }
+ ],
+ "binalar/insaat": [
+  {
+   "name": "building_construction",
+   "ai": true
+  },
+  {
+   "name": "scaffold_2floor",
+   "ai": true
+  },
+  {
+   "name": "scaffold_4floor",
+   "ai": true
+  },
+  {
+   "name": "tower_crane",
+   "ai": true
+  }
+ ],
+ "binalar/hasar": [
+  {
+   "name": "building_A_damaged",
+   "ai": true
+  },
+  {
+   "name": "building_C_damaged",
+   "ai": true
+  },
+  {
+   "name": "building_collapsed",
+   "ai": true
+  }
+ ],
+ "afet": [
+  {
+   "name": "aid_pallet",
+   "ai": true
+  },
+  {
+   "name": "assembly_area_marker",
+   "ai": true
+  },
+  {
+   "name": "earthquake_kit",
+   "ai": true
+  },
+  {
+   "name": "fire_large",
+   "ai": true
+  },
+  {
+   "name": "fire_small",
+   "ai": true
+  },
+  {
+   "name": "first_aid_box",
+   "ai": true
+  },
+  {
+   "name": "road_barrier",
+   "ai": true
+  },
+  {
+   "name": "rubble_large",
+   "ai": true
+  },
+  {
+   "name": "rubble_small",
+   "ai": true
+  },
+  {
+   "name": "sandbag_wall",
+   "ai": true
+  },
+  {
+   "name": "sign_assembly_area",
+   "ai": true
+  },
+  {
+   "name": "siren_pole",
+   "ai": true
+  },
+  {
+   "name": "smoke_column",
+   "ai": true
+  },
+  {
+   "name": "tent_disaster",
+   "ai": true
+  },
+  {
+   "name": "traffic_cone",
+   "ai": true
+  }
+ ],
+ "medya_kampanya": [
+  {
+   "name": "billboard",
+   "ai": true
+  },
+  {
+   "name": "billboard_campaign",
+   "ai": true
+  },
+  {
+   "name": "newspaper_kiosk",
+   "ai": true
+  },
+  {
+   "name": "newspaper_stack",
+   "ai": true
+  }
+ ],
+ "yol_zemin": [
+  {
+   "name": "base",
+   "ai": false
+  },
+  {
+   "name": "road_corner",
+   "ai": false
+  },
+  {
+   "name": "road_corner_curved",
+   "ai": false
+  },
+  {
+   "name": "road_junction",
+   "ai": false
+  },
+  {
+   "name": "road_straight",
+   "ai": false
+  },
+  {
+   "name": "road_straight_crossing",
+   "ai": false
+  },
+  {
+   "name": "road_tsplit",
+   "ai": false
+  },
+  {
+   "name": "flood_puddles_overlay",
+   "ai": true
+  },
+  {
+   "name": "flood_water_overlay",
+   "ai": true
+  },
+  {
+   "name": "road_straight_cracked",
+   "ai": true
+  },
+  {
+   "name": "road_straight_flooded",
+   "ai": true
+  },
+  {
+   "name": "tile_grass",
+   "ai": true
+  },
+  {
+   "name": "tile_grass_flooded",
+   "ai": true
+  },
+  {
+   "name": "tile_plaza",
+   "ai": true
+  },
+  {
+   "name": "tile_river_corner",
+   "ai": true
+  },
+  {
+   "name": "tile_river_straight",
+   "ai": true
+  },
+  {
+   "name": "tile_water",
+   "ai": true
+  }
+ ],
+ "sokak": [
+  {
+   "name": "bench",
+   "ai": false
+  },
+  {
+   "name": "box_A",
+   "ai": false
+  },
+  {
+   "name": "box_B",
+   "ai": false
+  },
+  {
+   "name": "bush",
+   "ai": false
+  },
+  {
+   "name": "dumpster",
+   "ai": false
+  },
+  {
+   "name": "firehydrant",
+   "ai": false
+  },
+  {
+   "name": "streetlight",
+   "ai": false
+  },
+  {
+   "name": "trafficlight_A",
+   "ai": false
+  },
+  {
+   "name": "trafficlight_B",
+   "ai": false
+  },
+  {
+   "name": "trafficlight_C",
+   "ai": false
+  },
+  {
+   "name": "trash_A",
+   "ai": false
+  },
+  {
+   "name": "trash_B",
+   "ai": false
+  },
+  {
+   "name": "watertower",
+   "ai": false
+  }
+ ],
+ "doga/agac": [
+  {
+   "name": "Tree_1_A_Color1",
+   "ai": false
+  },
+  {
+   "name": "Tree_1_B_Color1",
+   "ai": false
+  },
+  {
+   "name": "Tree_1_C_Color1",
+   "ai": false
+  },
+  {
+   "name": "Tree_2_A_Color1",
+   "ai": false
+  },
+  {
+   "name": "Tree_2_B_Color1",
+   "ai": false
+  },
+  {
+   "name": "Tree_2_C_Color1",
+   "ai": false
+  },
+  {
+   "name": "Tree_2_D_Color1",
+   "ai": false
+  },
+  {
+   "name": "Tree_2_E_Color1",
+   "ai": false
+  },
+  {
+   "name": "Tree_3_A_Color1",
+   "ai": false
+  },
+  {
+   "name": "Tree_3_B_Color1",
+   "ai": false
+  },
+  {
+   "name": "Tree_3_C_Color1",
+   "ai": false
+  },
+  {
+   "name": "Tree_4_A_Color1",
+   "ai": false
+  },
+  {
+   "name": "Tree_4_B_Color1",
+   "ai": false
+  },
+  {
+   "name": "Tree_4_C_Color1",
+   "ai": false
+  },
+  {
+   "name": "Tree_Bare_1_A_Color1",
+   "ai": false
+  },
+  {
+   "name": "Tree_Bare_1_B_Color1",
+   "ai": false
+  },
+  {
+   "name": "Tree_Bare_1_C_Color1",
+   "ai": false
+  },
+  {
+   "name": "Tree_Bare_2_A_Color1",
+   "ai": false
+  },
+  {
+   "name": "Tree_Bare_2_B_Color1",
+   "ai": false
+  },
+  {
+   "name": "Tree_Bare_2_C_Color1",
+   "ai": false
+  }
+ ],
+ "doga/cali": [
+  {
+   "name": "Bush_1_A_Color1",
+   "ai": false
+  },
+  {
+   "name": "Bush_1_B_Color1",
+   "ai": false
+  },
+  {
+   "name": "Bush_1_C_Color1",
+   "ai": false
+  },
+  {
+   "name": "Bush_1_D_Color1",
+   "ai": false
+  },
+  {
+   "name": "Bush_1_E_Color1",
+   "ai": false
+  },
+  {
+   "name": "Bush_1_F_Color1",
+   "ai": false
+  },
+  {
+   "name": "Bush_1_G_Color1",
+   "ai": false
+  },
+  {
+   "name": "Bush_2_A_Color1",
+   "ai": false
+  },
+  {
+   "name": "Bush_2_B_Color1",
+   "ai": false
+  },
+  {
+   "name": "Bush_2_C_Color1",
+   "ai": false
+  },
+  {
+   "name": "Bush_2_D_Color1",
+   "ai": false
+  },
+  {
+   "name": "Bush_2_E_Color1",
+   "ai": false
+  },
+  {
+   "name": "Bush_2_F_Color1",
+   "ai": false
+  },
+  {
+   "name": "Bush_3_A_Color1",
+   "ai": false
+  },
+  {
+   "name": "Bush_3_B_Color1",
+   "ai": false
+  },
+  {
+   "name": "Bush_3_C_Color1",
+   "ai": false
+  },
+  {
+   "name": "Bush_4_A_Color1",
+   "ai": false
+  },
+  {
+   "name": "Bush_4_B_Color1",
+   "ai": false
+  },
+  {
+   "name": "Bush_4_C_Color1",
+   "ai": false
+  },
+  {
+   "name": "Bush_4_D_Color1",
+   "ai": false
+  },
+  {
+   "name": "Bush_4_E_Color1",
+   "ai": false
+  },
+  {
+   "name": "Bush_4_F_Color1",
+   "ai": false
+  }
+ ],
+ "doga/kaya": [
+  {
+   "name": "Rock_1_A_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_1_B_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_1_C_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_1_D_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_1_E_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_1_F_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_1_G_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_1_H_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_1_I_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_1_J_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_1_K_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_1_L_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_1_M_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_1_N_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_1_O_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_1_P_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_1_Q_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_2_A_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_2_B_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_2_C_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_2_D_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_2_E_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_2_F_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_2_G_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_2_H_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_3_A_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_3_B_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_3_C_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_3_D_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_3_E_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_3_F_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_3_G_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_3_H_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_3_I_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_3_J_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_3_K_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_3_L_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_3_M_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_3_N_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_3_O_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_3_P_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_3_Q_Color1",
+   "ai": false
+  },
+  {
+   "name": "Rock_3_R_Color1",
+   "ai": false
+  }
+ ],
+ "doga/cimen": [
+  {
+   "name": "Grass_1_A_Color1",
+   "ai": false
+  },
+  {
+   "name": "Grass_1_A_Singlesided_Color1",
+   "ai": false
+  },
+  {
+   "name": "Grass_1_B_Color1",
+   "ai": false
+  },
+  {
+   "name": "Grass_1_B_Singlesided_Color1",
+   "ai": false
+  },
+  {
+   "name": "Grass_1_C_Color1",
+   "ai": false
+  },
+  {
+   "name": "Grass_1_C_Singlesided_Color1",
+   "ai": false
+  },
+  {
+   "name": "Grass_1_D_Color1",
+   "ai": false
+  },
+  {
+   "name": "Grass_1_D_Singlesided_Color1",
+   "ai": false
+  },
+  {
+   "name": "Grass_1_Mesh",
+   "ai": false
+  },
+  {
+   "name": "Grass_1_SingleSided_Mesh",
+   "ai": false
+  },
+  {
+   "name": "Grass_2_A_Color1",
+   "ai": false
+  },
+  {
+   "name": "Grass_2_A_Singlesided_Color1",
+   "ai": false
+  },
+  {
+   "name": "Grass_2_B_Color1",
+   "ai": false
+  },
+  {
+   "name": "Grass_2_B_Singlesided_Color1",
+   "ai": false
+  },
+  {
+   "name": "Grass_2_C_Color1",
+   "ai": false
+  },
+  {
+   "name": "Grass_2_C_Singlesided_Color1",
+   "ai": false
+  },
+  {
+   "name": "Grass_2_D_Color1",
+   "ai": false
+  },
+  {
+   "name": "Grass_2_D_Singlesided_Color1",
+   "ai": false
+  },
+  {
+   "name": "Grass_2_Mesh",
+   "ai": false
+  },
+  {
+   "name": "Grass_2_SingleSided_Mesh",
+   "ai": false
+  }
+ ]
+}

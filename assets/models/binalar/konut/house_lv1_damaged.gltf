@@ -1,0 +1,136 @@
+{
+  "asset": {
+    "generator": "kitgen.py",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "house_lv1_damaged",
+      "mesh": 0
+    }
+  ],
+  "meshes": [
+    {
+      "name": "house_lv1_damaged",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "TEXCOORD_0": 1,
+            "NORMAL": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "name": "citybits_texture",
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0
+        },
+        "metallicFactor": 0,
+        "roughnessFactor": 0.4
+      }
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "citybits_texture",
+      "uri": "citybits_texture.png"
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 3864,
+      "type": "VEC3",
+      "min": [
+        -1.0,
+        0.0,
+        -1.0
+      ],
+      "max": [
+        1.0,
+        1.8799999952316284,
+        1.0108720064163208
+      ]
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 3864,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 3864,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 5394,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 46368,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 46368,
+      "byteLength": 30912,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 77280,
+      "byteLength": 46368,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 123648,
+      "byteLength": 10788,
+      "target": 34963
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 134436,
+      "uri": "house_lv1_damaged.bin"
+    }
+  ]
+}

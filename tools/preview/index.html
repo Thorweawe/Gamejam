@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Asset Preview</title>
+<style>
+  :root { --bg: #1e2329; --fg: #e8e8e8; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font: 14px system-ui, sans-serif; overflow: hidden; }
+  #info { position: absolute; top: 10px; left: 12px; right: 12px; background: #0008; padding: 6px 10px; border-radius: 6px; font-size: 12px; }
+  #info select { font-size: 14px; margin-bottom: 4px; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="info">Fare: döndür · Tekerlek: yakınlaştır<br><span id="list"></span></div>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ?cat=araclar  -> o kategorinin tamami (assets/models/index.json)
+// ?models=models/araclar/car_ambulance,...  (assets/ altindan) -> secili modeller
+const params = new URLSearchParams(location.search);
+const index = await (await fetch('../../assets/models/index.json')).json();
+const cat = params.get('cat') || 'araclar';
+const sel = document.createElement('select');
+for (const c of Object.keys(index)) {
+  const o = new Option(`${c} (${index[c].length})`, c);
+  o.selected = c === cat && !params.get('models');
+  sel.add(o);
+}
+sel.onchange = () => { location.search = '?cat=' + encodeURIComponent(sel.value); };
+document.getElementById('info').prepend(sel, ' ');
+const models = params.get('models') ? params.get('models').split(',')
+  : index[cat].map(m => `models/${cat}/${m.name}`);
+const big = /binalar|yol_zemin/.test(cat);
+const spacing = parseFloat(params.get('spacing') || (big ? '2.3' : cat === 'araclar' ? '0.7' : '1.0'));
+if (!params.get('cols')) params.set('cols', String(Math.ceil(Math.sqrt(models.length * (cat === 'araclar' ? 0.5 : 1.3)))));
+if (!params.get('ground')) params.set('ground', cat === 'araclar' ? '-0.061' : '0');
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(devicePixelRatio);
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x9fd3e6);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x667766, 1.6));
+const sun = new THREE.DirectionalLight(0xffffff, 2.2);
+sun.position.set(3, 5, 2);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -4, right: 4, top: 4, bottom: -4 });
+scene.add(sun);
+
+const camera = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, 0.05, 100);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+const loader = new GLTFLoader();
+const base = '../../assets/';
+const cols = parseInt(params.get('cols') || String(models.length));
+const groundY = parseFloat(params.get('ground') || '-0.061');
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 200),
+  new THREE.MeshStandardMaterial({ color: 0x8fbf6a }));
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = groundY - 0.001;
+ground.receiveShadow = true;
+scene.add(ground);
+
+const rows = Math.ceil(models.length / cols);
+const all = new THREE.Group();
+scene.add(all);
+let loaded = 0;
+models.forEach((m, i) => {
+  loader.load(base + m + '.gltf', g => {
+    const c = i % cols, r = Math.floor(i / cols);
+    g.scene.position.set((c - (cols - 1) / 2) * spacing, 0, (r - (rows - 1) / 2) * spacing);
+    g.scene.traverse(o => { if (o.isMesh) { o.castShadow = o.receiveShadow = true; } });
+    all.add(g.scene);
+    if (++loaded === models.length) fit();
+  }, undefined, e => { console.error(m, e); if (++loaded === models.length) fit(); });
+});
+document.getElementById('list').textContent = models.map(m => m.split('/').pop()).join(' · ');
+
+function fit() {
+  const box = new THREE.Box3().setFromObject(all);
+  const size = box.getSize(new THREE.Vector3()), center = box.getCenter(new THREE.Vector3());
+  const r = Math.max(size.x, size.z * 1.3, size.y) * 0.62 + 0.3;
+  const dir = new THREE.Vector3(0.75, 0.75, 1.0).normalize();
+  const dist = r / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2)) * 0.62;
+  camera.position.copy(center).addScaledVector(dir, dist);
+  controls.target.copy(center);
+  Object.assign(sun.shadow.camera, { left: -r * 2, right: r * 2, top: r * 2, bottom: -r * 2 });
+  sun.position.copy(center).add(new THREE.Vector3(3, 6, 2).multiplyScalar(Math.max(1, r / 2)));
+  sun.target.position.copy(center);
+  scene.add(sun.target);
+  sun.shadow.camera.far = 100;
+  sun.shadow.camera.updateProjectionMatrix();
+}
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); });
+</script>
+</body>
+</html>

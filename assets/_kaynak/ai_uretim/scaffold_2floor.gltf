@@ -1,0 +1,136 @@
+{
+  "asset": {
+    "generator": "kitgen.py",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "scaffold_2floor",
+      "mesh": 0
+    }
+  ],
+  "meshes": [
+    {
+      "name": "scaffold_2floor",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "TEXCOORD_0": 1,
+            "NORMAL": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "name": "citybits_texture",
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0
+        },
+        "metallicFactor": 0,
+        "roughnessFactor": 0.4
+      }
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "citybits_texture",
+      "uri": "citybits_texture.png"
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 1080,
+      "type": "VEC3",
+      "min": [
+        -0.7200000286102295,
+        0.09583999961614609,
+        -0.9300000071525574
+      ],
+      "max": [
+        0.7200000286102295,
+        1.7575000524520874,
+        0.9380000233650208
+      ]
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 1080,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 1080,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 1620,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 12960,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 12960,
+      "byteLength": 8640,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 21600,
+      "byteLength": 12960,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 34560,
+      "byteLength": 3240,
+      "target": 34963
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 37800,
+      "uri": "scaffold_2floor.bin"
+    }
+  ]
+}
