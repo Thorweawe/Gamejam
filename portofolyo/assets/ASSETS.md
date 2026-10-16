@@ -13,9 +13,9 @@ Bu dosya `tools/organize_assets.py` ile otomatik uretilir, elle duzenlemeyin.
 |---|---|---|
 | KayKit City Builder Bits 1.0 (Kay Lousberg) | CC0 | 41 |
 | KayKit Forest Nature Pack 1.0 (Kay Lousberg) | CC0 | 105 |
-| Yapay zeka ile uretildi (Claude, tools/asset_gen) | Proje ekibine ait | 111 |
+| Yapay zeka ile uretildi (Claude, tools/asset_gen) | Proje ekibine ait | 151 |
 
-**Toplam: 257 model**
+**Toplam: 297 model**
 
 ## Godot notlari
 
@@ -28,7 +28,7 @@ Bu dosya `tools/organize_assets.py` ile otomatik uretilir, elle duzenlemeyin.
 - Modelleri yeniden uretmek: `python tools/asset_gen/models.py` sonra `python tools/organize_assets.py`.
 - Onizleme: `python -m http.server 8765` -> http://localhost:8765/tools/preview/index.html
 
-## araclar (12)
+## araclar (13)
 
 Arabalar ve acil durum araclari (tekerlekler ayri node)
 
@@ -39,6 +39,7 @@ Arabalar ve acil durum araclari (tekerlekler ayri node)
 | `car_sedan` | KayKit City Builder Bits 1.0 |
 | `car_stationwagon` | KayKit City Builder Bits 1.0 |
 | `car_taxi` | KayKit City Builder Bits 1.0 |
+| `boat_fishing` | AI uretimi |
 | `car_afad_rescue` | AI uretimi |
 | `car_ambulance` | AI uretimi |
 | `car_bus` | AI uretimi |
@@ -91,15 +92,21 @@ Konut zinciri: gecekondu -> lv1 -> lv2 -> lv3, kacak kat, guclendirilmis, hasarl
 | `house_lv3_collapsed` | AI uretimi |
 | `house_lv3_damaged` | AI uretimi |
 
-## binalar/kamu (8)
+## binalar/kamu (14)
 
 Belediye (3 seviye), hastane, itfaiye, okul, AFAD, gazete/TV
 
 | Model | Kaynak |
 |---|---|
 | `building_afad` | AI uretimi |
+| `building_afad_lv2` | AI uretimi |
+| `building_afad_lv3` | AI uretimi |
 | `building_firestation` | AI uretimi |
+| `building_firestation_lv2` | AI uretimi |
+| `building_firestation_lv3` | AI uretimi |
 | `building_hospital` | AI uretimi |
+| `building_hospital_lv2` | AI uretimi |
+| `building_hospital_lv3` | AI uretimi |
 | `building_news` | AI uretimi |
 | `building_school` | AI uretimi |
 | `building_townhall_lv1` | AI uretimi |
@@ -140,7 +147,7 @@ Iskele, insaat alani, kule vinc (yukseltme sirasinda)
 | `scaffold_4floor` | AI uretimi |
 | `tower_crane` | AI uretimi |
 
-## binalar/hasar (32)
+## binalar/hasar (44)
 
 Kamu ve ticari binalarin hasarli (_damaged) ve yikik (_collapsed) halleri
 
@@ -164,10 +171,22 @@ Kamu ve ticari binalarin hasarli (_damaged) ve yikik (_collapsed) halleri
 | `building_H_damaged` | AI uretimi |
 | `building_afad_collapsed` | AI uretimi |
 | `building_afad_damaged` | AI uretimi |
+| `building_afad_lv2_collapsed` | AI uretimi |
+| `building_afad_lv2_damaged` | AI uretimi |
+| `building_afad_lv3_collapsed` | AI uretimi |
+| `building_afad_lv3_damaged` | AI uretimi |
 | `building_firestation_collapsed` | AI uretimi |
 | `building_firestation_damaged` | AI uretimi |
+| `building_firestation_lv2_collapsed` | AI uretimi |
+| `building_firestation_lv2_damaged` | AI uretimi |
+| `building_firestation_lv3_collapsed` | AI uretimi |
+| `building_firestation_lv3_damaged` | AI uretimi |
 | `building_hospital_collapsed` | AI uretimi |
 | `building_hospital_damaged` | AI uretimi |
+| `building_hospital_lv2_collapsed` | AI uretimi |
+| `building_hospital_lv2_damaged` | AI uretimi |
+| `building_hospital_lv3_collapsed` | AI uretimi |
+| `building_hospital_lv3_damaged` | AI uretimi |
 | `building_news_collapsed` | AI uretimi |
 | `building_news_damaged` | AI uretimi |
 | `building_school_collapsed` | AI uretimi |
@@ -212,7 +231,7 @@ Reklam panolari, gazete bayii (farkindalik kampanyalari)
 | `newspaper_kiosk` | AI uretimi |
 | `newspaper_stack` | AI uretimi |
 
-## yol_zemin (18)
+## yol_zemin (24)
 
 Yollar, kaldirim, cim, su, dere, catlak/sel basmis karolar
 
@@ -227,17 +246,23 @@ Yollar, kaldirim, cim, su, dere, catlak/sel basmis karolar
 | `road_tsplit` | KayKit City Builder Bits 1.0 |
 | `flood_puddles_overlay` | AI uretimi |
 | `flood_water_overlay` | AI uretimi |
+| `river_wall` | AI uretimi |
+| `road_bridge` | AI uretimi |
 | `road_straight_cracked` | AI uretimi |
 | `road_straight_flooded` | AI uretimi |
 | `tile_grass` | AI uretimi |
+| `tile_grass_b` | AI uretimi |
+| `tile_grass_burnt` | AI uretimi |
+| `tile_grass_c` | AI uretimi |
 | `tile_grass_flooded` | AI uretimi |
+| `tile_mountain` | AI uretimi |
 | `tile_plaza` | AI uretimi |
 | `tile_river_corner` | AI uretimi |
 | `tile_river_straight` | AI uretimi |
 | `tile_sand` | AI uretimi |
 | `tile_water` | AI uretimi |
 
-## sokak (13)
+## sokak (17)
 
 KayKit sokak objeleri (bank, lamba, cop kutusu...)
 
@@ -256,6 +281,42 @@ KayKit sokak objeleri (bank, lamba, cop kutusu...)
 | `trash_A` | KayKit City Builder Bits 1.0 |
 | `trash_B` | KayKit City Builder Bits 1.0 |
 | `watertower` | KayKit City Builder Bits 1.0 |
+| `beach_umbrella` | AI uretimi |
+| `fountain` | AI uretimi |
+| `lighthouse` | AI uretimi |
+| `pier` | AI uretimi |
+
+## canlilar (4)
+
+Hayvanlar: marti, kus, geyik, kopek (kanat/bacak ayri node -> animasyon)
+
+| Model | Kaynak |
+|---|---|
+| `bird_small` | AI uretimi |
+| `deer` | AI uretimi |
+| `dog` | AI uretimi |
+| `seagull` | AI uretimi |
+
+## doga/dag (4)
+
+Daglar ve tepeler
+
+| Model | Kaynak |
+|---|---|
+| `hill` | AI uretimi |
+| `mountain_large` | AI uretimi |
+| `mountain_medium` | AI uretimi |
+| `mountain_small` | AI uretimi |
+
+## doga/piknik (3)
+
+Mangal, piknik masasi, ortu
+
+| Model | Kaynak |
+|---|---|
+| `bbq_grill` | AI uretimi |
+| `picnic_blanket` | AI uretimi |
+| `picnic_table` | AI uretimi |
 
 ## doga/agac (20)
 

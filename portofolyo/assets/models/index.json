@@ -21,6 +21,10 @@
    "ai": false
   },
   {
+   "name": "boat_fishing",
+   "ai": true
+  },
+  {
    "name": "car_afad_rescue",
    "ai": true
   },
@@ -179,11 +183,35 @@
    "ai": true
   },
   {
+   "name": "building_afad_lv2",
+   "ai": true
+  },
+  {
+   "name": "building_afad_lv3",
+   "ai": true
+  },
+  {
    "name": "building_firestation",
    "ai": true
   },
   {
+   "name": "building_firestation_lv2",
+   "ai": true
+  },
+  {
+   "name": "building_firestation_lv3",
+   "ai": true
+  },
+  {
    "name": "building_hospital",
+   "ai": true
+  },
+  {
+   "name": "building_hospital_lv2",
+   "ai": true
+  },
+  {
+   "name": "building_hospital_lv3",
    "ai": true
   },
   {
@@ -365,6 +393,22 @@
    "ai": true
   },
   {
+   "name": "building_afad_lv2_collapsed",
+   "ai": true
+  },
+  {
+   "name": "building_afad_lv2_damaged",
+   "ai": true
+  },
+  {
+   "name": "building_afad_lv3_collapsed",
+   "ai": true
+  },
+  {
+   "name": "building_afad_lv3_damaged",
+   "ai": true
+  },
+  {
    "name": "building_firestation_collapsed",
    "ai": true
   },
@@ -373,11 +417,43 @@
    "ai": true
   },
   {
+   "name": "building_firestation_lv2_collapsed",
+   "ai": true
+  },
+  {
+   "name": "building_firestation_lv2_damaged",
+   "ai": true
+  },
+  {
+   "name": "building_firestation_lv3_collapsed",
+   "ai": true
+  },
+  {
+   "name": "building_firestation_lv3_damaged",
+   "ai": true
+  },
+  {
    "name": "building_hospital_collapsed",
    "ai": true
   },
   {
    "name": "building_hospital_damaged",
+   "ai": true
+  },
+  {
+   "name": "building_hospital_lv2_collapsed",
+   "ai": true
+  },
+  {
+   "name": "building_hospital_lv2_damaged",
+   "ai": true
+  },
+  {
+   "name": "building_hospital_lv3_collapsed",
+   "ai": true
+  },
+  {
+   "name": "building_hospital_lv3_damaged",
    "ai": true
   },
   {
@@ -539,6 +615,14 @@
    "ai": true
   },
   {
+   "name": "river_wall",
+   "ai": true
+  },
+  {
+   "name": "road_bridge",
+   "ai": true
+  },
+  {
    "name": "road_straight_cracked",
    "ai": true
   },
@@ -551,7 +635,23 @@
    "ai": true
   },
   {
+   "name": "tile_grass_b",
+   "ai": true
+  },
+  {
+   "name": "tile_grass_burnt",
+   "ai": true
+  },
+  {
+   "name": "tile_grass_c",
+   "ai": true
+  },
+  {
    "name": "tile_grass_flooded",
+   "ai": true
+  },
+  {
+   "name": "tile_mountain",
    "ai": true
   },
   {
@@ -627,6 +727,72 @@
   {
    "name": "watertower",
    "ai": false
+  },
+  {
+   "name": "beach_umbrella",
+   "ai": true
+  },
+  {
+   "name": "fountain",
+   "ai": true
+  },
+  {
+   "name": "lighthouse",
+   "ai": true
+  },
+  {
+   "name": "pier",
+   "ai": true
+  }
+ ],
+ "canlilar": [
+  {
+   "name": "bird_small",
+   "ai": true
+  },
+  {
+   "name": "deer",
+   "ai": true
+  },
+  {
+   "name": "dog",
+   "ai": true
+  },
+  {
+   "name": "seagull",
+   "ai": true
+  }
+ ],
+ "doga/dag": [
+  {
+   "name": "hill",
+   "ai": true
+  },
+  {
+   "name": "mountain_large",
+   "ai": true
+  },
+  {
+   "name": "mountain_medium",
+   "ai": true
+  },
+  {
+   "name": "mountain_small",
+   "ai": true
+  }
+ ],
+ "doga/piknik": [
+  {
+   "name": "bbq_grill",
+   "ai": true
+  },
+  {
+   "name": "picnic_blanket",
+   "ai": true
+  },
+  {
+   "name": "picnic_table",
+   "ai": true
   }
  ],
  "doga/agac": [

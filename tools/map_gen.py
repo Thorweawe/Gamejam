@@ -2,17 +2,23 @@
 
   python tools/map_gen.py
 
+Harita: batida daglar (nehir buradan dogar), kuzeyde orman ve piknik alanlari,
+dogu ve guneyde kumsal + deniz. Nehir sehrin kuzeyinden gecip denize dokulur.
+
 Plan karakterleri (her karakter 2x2'lik bir karo):
-  .  kumsal          ~  (kullanilmaz, ada disi deniz otomatik)
-  =  yol (yonu komsulara gore otomatik: duz / kose / T / dortyol)
-  w  dere            g  cim           T  orman        r  kayalik
-  p  park            P  meydan        A  toplanma alani
-  b  kampanya panosu C  insaat alani (kule vincli)
+  ~  deniz (karo yok)   .  kumsal       M  dag          m  dag eteği (tepeler)
+  R  kayalik kiyi       L  deniz feneri J  iskele (doguya uzanir)   U  plaj semsiyesi
+  =  yol (yonu komsulara gore otomatik)  B  kopru (yol nehrin ustunden)
+  w  nehir              g  cim          T  orman        Q  piknik / mangal alani
+  p  park               P  meydan       A  toplanma alani
+  b  kampanya panosu    C  insaat alani (kule vincli)
   Binalar (Building yuvasi: normal/hasarli/yikik + animasyon):
   0 gecekondu  1 ev  2 apartman  3 gelismis bina  k kacak katli ev  K kacak katli apartman
   R guclendirilmis apartman   c dukkan binasi (KayKit A-H)
   H belediye  h hastane  f itfaiye  s okul  a AFAD  n gazete/TV
 Binalar on yuzlerini otomatik olarak komsu yola cevirir.
+Oyun mantiginin ihtiyac duydugu bolgeler (orman, piknik, toplanma, sel bolgesi...)
+sahnedeki MapInfo dugumune yazilir.
 """
 import math
 import os
@@ -29,24 +35,36 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 OUT = os.path.join(ROOT, "portofolyo", "scenes", "city_map.tscn")
 
 PLAN = [
-    "....................",
-    ".rTwTTTpTTTpTTTpTTr.",
-    ".TTw0g1g21g2c12g1gT.",
-    ".Tgw0=============1.",
-    ".rgw0=121=gsg=323=1.",
-    ".Tgw0=2p1=ppp=Rp2=g.",
-    ".Tgw0=12K=TbT=23K=1.",
-    ".TTw0=============1.",
-    ".rgw0=cnc=PPP=hca=1.",
-    ".Tgw0=cPc=PHP=gPf=g.",
-    ".TTw0=ccc=PPP=cbc=1.",
-    ".Tgw0=============g.",
-    ".Tgw0=1k2=TpT=2C3=1.",
-    ".rgw0=2p1=pAp=2p2=g.",
-    ".TTwg=12k=TpT=132=1.",
-    ".Tgwg=============g.",
-    ".Tgwg01g21g10g12gg..",
-    "...w................",
+    "~~~~~~R~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+    "~~RRRRmR.......~~~~~~......L~~~~~~",
+    "~RRRMMmmTT.TTTT......TTTTTTT~~~~~~",
+    "~RMMMMMMTTTTTTTTTTTTTTTTTTT.~~~~~~",
+    "~RMMMMMMTTTTTTTTTTTTTTTTTTT.~~~~~~",
+    "~RMMMMmmTTTTTTTTTQTTTTQTTTT.~~~~~~",
+    "~~RMMMmmTQTTTTTTQ=QTTTTTTTT.~~~~~~",
+    "~~RMMMmmTTTTQTTTT=TTTTTTQTT.~~~~~~",
+    "~RMMMMmmgTggTggTg=TggTggTgg.~~~~~~",
+    "~RMMMwwwwwwwwwwwwBwwwwwwwwwww~~~~~",
+    "RMMMMMmmg00k01001=01000k01g..~~~~~",
+    "RMMMMMmm0=================1..~~~~~",
+    "~RMMMMmm1=1A1=gsg=cnc=323=c..~~~~~",
+    "~RMMMMmm0=2p1=ppp=cPc=2p3=1U.~~~~~",
+    "~~RMMMmm1=12k=1b2=ccc=3R2=c.~~~~~~",
+    "~~RMMMmm0=================c.~~~~~~",
+    "~~RMMMmm0=1k2=PPP=hga=ccc=1.~~~~~~",
+    "~~RMMMmm1=2p1=PHP=gPf=cPc=cJ.~~~~~",
+    "~RMMMMmm0=121=PPP=cbc=ccc=1..~~~~~",
+    "~RMMMMmm0=================c..~~~~~",
+    "~~RMMMmm1=0A1=TpT=2C3=2A1=c..~~~~~",
+    "~~RMMMmm0=0p1=pAp=2p2=1pK=1U~~~~~~",
+    "~~RMMMmm0=100=TpT=132=121=c.~~~~~~",
+    "~~RMMMmm0=================1.~~~~~~",
+    "~~RMMMmmgg12g21g2g12g21g2g..~~~~~~",
+    "~RMMMMMM....................~~~~~~",
+    "~RRMMMMM...U...U....U...U...~~~~~~",
+    "RMM~~RRR~~~~~..~~~~~~~~~~~~~~~~~~~",
+    "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+    "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
 ]
 
 BUILDINGS = {
@@ -56,27 +74,16 @@ BUILDINGS = {
     "s": "building_school", "a": "building_afad", "n": "building_news",
 }
 SHOPS = [f"building_{c}" for c in "ABCDEFGH"]
+ROADLIKE = "=B"
 
-# Arabalar ve yayalar sahnede durmaz; oyun basinda scripts/traffic.gd yol agina gore olusturur.
+# Arabalar, yayalar ve hayvanlar sahnede durmaz; oyun basinda scriptler olusturur.
 
 M = "res://assets/models/"
 SIDES = {"+x": (1, 0), "-x": (-1, 0), "+z": (0, 1), "-z": (0, -1)}
 ROT90 = {"+z": "+x", "+x": "-z", "-z": "-x", "-x": "+z"}  # Godot'ta +90 derece Y donusu
 YAW = {"+z": 0, "+x": 90, "-z": 180, "-x": 270}
 
-SEA_SHADER = """shader_type spatial;
-uniform vec3 deep = vec3(0.04, 0.26, 0.55);
-uniform vec3 shallow = vec3(0.1, 0.48, 0.75);
-varying float wave;
-void vertex() {
-\twave = sin(VERTEX.x * 0.45 + TIME * 1.1) * 0.5 + cos(VERTEX.z * 0.38 + TIME * 0.8) * 0.5;
-\tVERTEX.y += wave * 0.025;
-}
-void fragment() {
-\tALBEDO = mix(deep, shallow, 0.45 + wave * 0.15);
-\tROUGHNESS = 0.55;
-\tSPECULAR = 0.25;
-}"""
+
 
 ROAD_TILES = [  # (model, varsayilan acik kenarlar) -- KayKit yol modellerinden olculdu
     ("road_junction", {"+x", "-x", "+z", "-z"}),
@@ -148,6 +155,58 @@ def pick_tile(options, open_sides):
     return straight, (90 if open_sides & {"+x", "-x"} else 0)
 
 
+def packed(points):
+    return "PackedVector2Array(" + ", ".join(f"{v:.3f}" for p in points for v in p) + ")"
+
+
+SEA_SHADER = """shader_type spatial;
+uniform vec3 deep = vec3(0.02, 0.17, 0.42);
+uniform vec3 mid = vec3(0.05, 0.36, 0.62);
+uniform vec3 shallow = vec3(0.16, 0.66, 0.72);
+uniform float light = 1.0;
+uniform sampler2D land_mask : filter_linear, repeat_disable;
+uniform vec2 map_min;
+uniform vec2 map_size;
+varying vec3 wpos;
+varying float wave;
+float land(vec2 p) {
+\tvec2 uv = (p - map_min) / map_size;
+\tif (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) { return 0.0; }
+\treturn texture(land_mask, uv).r;
+}
+void vertex() {
+\twpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+\tfloat calm = 1.0 - land(wpos.xz) * 0.8;
+\twave = sin(wpos.x * 0.45 + TIME * 1.1) * 0.5 + cos(wpos.z * 0.38 + TIME * 0.8) * 0.5;
+\twave += sin((wpos.x + wpos.z) * 1.3 + TIME * 2.1) * 0.25;
+\tVERTEX.y += wave * 0.045 * calm;
+}
+void fragment() {
+\tfloat m = land(wpos.xz);
+\tvec3 col = mix(deep, mid, smoothstep(0.0, 0.18, m));
+\tcol = mix(col, shallow, smoothstep(0.12, 0.4, m));
+\tfloat ripple = sin(m * 60.0 - TIME * 2.2 + sin(wpos.x * 0.7) * 1.5) * 0.5 + 0.5;
+\tfloat foam = smoothstep(0.22, 0.36, m) * (1.0 - smoothstep(0.42, 0.5, m)) * smoothstep(0.6, 0.95, ripple);
+\tfoam += smoothstep(0.4, 0.47, m);
+\tcol = mix(col, vec3(0.95, 0.98, 1.0), clamp(foam, 0.0, 1.0) * 0.8);
+\tcol += wave * 0.035;
+\tALBEDO = col * light;
+\tROUGHNESS = 0.2;
+\tSPECULAR = 0.45;
+}"""
+
+DISTRICTS = [  # (ad, plan sutun, plan satir) -- binalar en yakin mahalle merkezine baglanir
+    ("Dere Mahallesi", 17, 10),
+    ("Dağ Eteği", 8, 18),
+    ("Kuzey Mahallesi", 17, 13),
+    ("Merkez", 17, 18),
+    ("Sahil", 27, 17),
+    ("Güney Mahallesi", 17, 23),
+]
+GRASS = ["tile_grass", "tile_grass_b", "tile_grass_c"]
+LAND_CHARS = "".join(sorted(set("=BwgTQpPAbCMmR.UJL0123kKRcHhfsan")))
+
+
 def main():
     rnd = random.Random(7)
     H, W = len(PLAN), len(PLAN[0])
@@ -166,41 +225,80 @@ def main():
                 return d
         return "+z"
 
+    def near(c, r, chars, dist=1):
+        for dr in range(-dist, dist + 1):
+            for dc in range(-dist, dist + 1):
+                if 0 < abs(dr) + abs(dc) <= dist:
+                    v = at(c + dc, r + dr)
+                    if v is not None and v in chars:
+                        return True
+        return False
+
+    def is_land(c, r):
+        v = at(c, r)
+        return v is not None and v != "~"
+
+    info = {k: [] for k in ("forest_tiles", "picnic_spots", "assembly_points", "park_tiles", "plaza_tiles",
+                            "flood_tiles", "river_tiles", "beach_tiles", "mountain_tiles", "sea_points")}
+
+    # ---- kara maskesi (deniz shader'i: sig su + kiyi kopugu)
+    from PIL import Image, ImageFilter
+    px, pad = 8, 32
+    mask = Image.new("L", (W * px + 2 * pad, H * px + 2 * pad), 0)
+    for r in range(H):
+        for c in range(W):
+            if is_land(c, r):
+                mask.paste(255, (pad + c * px, pad + r * px, pad + (c + 1) * px, pad + (r + 1) * px))
+    mask = mask.filter(ImageFilter.GaussianBlur(9))
+    tex_dir = os.path.join(ROOT, "portofolyo", "assets", "textures")
+    os.makedirs(tex_dir, exist_ok=True)
+    mask.save(os.path.join(tex_dir, "land_mask.png"))
+    x0, z0 = pos(0, 0)
+    tile_px = 2.0 / px  # dunya birimi / piksel
+    map_min = (x0 - 1.0 - pad * tile_px, z0 - 1.0 - pad * tile_px)
+    map_size = (mask.width * tile_px, mask.height * tile_px)
+
     s = Scene()
-    s.res("res://scripts/city_map.gd", "Script")
-    s.res("res://scripts/camera_rig.gd", "Script")
-    s.res("res://scripts/building.gd", "Script")
-    s.res("res://scripts/traffic.gd", "Script")
+    for scr in ("city_map", "camera_rig", "building", "traffic", "map_info", "wildlife"):
+        s.res(f"res://scripts/{scr}.gd", "Script")
+    mask_id = s.res("res://assets/textures/land_mask.png", "Texture2D")
     s.subs += [
         '[sub_resource type="ProceduralSkyMaterial" id="sky_mat"]\n'
-        "sky_top_color = Color(0.36, 0.6, 0.86, 1)\nsky_horizon_color = Color(0.72, 0.85, 0.95, 1)\n"
-        "ground_bottom_color = Color(0.2, 0.42, 0.6, 1)\nground_horizon_color = Color(0.72, 0.85, 0.95, 1)\n",
+        "sky_top_color = Color(0.32, 0.56, 0.86, 1)\nsky_horizon_color = Color(0.74, 0.86, 0.96, 1)\n"
+        "ground_bottom_color = Color(0.1, 0.3, 0.5, 1)\nground_horizon_color = Color(0.74, 0.86, 0.96, 1)\n",
         '[sub_resource type="Sky" id="sky"]\nsky_material = SubResource("sky_mat")\n',
         '[sub_resource type="Environment" id="env"]\nbackground_mode = 2\nsky = SubResource("sky")\n'
-        "ambient_light_source = 3\nambient_light_energy = 0.9\ntonemap_mode = 2\nssao_enabled = true\n"
-        "ssao_intensity = 1.5\nadjustment_enabled = true\nadjustment_saturation = 1.1\n",
+        "ambient_light_source = 3\nambient_light_energy = 0.9\ntonemap_mode = 2\ntonemap_white = 1.2\n"
+        "ssao_enabled = true\nssao_intensity = 1.6\nglow_enabled = true\nglow_intensity = 0.45\nglow_bloom = 0.0\nglow_hdr_threshold = 1.2\n"
+        "fog_enabled = true\nfog_light_color = Color(0.72, 0.84, 0.95, 1)\nfog_density = 0.0012\nfog_sky_affect = 0.25\n"
+        "adjustment_enabled = true\nadjustment_saturation = 1.15\n",
         '[sub_resource type="Shader" id="sea_shader"]\ncode = "' + SEA_SHADER.replace("\n", "\\n") + '"\n',
-        '[sub_resource type="ShaderMaterial" id="sea_mat"]\nshader = SubResource("sea_shader")\n',
-        '[sub_resource type="PlaneMesh" id="sea_mesh"]\nmaterial = SubResource("sea_mat")\nsize = Vector2(400, 400)\n'
-        "subdivide_width = 160\nsubdivide_depth = 160\n",
+        '[sub_resource type="ShaderMaterial" id="sea_mat"]\nshader = SubResource("sea_shader")\n'
+        f'shader_parameter/land_mask = ExtResource("{mask_id}")\n'
+        f"shader_parameter/map_min = Vector2({map_min[0]:.3f}, {map_min[1]:.3f})\n"
+        f"shader_parameter/map_size = Vector2({map_size[0]:.3f}, {map_size[1]:.3f})\n",
+        '[sub_resource type="PlaneMesh" id="sea_mesh"]\nmaterial = SubResource("sea_mat")\nsize = Vector2(600, 600)\n'
+        "subdivide_width = 220\nsubdivide_depth = 220\n",
     ]
 
     s.node("CityMap", "Node3D", parent=None, props={"script": 'ExtResource("1_r")'})
     s.node("WorldEnvironment", "WorldEnvironment", props={"environment": 'SubResource("env")'})
     s.node("Sun", "DirectionalLight3D", props={
         "transform": xform(0, 30, 0, yaw=25, pitch=-55), "light_energy": "1.15", "shadow_enabled": "true",
-        "directional_shadow_max_distance": "90.0"})
-    # kus bakisi kamera, harita merkezinde baslar
-    s.node("CameraRig", "Node3D", props={"transform": xform(0, 0, 0, yaw=45), "script": 'ExtResource("2_r")',
-                                          "bounds": f"Vector2({W - 2}, {H - 2})", "zoom_max": "75.0"})
-    dist, pitch = 66.0, 58.0
+        "directional_shadow_max_distance": "120.0"})
+    hc, hr = next((c, r) for r in range(H) for c in range(W) if PLAN[r][c] == "H")
+    cx, cz = pos(hc, hr)
+    s.node("CameraRig", "Node3D", props={"transform": xform(cx, 0, cz - 2, yaw=45), "script": 'ExtResource("2_r")',
+                                          "bounds": f"Vector2({W}, {H})", "zoom_max": "105.0"})
+    dist, pitch = 62.0, 58.0
     s.node("Camera3D", "Camera3D", parent="CameraRig", props={
         "transform": xform(0, dist * math.sin(math.radians(pitch)), dist * math.cos(math.radians(pitch)), pitch=-pitch),
-        "current": "true", "fov": "35.0", "far": "400.0"})
+        "current": "true", "fov": "35.0", "far": "600.0"})
     s.node("Sea", "MeshInstance3D", props={"transform": xform(0, 0.03, 0), "mesh": 'SubResource("sea_mesh")'})
-    for g in ("Ground", "Roads", "Nature", "Buildings", "Props"):
+    for g in ("Ground", "Roads", "Nature", "Buildings", "Props", "Effects"):
         s.node(g, "Node3D")
     s.node("Traffic", "Node3D", props={"script": 'ExtResource("4_r")'})  # arabalar + yayalar, oyun basinda olusur
+    s.node("Wildlife", "Node3D", props={"script": 'ExtResource("6_r")'})  # martilar, kuslar, geyikler, tekneler
 
     trees = [f"Tree_{a}_{b}_Color1" for a, bs in (("1", "AB"), ("2", "ABC"), ("3", "AB"), ("4", "AB")) for b in bs]
     rocks = [f"Rock_{a}_{b}_Color1" for a, bs in (("1", "ABCDEF"), ("2", "BCD"), ("3", "ABCDEF")) for b in bs]
@@ -220,57 +318,121 @@ def main():
                                          scale=height / model_height(rel))})
 
     def ground(name, model, x, z, yaw=0):
-        folder = "yol_zemin"
-        s.node(name, parent="Ground", instance=f"{M}{folder}/{model}.gltf", props={"transform": xform(x, 0, z, yaw=yaw)})
+        s.node(name, parent="Ground", instance=f"{M}yol_zemin/{model}.gltf", props={"transform": xform(x, 0, z, yaw=yaw)})
 
-    def prop(name, path, x, y, z, yaw=0, scale=1.0):
-        s.node(name, parent="Props", instance=f"{M}{path}.gltf", props={"transform": xform(x, y, z, yaw=yaw, scale=scale)})
+    def prop(name, path, x, y, z, yaw=0, scale=1.0, parent="Props"):
+        s.node(name, parent=parent, instance=f"{M}{path}.gltf", props={"transform": xform(x, y, z, yaw=yaw, scale=scale)})
 
     shop_i = 0
+    lamp_i = 0
     for r in range(H):
         for c in range(W):
             ch = PLAN[r][c]
             x, z = pos(c, r)
             n = f"{c}_{r}"
-            if ch == "=":
-                open_sides = {d for d, (dc, dr) in SIDES.items() if at(c + dc, r + dr) == "="}
+            # dere yatagi: nehrin hemen kuzey/guneyindeki kara karolari
+            if ch not in "~=wBMmR." and (at(c, r - 1) in ("w", "B") or at(c, r + 1) in ("w", "B")):
+                info["flood_tiles"].append((x, z))
+            if ch == "~":
+                if not near(c, r, LAND_CHARS, 2):
+                    info["sea_points"].append((x, z))
+            elif ch in ROADLIKE:
+                open_sides = {d for d, (dc, dr) in SIDES.items() if at(c + dc, r + dr) in ROADLIKE}
+                if ch == "B":
+                    s.node(f"road_bridge_{n}", parent="Roads", instance=f"{M}yol_zemin/road_bridge.gltf",
+                           props={"transform": xform(x, 0, z)})
+                    info["river_tiles"].append((x, z))
+                    continue
                 model, yaw = pick_tile(ROAD_TILES, open_sides)
-                if model == "road_straight" and (c, r) in ((11, 7), (11, 11), (9, 9), (13, 9)):
+                if model == "road_straight" and near(c, r, "P"):
                     model = "road_straight_crossing"
                 s.node(f"road_{n}", parent="Roads", instance=f"{M}yol_zemin/{model}.gltf", props={"transform": xform(x, 0, z, yaw=yaw)})
+                # sokak lambalari: duz yollarin kaldiriminda, aralikli
+                if model == "road_straight" and (c + r) % 3 == 0:
+                    side = 1 if lamp_i % 2 == 0 else -1
+                    lamp_i += 1
+                    if yaw == 0:  # yol Z boyunca, kaldirim X kenarinda
+                        prop(f"lamp_{n}", "sokak/streetlight", x + side * 0.93, 0.1, z, yaw=0 if side > 0 else 180)
+                    else:
+                        prop(f"lamp_{n}", "sokak/streetlight", x, 0.1, z + side * 0.93, yaw=270 if side > 0 else 90)
             elif ch == "w":
-                open_sides = {d for d, (dc, dr) in SIDES.items() if at(c + dc, r + dr) in ("w", None)}
+                open_sides = {d for d, (dc, dr) in SIDES.items() if at(c + dc, r + dr) in ("w", "B", "~", None)}
                 if len(open_sides) > 2:
-                    open_sides = {d for d in open_sides if at(c + SIDES[d][0], r + SIDES[d][1]) == "w"} or {"+z", "-z"}
+                    open_sides = {d for d in open_sides if at(c + SIDES[d][0], r + SIDES[d][1]) in "wB"} or {"+x", "-x"}
+                if len(open_sides) == 1:
+                    open_sides = {"+x", "-x"}
                 model, yaw = pick_tile(RIVER_TILES, open_sides)
                 ground(f"river_{n}", model, x, z, yaw)
-            elif ch == ".":
+                if not (at(c, r - 1) in ("M", "m", "R") and at(c, r + 1) in ("M", "m", "R")):
+                    info["river_tiles"].append((x, z))
+            elif ch in ".UJL":
                 ground(f"sand_{n}", "tile_sand", x, z)
-                if rnd.random() < 0.08:
+                info["beach_tiles"].append((x, z))
+                if ch == "U":
+                    for i in range(2):
+                        prop(f"umbrella{i}_{n}", "sokak/beach_umbrella", x + rnd.uniform(-0.6, 0.6), 0.1, z + rnd.uniform(-0.6, 0.6),
+                             yaw=rnd.uniform(0, 360), scale=1.4)
+                elif ch == "J":
+                    prop(f"pier_{n}", "sokak/pier", x + 0.6, 0.0, z)
+                elif ch == "L":
+                    prop(f"lighthouse_{n}", "sokak/lighthouse", x, 0.05, z, yaw=200, scale=1.1)
+                elif rnd.random() < 0.06:
                     nature(f"rock_{n}", "Rock", x + rnd.uniform(-0.5, 0.5), z + rnd.uniform(-0.5, 0.5), rnd.uniform(0.2, 0.35))
-            elif ch in "gTrpbA":
-                ground(f"grass_{n}", "tile_grass", x, z)
+            elif ch == "R":
+                ground(f"sand_{n}", "tile_sand", x, z)
+                for i in range(rnd.randint(2, 4)):
+                    nature(f"rock_{n}_{i}", "Rock", x + rnd.uniform(-0.7, 0.7), z + rnd.uniform(-0.7, 0.7), rnd.uniform(0.3, 0.7))
+            elif ch in "Mm":
+                ground(f"mountain_{n}", "tile_mountain", x, z)
+                info["mountain_tiles"].append((x, z))
+                if ch == "M":
+                    inner = sum(1 for dc, dr in SIDES.values() if at(c + dc, r + dr) == "M")
+                    big = inner == 4 and (c + r) % 3 == 0
+                    kind = "mountain_large" if big else rnd.choice(["mountain_medium", "mountain_medium", "mountain_small"])
+                    prop(f"peak_{n}", f"doga/dag/{kind}", x + rnd.uniform(-0.4, 0.4), 0.05, z + rnd.uniform(-0.4, 0.4),
+                         yaw=rnd.uniform(0, 360), scale=rnd.uniform(0.85, 1.15), parent="Nature")
+                else:
+                    if rnd.random() < 0.5:
+                        prop(f"hill_{n}", "doga/dag/hill", x, 0.05, z, yaw=rnd.uniform(0, 360), scale=rnd.uniform(0.7, 1.0),
+                             parent="Nature")
+                    for i in range(rnd.randint(1, 3)):
+                        nature(f"tree_{n}_{i}", "Tree", x + rnd.uniform(-0.7, 0.7), z + rnd.uniform(-0.7, 0.7), rnd.uniform(0.9, 1.4))
+                    if rnd.random() < 0.5:
+                        nature(f"rock_{n}", "Rock", x + rnd.uniform(-0.6, 0.6), z + rnd.uniform(-0.6, 0.6), rnd.uniform(0.25, 0.4))
+            elif ch in "TQ":
+                ground(f"forest_{n}", "tile_grass", x, z)
+                info["forest_tiles"].append((x, z))
                 if ch == "T":
                     for i in range(rnd.randint(4, 6)):
                         nature(f"tree_{n}_{i}", "Tree", x + rnd.uniform(-0.75, 0.75), z + rnd.uniform(-0.75, 0.75), rnd.uniform(1.0, 1.7))
-                elif ch == "r":
-                    for i in range(rnd.randint(1, 3)):
-                        nature(f"rock_{n}_{i}", "Rock", x + rnd.uniform(-0.6, 0.6), z + rnd.uniform(-0.6, 0.6), rnd.uniform(0.25, 0.45))
-                    nature(f"tree_{n}", "Tree", x + rnd.uniform(-0.5, 0.5), z + rnd.uniform(-0.5, 0.5), 1.1)
-                elif ch == "p":
+                else:  # piknik alani: mangal + masa + ortu, kenarlarda agac
+                    info["picnic_spots"].append((x, z))
+                    prop(f"grill_{n}", "doga/piknik/bbq_grill", x - 0.35, 0.1, z + 0.1, yaw=rnd.uniform(0, 360))
+                    prop(f"table_{n}", "doga/piknik/picnic_table", x + 0.35, 0.1, z - 0.2, yaw=rnd.uniform(-20, 20))
+                    prop(f"blanket_{n}", "doga/piknik/picnic_blanket", x + 0.1, 0.1, z + 0.5, yaw=rnd.uniform(0, 90))
+                    for i, (dx, dz) in enumerate(((-0.75, -0.7), (0.75, 0.7), (-0.8, 0.75))):
+                        nature(f"tree_{n}_{i}", "Tree", x + dx, z + dz, rnd.uniform(1.1, 1.5))
+            elif ch in "gpbA":
+                ground(f"grass_{n}", rnd.choice(GRASS), x, z)
+                if ch == "p":
+                    info["park_tiles"].append((x, z))
                     for i, (dx, dz) in enumerate(((-0.55, -0.55), (0.55, 0.5))):
                         nature(f"tree_{n}_{i}", "Tree", x + dx, z + dz, rnd.uniform(0.9, 1.2))
                     nature(f"bush_{n}", "Bush", x + 0.5, z - 0.5, 0.3)
                     prop(f"bench_{n}", "sokak/bench", x - 0.3, 0.1, z + 0.45, yaw=0)
-                elif ch == "g" and rnd.random() < 0.4:
+                elif ch == "g" and rnd.random() < 0.5:
                     nature(f"bush_{n}", "Bush", x + rnd.uniform(-0.6, 0.6), z + rnd.uniform(-0.6, 0.6), rnd.uniform(0.25, 0.35))
+                    if rnd.random() < 0.4:
+                        nature(f"tree_{n}", "Tree", x + rnd.uniform(-0.6, 0.6), z + rnd.uniform(-0.6, 0.6), rnd.uniform(0.8, 1.1))
                 elif ch == "b":
                     prop(f"billboard_{n}", "medya_kampanya/billboard_campaign", x, 0.1, z, yaw=YAW[facing(c, r)])
                 elif ch == "A":
+                    info["assembly_points"].append((x, z))
                     prop(f"assembly_marker_{n}", "afet/assembly_area_marker", x, 0.1, z)
                     prop(f"assembly_sign_{n}", "afet/sign_assembly_area", x + 0.85, 0.1, z + 0.85, yaw=45)
             elif ch == "P":
                 ground(f"plaza_{n}", "tile_plaza", x, z)
+                info["plaza_tiles"].append((x, z))
             elif ch == "C":
                 prop(f"construction_{n}", "binalar/insaat/building_construction", x, 0, z, yaw=YAW[facing(c, r)])
                 prop(f"crane_{n}", "binalar/insaat/tower_crane", x - 0.7, 0.1, z - 0.7, yaw=90, scale=0.9)
@@ -286,24 +448,27 @@ def main():
             else:
                 raise ValueError(f"bilinmeyen plan karakteri {ch!r} ({c},{r})")
 
-    # meydan suslemeleri: lambalar, gazete bayii, siren
-    for (c, r) in ((10, 8), (12, 8), (10, 10), (12, 10)):
-        x, z = pos(c, r)
-        prop(f"lamp_{c}_{r}", "sokak/streetlight", x + (0.85 if c == 10 else -0.85), 0.1, z, yaw=0 if c == 10 else 180)
-    x, z = pos(10, 9)
+    # meydan: belediyenin cevresindeki meydan karolarina lamba, cesme, bayi, siren
+    for dc, dr in ((-1, -1), (1, -1), (-1, 1), (1, 1)):
+        x, z = pos(hc + dc, hr + dr)
+        prop(f"lamp_plaza_{dc}_{dr}", "sokak/streetlight", x - dc * 0.85, 0.1, z, yaw=0 if dc < 0 else 180)
+    x, z = pos(hc, hr + 1)
+    prop("fountain", "sokak/fountain", x, 0.1, z + 0.1)
+    x, z = pos(hc - 1, hr)
     prop("newspaper_kiosk", "medya_kampanya/newspaper_kiosk", x, 0.1, z + 0.5, yaw=270)
-    x, z = pos(12, 9)
+    x, z = pos(hc + 1, hr)
     prop("siren_pole", "afet/siren_pole", x + 0.6, 0.1, z - 0.6)
+    for dc in (-1, 1):
+        x, z = pos(hc + dc, hr - 1)
+        nature(f"tree_plaza_{dc}", "Tree", x, z, 1.1)
 
-    s.node("HUD", "CanvasLayer")
-    s.node("Help", "Label", parent="HUD", props={
-        "offset_left": "14.0", "offset_top": "10.0",
-        "theme_override_colors/font_outline_color": "Color(0, 0, 0, 1)",
-        "theme_override_constants/outline_size": "6",
-        "text": '"WASD / sag tik: kaydir   Tekerlek: zoom   Q/E: dondur\\n'
-                '1: deprem testi   2: tum binalari onar   3: rastgele evi gelistir"'})
+    districts = [(name, pos(c, r)) for name, c, r in DISTRICTS]
+    s.node("MapInfo", "Node", props={
+        "script": 'ExtResource("5_r")', **{k: packed(v) for k, v in info.items()},
+        "district_names": "PackedStringArray(" + ", ".join(f'"{d[0]}"' for d in districts) + ")",
+        "district_centers": packed([d[1] for d in districts])})
     s.write(OUT)
-    print(OUT, len(s.nodes), "node,", len(s.ext), "kaynak")
+    print(OUT, len(s.nodes), "node,", len(s.ext), "kaynak,", {k: len(v) for k, v in info.items()})
 
 
 if __name__ == "__main__":

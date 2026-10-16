@@ -206,9 +206,11 @@ class Model:
         self.parts.append(Part(points, color, grad, uv))
         return self
 
-    def add_raw(self, path, offset=(0, 0, 0)):
+    def add_raw(self, path, offset=(0, 0, 0), yaw=0.0, scale=1.0):
+        a = math.radians(yaw)
+        R = np.array([[math.cos(a), 0, math.sin(a)], [0, 1, 0], [-math.sin(a), 0, math.cos(a)]])
         for P, N, U, I in load_raw(path):
-            self.raw.append((P + offset, N, U, I))
+            self.raw.append(((P * scale) @ R.T + offset, N @ R.T, U, I))
         return self
 
     def child(self, model, translation):

@@ -60,3 +60,11 @@ func _unhandled_input(event: InputEvent) -> void:
 ## Deprem vb. icin kamera sarsintisi (saniye).
 func shake(duration: float = 1.5) -> void:
 	_shake = maxf(_shake, duration)
+
+
+## Kamerayi bir noktaya kaydir (afet yerine odaklanmak icin).
+func focus(target: Vector3, zoom := -1.0, duration := 1.2) -> void:
+	var tw := create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_property(self, "position", Vector3(target.x, 0.0, target.z), duration)
+	if zoom > 0.0:
+		tw.parallel().tween_property(self, "_zoom", clampf(zoom, zoom_min, zoom_max), duration)

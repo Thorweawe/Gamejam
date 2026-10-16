@@ -3,11 +3,12 @@ import os
 
 import numpy as np
 
-from kitgen import Model, blob, cbox, chunk, cyl, rot
+from kitgen import GLASS, Model, blob, cbox, chunk, cyl, rot
 from parts import (KAYKIT, awning, base_slab, block, crack, cross_sign, door, flag_tr, ledge, wall_hole,
                    roof_flat, roof_hip, window, window_row)
 
 F = 0.7  # kat yuksekligi
+AI_DIR = os.path.join(os.path.dirname(KAYKIT), "ai_uretim")
 Y0 = 0.1  # taban ustu
 
 
@@ -86,10 +87,10 @@ def town_hall_3():
 
 
 # ---------------------------------------------------------------- hastane
-def hospital():
-    m = Model("building_hospital")
+def hospital(level=1):
+    m = Model("building_hospital" + ("" if level == 1 else f"_lv{level}"))
     base_slab(m)
-    hw, z0, z1, nf = 0.75, -0.6, 0.45, 3
+    hw, z0, z1, nf = 0.75, -0.6, 0.45, 2 + level
     top = floors_y(nf)
     block(m, -hw, hw, Y0, top, z0, z1, "white", (0.0, 0.8))
     for i in range(nf):
@@ -120,15 +121,33 @@ def hospital():
     m.add(cbox(0.15, top + 0.092, -0.1, 0.16, 0.006, 0.03), "white", grad=(0.0, 0.2))
     for z in (-0.4, 0.2):
         m.add(cbox(-0.55, top + 0.12, z, 0.16, 0.12, 0.2, bevel=0.01), "lightgrey")
+    if level >= 3:
+        helicopter(m, 0.15, top + 0.09, -0.1)
     return m
 
 
+def helicopter(m, x, y, z):
+    """Ambulans helikopteri (hastane lv3 catisinda)."""
+    m.add([(p[0] * 1.0 + x, p[1] * 0.75 + y + 0.1, p[2] * 1.5 + z) for p in blob(0, 0, 0, 0.1, jitter=0.02, seed=9, smooth=True)],
+          "red", grad=(0.0, 0.6))
+    m.add(cbox(x, y + 0.12, z + 0.13, 0.12, 0.07, 0.04), None, uv=GLASS)
+    m.add(cbox(x, y + 0.14, z - 0.25, 0.04, 0.04, 0.3), "white", grad=(0.0, 0.4))
+    m.add(cbox(x + 0.03, y + 0.17, z - 0.39, 0.01, 0.1, 0.06), "red", grad=(0.0, 0.5))
+    for sx in (1, -1):
+        m.add(cbox(x + sx * 0.07, y + 0.01, z, 0.015, 0.015, 0.3), "darkgrey")
+    m.add(cyl(0.015, 0.015, y + 0.17, y + 0.22, n=5, center=(x, 0, z)), "darkgrey")
+    m.add(rot(cbox(x, y + 0.22, z, 0.7, 0.008, 0.04), ry=30, pivot=(x, y, z)), "charcoal")
+    m.add(rot(cbox(x, y + 0.22, z, 0.7, 0.008, 0.04), ry=120, pivot=(x, y, z)), "charcoal")
+    m.add(cbox(x, y + 0.13, z + 0.0, 0.205, 0.03, 0.06), "white", grad=(0.0, 0.3))
+
+
 # ---------------------------------------------------------------- itfaiye
-def fire_station():
-    m = Model("building_firestation")
+def fire_station(level=1):
+    m = Model("building_firestation" + ("" if level == 1 else f"_lv{level}"))
     base_slab(m)
     hw, z0, z1 = 0.8, -0.6, 0.45
-    top = floors_y(2)
+    nf = 2 if level == 1 else 3
+    top = floors_y(nf)
     block(m, -hw, 0.45, Y0, top, z0, z1, "brick", (0.0, 0.8))
     block(m, -0.4, 0.4, Y0 + 0.002, Y0 + 0.004, z1, 0.95, "darkgrey", (0.2, 0.6))  # garaj onu
     # garaj kapilari
@@ -146,7 +165,16 @@ def fire_station():
     window_row(m, "-z", z0, [-0.6, -0.3, 0.0, 0.3], floors_y(1) + 0.36, w=0.14, h=0.24)
     window_row(m, "-z", z0, [-0.6, -0.3, 0.0, 0.3], floors_y(0) + 0.36, w=0.14, h=0.24)
     window_row(m, "-x", -hw, [-0.35, 0.1], floors_y(1) + 0.36, w=0.14, h=0.24)
+    for i in range(2, nf):
+        ledge(m, -hw, 0.45, z0, z1, floors_y(i), "white", out=0.02)
+        window_row(m, "+z", z1, [-0.6, -0.36, -0.12, 0.12, 0.34], floors_y(i) + 0.36, w=0.14, h=0.24)
+        window_row(m, "-z", z0, [-0.6, -0.3, 0.0, 0.3], floors_y(i) + 0.36, w=0.14, h=0.24)
+        window_row(m, "-x", -hw, [-0.35, 0.1], floors_y(i) + 0.36, w=0.14, h=0.24)
     roof_flat(m, -hw, 0.45, z0, z1, top)
+    if level >= 3:
+        flag_tr(m, -0.2, top + 0.03, -0.2, height=0.6, size=0.2)
+        for x in (-0.7, -0.45):  # catida su tanklari
+            m.add(cyl(0.09, 0.09, top + 0.03, top + 0.22, n=8, center=(x, 0, 0.25)), "red", grad=(0.0, 0.6))
     # hortum kulesi
     tx0, tx1 = 0.45, 0.8
     block(m, tx0, tx1, Y0, top + 0.75, -0.45, -0.1, "brick", (0.0, 0.8))
@@ -200,18 +228,21 @@ def school():
 
 
 # ---------------------------------------------------------------- AFAD
-def afad_center():
-    m = Model("building_afad")
+def afad_center(level=1):
+    m = Model("building_afad" + ("" if level == 1 else f"_lv{level}"))
     base_slab(m)
     hw, z0, z1 = 0.8, -0.6, 0.4
-    top = floors_y(2)
+    nf = 2 if level == 1 else 3
+    top = floors_y(nf)
     block(m, -hw, hw, Y0, top, z0, z1, "white", (0.0, 0.8))
-    for i in range(2):
+    for i in range(nf):
         block(m, -hw - 0.012, hw + 0.012, floors_y(i) + 0.03, floors_y(i) + 0.1, z0 - 0.012, z1 + 0.012, "orange", (0.05, 0.4))
     block(m, -hw - 0.01, hw + 0.01, top - 0.1, top, z0 - 0.01, z1 + 0.01, "blue", (0.4, 0.9))
     window_row(m, "+z", z1, [-0.6, -0.36, -0.12], floors_y(0) + 0.38, w=0.15, h=0.24)
     window_row(m, "+z", z1, [-0.6, -0.36, -0.12, 0.12, 0.36, 0.6], floors_y(1) + 0.38, w=0.15, h=0.24)
-    for i in range(2):
+    for i in range(2, nf):
+        window_row(m, "+z", z1, [-0.6, -0.36, -0.12, 0.12, 0.36, 0.6], floors_y(i) + 0.38, w=0.15, h=0.24)
+    for i in range(nf):
         window_row(m, "-z", z0, [-0.6, -0.3, 0.0, 0.3, 0.6], floors_y(i) + 0.38, w=0.15, h=0.24)
         for face, wall in (("+x", hw), ("-x", -hw)):
             window_row(m, face, wall, [-0.35, 0.05], floors_y(i) + 0.38, w=0.15, h=0.24)
@@ -234,6 +265,9 @@ def afad_center():
     dish = cyl(0.1, 0.06, 0.0, 0.03, n=12) + [(0, -0.012, 0)]
     m.add([(p[0] - 0.4, p[1] + top + 0.2, p[2] - 0.2) for p in rot(dish, rx=-40)], "white", grad=(0.0, 0.4))
     m.add(cbox(-0.4, top + 0.1, -0.2, 0.04, 0.12, 0.04), "darkgrey")
+    if level >= 3:  # bahcede afet cadiri ve yardim paleti
+        m.add_raw(os.path.join(AI_DIR, "tent_disaster.gltf"), offset=(-0.55, Y0, 0.75), yaw=0, scale=0.8)
+        m.add_raw(os.path.join(AI_DIR, "aid_pallet.gltf"), offset=(0.55, Y0, 0.75), yaw=20)
     return m
 
 
@@ -707,5 +741,7 @@ RESIDENTIAL = [
     _mk(house, 3), _mk(house, 3, damage=True), _mk(house_collapsed, 3),
 ]
 
-MODELS = RESIDENTIAL + [town_hall_1, town_hall_2, town_hall_3, hospital, fire_station, school, afad_center, news_building,
+SERVICE_LEVELS = [_mk(f, lv) for f in (hospital, fire_station, afad_center) for lv in (2, 3)]
+
+MODELS = RESIDENTIAL + SERVICE_LEVELS + [town_hall_1, town_hall_2, town_hall_3, hospital, fire_station, school, afad_center, news_building,
           scaffold_2, scaffold_4, construction_site, tower_crane]

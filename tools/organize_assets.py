@@ -3,6 +3,7 @@ ve kaynak listesini (assets/ASSETS.md) yazar. Tekrar calistirilabilir.
 
   python tools/organize_assets.py
 """
+import filecmp
 import glob
 import json
 import os
@@ -23,6 +24,12 @@ SOURCES = {
 RULES = [
     ("ai_uretim", r"^car_", "araclar"),
     ("ai_uretim", r"^person_", "insanlar"),
+    ("ai_uretim", r"^(seagull|bird_|deer|dog)", "canlilar"),
+    ("ai_uretim", r"^boat_", "araclar"),
+    ("ai_uretim", r"^(mountain_|hill)", "doga/dag"),
+    ("ai_uretim", r"^(bbq_|picnic_)", "doga/piknik"),
+    ("ai_uretim", r"^river_wall", "yol_zemin"),
+    ("ai_uretim", r"^(fountain|beach_umbrella|pier|lighthouse)", "sokak"),
     ("kaykit_city_builder_bits", r"^car_", "araclar"),
     ("ai_uretim", r"^house_", "binalar/konut"),
     ("ai_uretim", r"^building_.*_(damaged|collapsed)$", "binalar/hasar"),
@@ -54,6 +61,9 @@ CATEGORY_INFO = {
     "medya_kampanya": "Reklam panolari, gazete bayii (farkindalik kampanyalari)",
     "yol_zemin": "Yollar, kaldirim, cim, su, dere, catlak/sel basmis karolar",
     "sokak": "KayKit sokak objeleri (bank, lamba, cop kutusu...)",
+    "canlilar": "Hayvanlar: marti, kus, geyik, kopek (kanat/bacak ayri node -> animasyon)",
+    "doga/dag": "Daglar ve tepeler",
+    "doga/piknik": "Mangal, piknik masasi, ortu",
     "doga/agac": "Agaclar", "doga/cali": "Calilar", "doga/kaya": "Kayalar", "doga/cimen": "Cimen",
 }
 
@@ -65,10 +75,17 @@ def category(src, name):
     return None
 
 
+def _sync(src, dst, wanted):
+    """Sadece degisen dosyalari kopyala; Godot'un .import kayitlarini koru."""
+    wanted.add(os.path.normcase(os.path.abspath(dst)))
+    if os.path.exists(dst) and filecmp.cmp(src, dst, shallow=False):
+        return
+    shutil.copy(src, dst)
+
+
 def main():
-    if os.path.isdir(DST):
-        shutil.rmtree(DST)
     rows = []
+    wanted = set()
     for src in SOURCES:
         for gltf in sorted(glob.glob(os.path.join(SRC, src, "*.gltf"))):
             name = os.path.splitext(os.path.basename(gltf))[0]
@@ -81,8 +98,16 @@ def main():
             g = json.load(open(gltf))
             deps = [b["uri"] for b in g.get("buffers", [])] + [i["uri"] for i in g.get("images", [])]
             for f in [os.path.basename(gltf)] + deps:
-                shutil.copy(os.path.join(SRC, src, f), os.path.join(out, f))
+                _sync(os.path.join(SRC, src, f), os.path.join(out, f), wanted)
             rows.append((cat, name, src))
+
+    # artik kaynagi olmayan eski dosyalari (ve onlarin .import kayitlarini) temizle
+    for dirpath, _, files in os.walk(DST):
+        for f in files:
+            full = os.path.normcase(os.path.abspath(os.path.join(dirpath, f)))
+            src_file = full[:-len(".import")] if full.endswith(".import") else full
+            if f != "index.json" and src_file not in wanted:
+                os.remove(os.path.join(dirpath, f))
 
     # onizleme sayfasi icin dizin
     index = {cat: [{"name": n, "ai": s == "ai_uretim"} for c, n, s in rows if c == cat] for cat in CATEGORY_INFO}

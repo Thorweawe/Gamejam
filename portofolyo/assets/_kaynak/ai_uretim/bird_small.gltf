@@ -1,0 +1,302 @@
+{
+  "asset": {
+    "generator": "kitgen.py",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        2
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "bird_small_wing_l",
+      "mesh": 1,
+      "translation": [
+        0.0245,
+        0.010499999999999999,
+        0
+      ]
+    },
+    {
+      "name": "bird_small_wing_r",
+      "mesh": 2,
+      "translation": [
+        -0.0245,
+        0.010499999999999999,
+        0
+      ]
+    },
+    {
+      "name": "bird_small",
+      "mesh": 0,
+      "children": [
+        0,
+        1
+      ]
+    }
+  ],
+  "meshes": [
+    {
+      "name": "bird_small",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "TEXCOORD_0": 1,
+            "NORMAL": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "bird_small_wing_l",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "TEXCOORD_0": 5,
+            "NORMAL": 6
+          },
+          "indices": 7,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "bird_small_wing_r",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 8,
+            "TEXCOORD_0": 9,
+            "NORMAL": 10
+          },
+          "indices": 11,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "name": "citybits_texture",
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0
+        },
+        "metallicFactor": 0,
+        "roughnessFactor": 0.4
+      }
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "citybits_texture",
+      "uri": "citybits_texture.png"
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 580,
+      "type": "VEC3",
+      "min": [
+        -0.03503299877047539,
+        -0.024539999663829803,
+        -0.08749999850988388
+      ],
+      "max": [
+        0.03530599921941757,
+        0.03954299911856651,
+        0.09449999779462814
+      ]
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 580,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 580,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 594,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 22,
+      "type": "VEC3",
+      "min": [
+        0.0,
+        0.0,
+        -0.041999999433755875
+      ],
+      "max": [
+        0.14000000059604645,
+        0.00800000037997961,
+        0.020999999716877937
+      ]
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 22,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 22,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 24,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 22,
+      "type": "VEC3",
+      "min": [
+        -0.14000000059604645,
+        0.0,
+        -0.041999999433755875
+      ],
+      "max": [
+        0.0,
+        0.00800000037997961,
+        0.020999999716877937
+      ]
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 22,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 10,
+      "componentType": 5126,
+      "count": 22,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 11,
+      "componentType": 5123,
+      "count": 24,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 6960,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 6960,
+      "byteLength": 4640,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 11600,
+      "byteLength": 6960,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 18560,
+      "byteLength": 1188,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 19748,
+      "byteLength": 264,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 20012,
+      "byteLength": 176,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 20188,
+      "byteLength": 264,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 20452,
+      "byteLength": 48,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 20500,
+      "byteLength": 264,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 20764,
+      "byteLength": 176,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 20940,
+      "byteLength": 264,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 21204,
+      "byteLength": 48,
+      "target": 34963
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 21252,
+      "uri": "bird_small.bin"
+    }
+  ]
+}

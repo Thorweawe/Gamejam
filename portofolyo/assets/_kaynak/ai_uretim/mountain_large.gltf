@@ -1,0 +1,136 @@
+{
+  "asset": {
+    "generator": "kitgen.py",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "mountain_large",
+      "mesh": 0
+    }
+  ],
+  "meshes": [
+    {
+      "name": "mountain_large",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "TEXCOORD_0": 1,
+            "NORMAL": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "name": "citybits_texture",
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0
+        },
+        "metallicFactor": 0,
+        "roughnessFactor": 0.4
+      }
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "citybits_texture",
+      "uri": "citybits_texture.png"
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 332,
+      "type": "VEC3",
+      "min": [
+        -2.4492430686950684,
+        -0.05183999985456467,
+        -2.558943033218384
+      ],
+      "max": [
+        2.516695022583008,
+        3.635999917984009,
+        2.2991549968719482
+      ]
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 332,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 332,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 378,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 3984,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 3984,
+      "byteLength": 2656,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 6640,
+      "byteLength": 3984,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 10624,
+      "byteLength": 756,
+      "target": 34963
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 11380,
+      "uri": "mountain_large.bin"
+    }
+  ]
+}

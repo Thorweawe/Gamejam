@@ -193,7 +193,9 @@ def _pair(src_path, base_name, seed):
 
 KAYKIT_BUILDINGS = [f"building_{c}" for c in "ABCDEFGH"]
 AI_BUILDINGS = ["building_townhall_lv1", "building_townhall_lv2", "building_townhall_lv3", "building_hospital",
-                "building_firestation", "building_school", "building_afad", "building_news"]
+                "building_firestation", "building_school", "building_afad", "building_news",
+                "building_hospital_lv2", "building_hospital_lv3", "building_firestation_lv2", "building_firestation_lv3",
+                "building_afad_lv2", "building_afad_lv3"]
 
 MODELS = []
 for i, n in enumerate(KAYKIT_BUILDINGS):
