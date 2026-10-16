@@ -13,9 +13,9 @@ Bu dosya `tools/organize_assets.py` ile otomatik uretilir, elle duzenlemeyin.
 |---|---|---|
 | KayKit City Builder Bits 1.0 (Kay Lousberg) | CC0 | 41 |
 | KayKit Forest Nature Pack 1.0 (Kay Lousberg) | CC0 | 105 |
-| Yapay zeka ile uretildi (Claude, tools/asset_gen) | Proje ekibine ait | 69 |
+| Yapay zeka ile uretildi (Claude, tools/asset_gen) | Proje ekibine ait | 111 |
 
-**Toplam: 215 model**
+**Toplam: 257 model**
 
 ## Godot notlari
 
@@ -47,7 +47,24 @@ Arabalar ve acil durum araclari (tekerlekler ayri node)
 | `car_firetruck` | AI uretimi |
 | `car_tv_van` | AI uretimi |
 
-## binalar/konut (18)
+## insanlar (10)
+
+Yayalar (kol/bacak ayri node -> yurume animasyonu, scripts/agent.gd)
+
+| Model | Kaynak |
+|---|---|
+| `person_a` | AI uretimi |
+| `person_afad` | AI uretimi |
+| `person_b` | AI uretimi |
+| `person_c` | AI uretimi |
+| `person_d` | AI uretimi |
+| `person_doctor` | AI uretimi |
+| `person_e` | AI uretimi |
+| `person_f` | AI uretimi |
+| `person_g` | AI uretimi |
+| `person_h` | AI uretimi |
+
+## binalar/konut (20)
 
 Konut zinciri: gecekondu -> lv1 -> lv2 -> lv3, kacak kat, guclendirilmis, hasarli, yikik
 
@@ -62,12 +79,14 @@ Konut zinciri: gecekondu -> lv1 -> lv2 -> lv3, kacak kat, guclendirilmis, hasarl
 | `house_lv1_kacak` | AI uretimi |
 | `house_lv1_kacak_damaged` | AI uretimi |
 | `house_lv1_reinforced` | AI uretimi |
+| `house_lv1_reinforced_damaged` | AI uretimi |
 | `house_lv2` | AI uretimi |
 | `house_lv2_collapsed` | AI uretimi |
 | `house_lv2_damaged` | AI uretimi |
 | `house_lv2_kacak` | AI uretimi |
 | `house_lv2_kacak_damaged` | AI uretimi |
 | `house_lv2_reinforced` | AI uretimi |
+| `house_lv2_reinforced_damaged` | AI uretimi |
 | `house_lv3` | AI uretimi |
 | `house_lv3_collapsed` | AI uretimi |
 | `house_lv3_damaged` | AI uretimi |
@@ -121,15 +140,44 @@ Iskele, insaat alani, kule vinc (yukseltme sirasinda)
 | `scaffold_4floor` | AI uretimi |
 | `tower_crane` | AI uretimi |
 
-## binalar/hasar (3)
+## binalar/hasar (32)
 
-KayKit binalarinin hasarli hali + genel yikik bina
+Kamu ve ticari binalarin hasarli (_damaged) ve yikik (_collapsed) halleri
 
 | Model | Kaynak |
 |---|---|
+| `building_A_collapsed` | AI uretimi |
 | `building_A_damaged` | AI uretimi |
+| `building_B_collapsed` | AI uretimi |
+| `building_B_damaged` | AI uretimi |
+| `building_C_collapsed` | AI uretimi |
 | `building_C_damaged` | AI uretimi |
-| `building_collapsed` | AI uretimi |
+| `building_D_collapsed` | AI uretimi |
+| `building_D_damaged` | AI uretimi |
+| `building_E_collapsed` | AI uretimi |
+| `building_E_damaged` | AI uretimi |
+| `building_F_collapsed` | AI uretimi |
+| `building_F_damaged` | AI uretimi |
+| `building_G_collapsed` | AI uretimi |
+| `building_G_damaged` | AI uretimi |
+| `building_H_collapsed` | AI uretimi |
+| `building_H_damaged` | AI uretimi |
+| `building_afad_collapsed` | AI uretimi |
+| `building_afad_damaged` | AI uretimi |
+| `building_firestation_collapsed` | AI uretimi |
+| `building_firestation_damaged` | AI uretimi |
+| `building_hospital_collapsed` | AI uretimi |
+| `building_hospital_damaged` | AI uretimi |
+| `building_news_collapsed` | AI uretimi |
+| `building_news_damaged` | AI uretimi |
+| `building_school_collapsed` | AI uretimi |
+| `building_school_damaged` | AI uretimi |
+| `building_townhall_lv1_collapsed` | AI uretimi |
+| `building_townhall_lv1_damaged` | AI uretimi |
+| `building_townhall_lv2_collapsed` | AI uretimi |
+| `building_townhall_lv2_damaged` | AI uretimi |
+| `building_townhall_lv3_collapsed` | AI uretimi |
+| `building_townhall_lv3_damaged` | AI uretimi |
 
 ## afet (15)
 
@@ -164,7 +212,7 @@ Reklam panolari, gazete bayii (farkindalik kampanyalari)
 | `newspaper_kiosk` | AI uretimi |
 | `newspaper_stack` | AI uretimi |
 
-## yol_zemin (17)
+## yol_zemin (18)
 
 Yollar, kaldirim, cim, su, dere, catlak/sel basmis karolar
 
@@ -186,6 +234,7 @@ Yollar, kaldirim, cim, su, dere, catlak/sel basmis karolar
 | `tile_plaza` | AI uretimi |
 | `tile_river_corner` | AI uretimi |
 | `tile_river_straight` | AI uretimi |
+| `tile_sand` | AI uretimi |
 | `tile_water` | AI uretimi |
 
 ## sokak (13)

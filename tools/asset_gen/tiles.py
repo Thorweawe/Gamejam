@@ -21,6 +21,14 @@ def tile_grass():
     return m
 
 
+def tile_sand():
+    """Kumsal (ada kenari)."""
+    m = Model("tile_sand")
+    block(m, -1, 1, 0, T - 0.02, -1, 1, "brown", (0.4, 0.9))
+    block(m, -1, 1, T - 0.02, T, -1, 1, "tan", (0.0, 0.25))
+    return m
+
+
 def tile_plaza():
     """Park / toplanma alani zemini (acik tas)."""
     m = Model("tile_plaza")
@@ -148,5 +156,5 @@ def tile_grass_flooded():
     return m
 
 
-MODELS = [tile_grass, tile_plaza, tile_water, tile_river_straight, tile_river_corner, tile_road_cracked,
+MODELS = [tile_grass, tile_sand, tile_plaza, tile_water, tile_river_straight, tile_river_corner, tile_road_cracked,
           tile_road_flooded, tile_grass_flooded, flood_overlay, flood_puddle_overlay]

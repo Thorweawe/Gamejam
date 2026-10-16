@@ -699,11 +699,13 @@ def _mk(fn, *a, **k):
 RESIDENTIAL = [
     _mk(house_gecekondu), _mk(house_gecekondu, damage=True), _mk(house_collapsed, 0),
     _mk(house, 1), _mk(house, 1, kacak=1), _mk(house, 1, reinforced=True),
-    _mk(house, 1, damage=True), _mk(house, 1, kacak=1, damage=True), _mk(house_collapsed, 1),
+    _mk(house, 1, damage=True), _mk(house, 1, kacak=1, damage=True), _mk(house, 1, reinforced=True, damage=True),
+    _mk(house_collapsed, 1),
     _mk(house, 2), _mk(house, 2, kacak=2), _mk(house, 2, reinforced=True),
-    _mk(house, 2, damage=True), _mk(house, 2, kacak=2, damage=True), _mk(house_collapsed, 2),
+    _mk(house, 2, damage=True), _mk(house, 2, kacak=2, damage=True), _mk(house, 2, reinforced=True, damage=True),
+    _mk(house_collapsed, 2),
     _mk(house, 3), _mk(house, 3, damage=True), _mk(house_collapsed, 3),
 ]
 
 MODELS = RESIDENTIAL + [town_hall_1, town_hall_2, town_hall_3, hospital, fire_station, school, afad_center, news_building,
-          scaffold_2, scaffold_4, construction_site, tower_crane, damaged_A, damaged_C, collapsed]
+          scaffold_2, scaffold_4, construction_site, tower_crane]

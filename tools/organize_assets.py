@@ -22,8 +22,10 @@ SOURCES = {
 # (kaynak, regex) -> kategori. Ilk eslesen kazanir.
 RULES = [
     ("ai_uretim", r"^car_", "araclar"),
+    ("ai_uretim", r"^person_", "insanlar"),
     ("kaykit_city_builder_bits", r"^car_", "araclar"),
     ("ai_uretim", r"^house_", "binalar/konut"),
+    ("ai_uretim", r"^building_.*_(damaged|collapsed)$", "binalar/hasar"),
     ("ai_uretim", r"^building_(townhall|hospital|firestation|school|afad|news)", "binalar/kamu"),
     ("ai_uretim", r"^(scaffold_|building_construction|tower_crane)", "binalar/insaat"),
     ("ai_uretim", r"^building_.*(damaged|collapsed)", "binalar/hasar"),
@@ -42,11 +44,12 @@ RULES = [
 
 CATEGORY_INFO = {
     "araclar": "Arabalar ve acil durum araclari (tekerlekler ayri node)",
+    "insanlar": "Yayalar (kol/bacak ayri node -> yurume animasyonu, scripts/agent.gd)",
     "binalar/konut": "Konut zinciri: gecekondu -> lv1 -> lv2 -> lv3, kacak kat, guclendirilmis, hasarli, yikik",
     "binalar/kamu": "Belediye (3 seviye), hastane, itfaiye, okul, AFAD, gazete/TV",
     "binalar/ticari": "KayKit hazir binalari (dukkan/apartman)",
     "binalar/insaat": "Iskele, insaat alani, kule vinc (yukseltme sirasinda)",
-    "binalar/hasar": "KayKit binalarinin hasarli hali + genel yikik bina",
+    "binalar/hasar": "Kamu ve ticari binalarin hasarli (_damaged) ve yikik (_collapsed) halleri",
     "afet": "Moloz, yangin, duman, kum torbasi, cadir, tabelalar, siren, deprem cantasi...",
     "medya_kampanya": "Reklam panolari, gazete bayii (farkindalik kampanyalari)",
     "yol_zemin": "Yollar, kaldirim, cim, su, dere, catlak/sel basmis karolar",

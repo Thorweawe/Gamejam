@@ -10,7 +10,7 @@ import sys
 from kitgen import export
 from parts import KAYKIT, ROOT
 
-GROUPS = ["vehicles", "buildings", "props", "tiles"]
+GROUPS = ["vehicles", "buildings", "damage", "props", "tiles", "people"]  # damage, buildings ciktisini kullanir
 OUT = os.path.join(ROOT, "portofolyo", "assets", "_kaynak", "ai_uretim")
 
 if __name__ == "__main__":

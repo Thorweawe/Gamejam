@@ -69,7 +69,7 @@
     {
       "bufferView": 0,
       "componentType": 5126,
-      "count": 3491,
+      "count": 4072,
       "type": "VEC3",
       "min": [
         -1.0,
@@ -79,25 +79,25 @@
       "max": [
         1.0,
         2.976620674133301,
-        1.0
+        1.0061429738998413
       ]
     },
     {
       "bufferView": 1,
       "componentType": 5126,
-      "count": 3491,
+      "count": 4072,
       "type": "VEC2"
     },
     {
       "bufferView": 2,
       "componentType": 5126,
-      "count": 3491,
+      "count": 4072,
       "type": "VEC3"
     },
     {
       "bufferView": 3,
       "componentType": 5123,
-      "count": 5334,
+      "count": 6249,
       "type": "SCALAR"
     }
   ],
@@ -105,31 +105,31 @@
     {
       "buffer": 0,
       "byteOffset": 0,
-      "byteLength": 41892,
+      "byteLength": 48864,
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteOffset": 41892,
-      "byteLength": 27928,
+      "byteOffset": 48864,
+      "byteLength": 32576,
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteOffset": 69820,
-      "byteLength": 41892,
+      "byteOffset": 81440,
+      "byteLength": 48864,
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteOffset": 111712,
-      "byteLength": 10668,
+      "byteOffset": 130304,
+      "byteLength": 12498,
       "target": 34963
     }
   ],
   "buffers": [
     {
-      "byteLength": 122380,
+      "byteLength": 142802,
       "uri": "building_C_damaged.bin"
     }
   ]

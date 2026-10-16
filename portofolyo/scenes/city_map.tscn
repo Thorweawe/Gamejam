@@ -1,0 +1,2217 @@
+[gd_scene load_steps=60 format=3]
+
+[ext_resource type="Script" path="res://scripts/city_map.gd" id="1_r"]
+[ext_resource type="Script" path="res://scripts/camera_rig.gd" id="2_r"]
+[ext_resource type="Script" path="res://scripts/building.gd" id="3_r"]
+[ext_resource type="Script" path="res://scripts/traffic.gd" id="4_r"]
+[ext_resource type="PackedScene" path="res://assets/models/yol_zemin/tile_sand.gltf" id="5_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/kaya/Rock_2_D_Color1.gltf" id="6_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/kaya/Rock_3_A_Color1.gltf" id="7_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/kaya/Rock_1_B_Color1.gltf" id="8_r"]
+[ext_resource type="PackedScene" path="res://assets/models/yol_zemin/tile_grass.gltf" id="9_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/kaya/Rock_1_F_Color1.gltf" id="10_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/kaya/Rock_1_C_Color1.gltf" id="11_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/kaya/Rock_3_F_Color1.gltf" id="12_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/agac/Tree_1_B_Color1.gltf" id="13_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/agac/Tree_3_B_Color1.gltf" id="14_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/agac/Tree_3_A_Color1.gltf" id="15_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/agac/Tree_1_A_Color1.gltf" id="16_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/agac/Tree_4_A_Color1.gltf" id="17_r"]
+[ext_resource type="PackedScene" path="res://assets/models/yol_zemin/tile_river_straight.gltf" id="18_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/agac/Tree_2_A_Color1.gltf" id="19_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/agac/Tree_4_B_Color1.gltf" id="20_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/agac/Tree_2_B_Color1.gltf" id="21_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/agac/Tree_2_C_Color1.gltf" id="22_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/cali/Bush_4_A_Color1.gltf" id="23_r"]
+[ext_resource type="PackedScene" path="res://assets/models/sokak/bench.gltf" id="24_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/cali/Bush_1_D_Color1.gltf" id="25_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/cali/Bush_2_B_Color1.gltf" id="26_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/kaya/Rock_1_A_Color1.gltf" id="27_r"]
+[ext_resource type="PackedScene" path="res://assets/models/yol_zemin/road_corner_curved.gltf" id="28_r"]
+[ext_resource type="PackedScene" path="res://assets/models/yol_zemin/road_straight.gltf" id="29_r"]
+[ext_resource type="PackedScene" path="res://assets/models/yol_zemin/road_tsplit.gltf" id="30_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/cali/Bush_3_A_Color1.gltf" id="31_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/cali/Bush_1_C_Color1.gltf" id="32_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/cali/Bush_4_B_Color1.gltf" id="33_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/cali/Bush_2_C_Color1.gltf" id="34_r"]
+[ext_resource type="PackedScene" path="res://assets/models/medya_kampanya/billboard_campaign.gltf" id="35_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/kaya/Rock_1_D_Color1.gltf" id="36_r"]
+[ext_resource type="PackedScene" path="res://assets/models/yol_zemin/road_junction.gltf" id="37_r"]
+[ext_resource type="PackedScene" path="res://assets/models/yol_zemin/road_straight_crossing.gltf" id="38_r"]
+[ext_resource type="PackedScene" path="res://assets/models/yol_zemin/tile_plaza.gltf" id="39_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/cali/Bush_2_A_Color1.gltf" id="40_r"]
+[ext_resource type="PackedScene" path="res://assets/models/binalar/insaat/building_construction.gltf" id="41_r"]
+[ext_resource type="PackedScene" path="res://assets/models/binalar/insaat/tower_crane.gltf" id="42_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/kaya/Rock_3_E_Color1.gltf" id="43_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/kaya/Rock_1_E_Color1.gltf" id="44_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/cali/Bush_1_B_Color1.gltf" id="45_r"]
+[ext_resource type="PackedScene" path="res://assets/models/afet/assembly_area_marker.gltf" id="46_r"]
+[ext_resource type="PackedScene" path="res://assets/models/afet/sign_assembly_area.gltf" id="47_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/cali/Bush_1_A_Color1.gltf" id="48_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/cali/Bush_4_D_Color1.gltf" id="49_r"]
+[ext_resource type="PackedScene" path="res://assets/models/doga/cali/Bush_4_C_Color1.gltf" id="50_r"]
+[ext_resource type="PackedScene" path="res://assets/models/sokak/streetlight.gltf" id="51_r"]
+[ext_resource type="PackedScene" path="res://assets/models/medya_kampanya/newspaper_kiosk.gltf" id="52_r"]
+[ext_resource type="PackedScene" path="res://assets/models/afet/siren_pole.gltf" id="53_r"]
+
+[sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
+sky_top_color = Color(0.36, 0.6, 0.86, 1)
+sky_horizon_color = Color(0.72, 0.85, 0.95, 1)
+ground_bottom_color = Color(0.2, 0.42, 0.6, 1)
+ground_horizon_color = Color(0.72, 0.85, 0.95, 1)
+
+[sub_resource type="Sky" id="sky"]
+sky_material = SubResource("sky_mat")
+
+[sub_resource type="Environment" id="env"]
+background_mode = 2
+sky = SubResource("sky")
+ambient_light_source = 3
+ambient_light_energy = 0.9
+tonemap_mode = 2
+ssao_enabled = true
+ssao_intensity = 1.5
+adjustment_enabled = true
+adjustment_saturation = 1.1
+
+[sub_resource type="Shader" id="sea_shader"]
+code = "shader_type spatial;\nuniform vec3 deep = vec3(0.04, 0.26, 0.55);\nuniform vec3 shallow = vec3(0.1, 0.48, 0.75);\nvarying float wave;\nvoid vertex() {\n	wave = sin(VERTEX.x * 0.45 + TIME * 1.1) * 0.5 + cos(VERTEX.z * 0.38 + TIME * 0.8) * 0.5;\n	VERTEX.y += wave * 0.025;\n}\nvoid fragment() {\n	ALBEDO = mix(deep, shallow, 0.45 + wave * 0.15);\n	ROUGHNESS = 0.55;\n	SPECULAR = 0.25;\n}"
+
+[sub_resource type="ShaderMaterial" id="sea_mat"]
+shader = SubResource("sea_shader")
+
+[sub_resource type="PlaneMesh" id="sea_mesh"]
+material = SubResource("sea_mat")
+size = Vector2(400, 400)
+subdivide_width = 160
+subdivide_depth = 160
+
+[node name="CityMap" type="Node3D"]
+script = ExtResource("1_r")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("env")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.906308, -0.346189, 0.242404, 0, 0.573576, 0.819152, -0.422618, -0.742404, 0.519837, 0, 30, 0)
+light_energy = 1.15
+shadow_enabled = true
+directional_shadow_max_distance = 90.0
+
+[node name="CameraRig" type="Node3D" parent="."]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 0, 0, 0)
+script = ExtResource("2_r")
+bounds = Vector2(18, 16)
+zoom_max = 75.0
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+transform = Transform3D(1, 0, 0, 0, 0.529919, 0.848048, 0, -0.848048, 0.529919, 0, 55.9712, 34.9747)
+current = true
+fov = 35.0
+far = 400.0
+
+[node name="Sea" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, 0)
+mesh = SubResource("sea_mesh")
+
+[node name="Ground" type="Node3D" parent="."]
+
+[node name="Roads" type="Node3D" parent="."]
+
+[node name="Nature" type="Node3D" parent="."]
+
+[node name="Buildings" type="Node3D" parent="."]
+
+[node name="Props" type="Node3D" parent="."]
+
+[node name="Traffic" type="Node3D" parent="."]
+script = ExtResource("4_r")
+
+[node name="sand_0_0" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, 0, -17)
+
+[node name="sand_1_0" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 0, -17)
+
+[node name="sand_2_0" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, -17)
+
+[node name="sand_3_0" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 0, -17)
+
+[node name="rock_3_0" parent="Nature" instance=ExtResource("6_r")]
+transform = Transform3D(0.02639, 0, 0.117019, 0, 0.119958, 0, -0.117019, 0, 0.02639, -12.9641, 0.1, -17.1343)
+
+[node name="sand_4_0" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0, -17)
+
+[node name="sand_5_0" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, -17)
+
+[node name="sand_6_0" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0, -17)
+
+[node name="sand_7_0" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, -17)
+
+[node name="sand_8_0" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, -17)
+
+[node name="rock_8_0" parent="Nature" instance=ExtResource("7_r")]
+transform = Transform3D(0.708485, 0, -0.24153, 0, 0.748524, 0, 0.24153, 0, 0.708485, -2.93455, 0.1, -16.5526)
+
+[node name="sand_9_0" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, -17)
+
+[node name="sand_10_0" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, -17)
+
+[node name="sand_11_0" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, -17)
+
+[node name="sand_12_0" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, -17)
+
+[node name="rock_12_0" parent="Nature" instance=ExtResource("8_r")]
+transform = Transform3D(-0.370185, 0, -0.176799, 0, 0.410238, 0, 0.176799, 0, -0.370185, 5.35847, 0.1, -17.2104)
+
+[node name="sand_13_0" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -17)
+
+[node name="sand_14_0" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, -17)
+
+[node name="sand_15_0" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0, -17)
+
+[node name="sand_16_0" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0, -17)
+
+[node name="sand_17_0" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, -17)
+
+[node name="sand_18_0" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 0, -17)
+
+[node name="sand_19_0" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 0, -17)
+
+[node name="sand_0_1" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, 0, -15)
+
+[node name="grass_1_1" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 0, -15)
+
+[node name="rock_1_1_0" parent="Nature" instance=ExtResource("10_r")]
+transform = Transform3D(-0.290018, 0, 0.0636761, 0, 0.296926, 0, -0.0636761, 0, -0.290018, -17.3528, 0.1, -14.7835)
+
+[node name="rock_1_1_1" parent="Nature" instance=ExtResource("11_r")]
+transform = Transform3D(-0.174741, 0, -0.526455, 0, 0.554698, 0, 0.526455, 0, -0.174741, -16.4919, 0.1, -15.1661)
+
+[node name="rock_1_1_2" parent="Nature" instance=ExtResource("12_r")]
+transform = Transform3D(-0.334863, 0, 0.503033, 0, 0.604298, 0, -0.503033, 0, -0.334863, -17.3071, 0.1, -14.9107)
+
+[node name="tree_1_1" parent="Nature" instance=ExtResource("13_r")]
+transform = Transform3D(0.176734, 0, 0.161967, 0, 0.239725, 0, -0.161967, 0, 0.176734, -17.0512, 0.1, -14.891)
+
+[node name="grass_2_1" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, -15)
+
+[node name="tree_2_1_0" parent="Nature" instance=ExtResource("14_r")]
+transform = Transform3D(0.399661, 0, 0.100496, 0, 0.412103, 0, -0.100496, 0, 0.399661, -15.5026, 0.1, -15.2369)
+
+[node name="tree_2_1_1" parent="Nature" instance=ExtResource("15_r")]
+transform = Transform3D(-0.231618, 0, 0.364352, 0, 0.43174, 0, -0.364352, 0, -0.231618, -14.7477, 0.1, -14.6031)
+
+[node name="tree_2_1_2" parent="Nature" instance=ExtResource("13_r")]
+transform = Transform3D(0.181855, 0, -0.286686, 0, 0.3395, 0, 0.286686, 0, 0.181855, -15.2247, 0.1, -15.005)
+
+[node name="tree_2_1_3" parent="Nature" instance=ExtResource("16_r")]
+transform = Transform3D(-0.0443686, 0, -0.373047, 0, 0.375677, 0, 0.373047, 0, -0.0443686, -14.333, 0.1, -15.0389)
+
+[node name="tree_2_1_4" parent="Nature" instance=ExtResource("17_r")]
+transform = Transform3D(-0.0645756, 0, 0.292383, 0, 0.299429, 0, -0.292383, 0, -0.0645756, -15.2856, 0.1, -14.8831)
+
+[node name="river_3_1" parent="Ground" instance=ExtResource("18_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 0, -15)
+
+[node name="grass_4_1" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0, -15)
+
+[node name="tree_4_1_0" parent="Nature" instance=ExtResource("15_r")]
+transform = Transform3D(0.251666, 0, 0.444772, 0, 0.511036, 0, -0.444772, 0, 0.251666, -10.4194, 0.1, -15.2295)
+
+[node name="tree_4_1_1" parent="Nature" instance=ExtResource("19_r")]
+transform = Transform3D(-0.0261164, 0, -0.356559, 0, 0.357514, 0, 0.356559, 0, -0.0261164, -11.5744, 0.1, -15.6616)
+
+[node name="tree_4_1_2" parent="Nature" instance=ExtResource("19_r")]
+transform = Transform3D(-0.297461, 0, 0.0983327, 0, 0.313292, 0, -0.0983327, 0, -0.297461, -11.1532, 0.1, -14.3748)
+
+[node name="tree_4_1_3" parent="Nature" instance=ExtResource("20_r")]
+transform = Transform3D(-0.0425658, 0, 0.235825, 0, 0.239636, 0, -0.235825, 0, -0.0425658, -10.9258, 0.1, -14.4249)
+
+[node name="tree_4_1_4" parent="Nature" instance=ExtResource("21_r")]
+transform = Transform3D(0.165691, 0, 0.230851, 0, 0.284158, 0, -0.230851, 0, 0.165691, -11.1271, 0.1, -15.2118)
+
+[node name="grass_5_1" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, -15)
+
+[node name="tree_5_1_0" parent="Nature" instance=ExtResource("19_r")]
+transform = Transform3D(-0.0187571, 0, 0.233701, 0, 0.234453, 0, -0.233701, 0, -0.0187571, -9.52305, 0.1, -14.7622)
+
+[node name="tree_5_1_1" parent="Nature" instance=ExtResource("15_r")]
+transform = Transform3D(0.37107, 0, -0.112632, 0, 0.387787, 0, 0.112632, 0, 0.37107, -9.74386, 0.1, -15.1216)
+
+[node name="tree_5_1_2" parent="Nature" instance=ExtResource("16_r")]
+transform = Transform3D(-0.353773, 0, 0.0988302, 0, 0.367319, 0, -0.0988302, 0, -0.353773, -8.71426, 0.1, -14.9768)
+
+[node name="tree_5_1_3" parent="Nature" instance=ExtResource("20_r")]
+transform = Transform3D(-0.175372, 0, 0.140719, 0, 0.224849, 0, -0.140719, 0, -0.175372, -8.44353, 0.1, -14.3222)
+
+[node name="grass_6_1" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0, -15)
+
+[node name="tree_6_1_0" parent="Nature" instance=ExtResource("21_r")]
+transform = Transform3D(0.2049, 0, 0.09228, 0, 0.224722, 0, -0.09228, 0, 0.2049, -7.15882, 0.1, -15.0277)
+
+[node name="tree_6_1_1" parent="Nature" instance=ExtResource("16_r")]
+transform = Transform3D(0.254041, 0, 0.190439, 0, 0.317496, 0, -0.190439, 0, 0.254041, -7.43686, 0.1, -15.5065)
+
+[node name="tree_6_1_2" parent="Nature" instance=ExtResource("16_r")]
+transform = Transform3D(0.385821, 0, 0.182489, 0, 0.426802, 0, -0.182489, 0, 0.385821, -6.89982, 0.1, -14.9451)
+
+[node name="tree_6_1_3" parent="Nature" instance=ExtResource("15_r")]
+transform = Transform3D(-0.356215, 0, -0.266681, 0, 0.444981, 0, 0.266681, 0, -0.356215, -7.43807, 0.1, -15.1857)
+
+[node name="tree_6_1_4" parent="Nature" instance=ExtResource("17_r")]
+transform = Transform3D(-0.269953, 0, 0.0334224, 0, 0.272014, 0, -0.0334224, 0, -0.269953, -7.03877, 0.1, -15.577)
+
+[node name="grass_7_1" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, -15)
+
+[node name="tree_7_1_0" parent="Nature" instance=ExtResource("19_r")]
+transform = Transform3D(0.184992, 0, 0.138329, 0, 0.230991, 0, -0.138329, 0, 0.184992, -5.55, 0.1, -15.55)
+
+[node name="tree_7_1_1" parent="Nature" instance=ExtResource("22_r")]
+transform = Transform3D(-0.15225, 0, 0.0205745, 0, 0.153634, 0, -0.0205745, 0, -0.15225, -4.45, 0.1, -14.5)
+
+[node name="bush_7_1" parent="Nature" instance=ExtResource("23_r")]
+transform = Transform3D(0.364944, 0, 0.586716, 0, 0.690955, 0, -0.586716, 0, 0.364944, -4.5, 0.1, -15.5)
+
+[node name="bench_7_1" parent="Props" instance=ExtResource("24_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.3, 0.1, -14.55)
+
+[node name="grass_8_1" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, -15)
+
+[node name="tree_8_1_0" parent="Nature" instance=ExtResource("20_r")]
+transform = Transform3D(0.163758, 0, -0.0980361, 0, 0.19086, 0, 0.0980361, 0, 0.163758, -3.44218, 0.1, -14.322)
+
+[node name="tree_8_1_1" parent="Nature" instance=ExtResource("13_r")]
+transform = Transform3D(-0.104806, 0, -0.298125, 0, 0.316011, 0, 0.298125, 0, -0.104806, -2.61279, 0.1, -15.3029)
+
+[node name="tree_8_1_2" parent="Nature" instance=ExtResource("21_r")]
+transform = Transform3D(-0.191949, 0, -0.0398669, 0, 0.196045, 0, 0.0398669, 0, -0.191949, -3.35833, 0.1, -15.2)
+
+[node name="tree_8_1_3" parent="Nature" instance=ExtResource("21_r")]
+transform = Transform3D(0.0700308, 0, -0.190458, 0, 0.202925, 0, 0.190458, 0, 0.0700308, -2.58142, 0.1, -15.2555)
+
+[node name="grass_9_1" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, -15)
+
+[node name="tree_9_1_0" parent="Nature" instance=ExtResource("15_r")]
+transform = Transform3D(-0.0499858, 0, -0.416807, 0, 0.419793, 0, 0.416807, 0, -0.0499858, -0.64019, 0.1, -15.4099)
+
+[node name="tree_9_1_1" parent="Nature" instance=ExtResource("21_r")]
+transform = Transform3D(-0.0825215, 0, -0.218478, 0, 0.233543, 0, 0.218478, 0, -0.0825215, -0.265595, 0.1, -14.5648)
+
+[node name="tree_9_1_2" parent="Nature" instance=ExtResource("15_r")]
+transform = Transform3D(0.489994, 0, -0.142354, 0, 0.510253, 0, 0.142354, 0, 0.489994, -0.315227, 0.1, -15.0792)
+
+[node name="tree_9_1_3" parent="Nature" instance=ExtResource("21_r")]
+transform = Transform3D(-0.106531, 0, 0.173262, 0, 0.203393, 0, -0.173262, 0, -0.106531, -1.20305, 0.1, -15.4193)
+
+[node name="tree_9_1_4" parent="Nature" instance=ExtResource("16_r")]
+transform = Transform3D(-0.362963, 0, 0.0470734, 0, 0.366003, 0, -0.0470734, 0, -0.362963, -1.02602, 0.1, -14.2721)
+
+[node name="grass_10_1" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, -15)
+
+[node name="tree_10_1_0" parent="Nature" instance=ExtResource("13_r")]
+transform = Transform3D(0.291253, 0, -0.185407, 0, 0.34526, 0, 0.185407, 0, 0.291253, 0.76601, 0.1, -14.7853)
+
+[node name="tree_10_1_1" parent="Nature" instance=ExtResource("19_r")]
+transform = Transform3D(-0.283928, 0, 0.12515, 0, 0.310286, 0, -0.12515, 0, -0.283928, 1.42345, 0.1, -14.6248)
+
+[node name="tree_10_1_2" parent="Nature" instance=ExtResource("14_r")]
+transform = Transform3D(-0.403302, 0, 0.0950557, 0, 0.414353, 0, -0.0950557, 0, -0.403302, 1.20376, 0.1, -15.6199)
+
+[node name="tree_10_1_3" parent="Nature" instance=ExtResource("19_r")]
+transform = Transform3D(0.254482, 0, 0.0444947, 0, 0.258342, 0, -0.0444947, 0, 0.254482, 1.36503, 0.1, -15.6226)
+
+[node name="tree_10_1_4" parent="Nature" instance=ExtResource("17_r")]
+transform = Transform3D(-0.162776, 0, -0.247018, 0, 0.295827, 0, 0.247018, 0, -0.162776, 1.13622, 0.1, -15.052)
+
+[node name="tree_10_1_5" parent="Nature" instance=ExtResource("16_r")]
+transform = Transform3D(0.0854374, 0, -0.26661, 0, 0.279965, 0, 0.26661, 0, 0.0854374, 0.775611, 0.1, -14.927)
+
+[node name="grass_11_1" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, -15)
+
+[node name="tree_11_1_0" parent="Nature" instance=ExtResource("13_r")]
+transform = Transform3D(-0.240239, 0, -0.0405004, 0, 0.243629, 0, 0.0405004, 0, -0.240239, 2.45, 0.1, -15.55)
+
+[node name="tree_11_1_1" parent="Nature" instance=ExtResource("14_r")]
+transform = Transform3D(0.293102, 0, -0.0248299, 0, 0.294151, 0, 0.0248299, 0, 0.293102, 3.55, 0.1, -14.5)
+
+[node name="bush_11_1" parent="Nature" instance=ExtResource("25_r")]
+transform = Transform3D(0.141171, 0, -0.272162, 0, 0.306596, 0, 0.272162, 0, 0.141171, 3.5, 0.1, -15.5)
+
+[node name="bench_11_1" parent="Props" instance=ExtResource("24_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.7, 0.1, -14.55)
+
+[node name="grass_12_1" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, -15)
+
+[node name="tree_12_1_0" parent="Nature" instance=ExtResource("15_r")]
+transform = Transform3D(-0.0244777, 0, 0.415519, 0, 0.416239, 0, -0.415519, 0, -0.0244777, 4.29199, 0.1, -15.4308)
+
+[node name="tree_12_1_1" parent="Nature" instance=ExtResource("15_r")]
+transform = Transform3D(0.403772, 0, -0.302352, 0, 0.504429, 0, 0.302352, 0, 0.403772, 4.87852, 0.1, -15.5534)
+
+[node name="tree_12_1_2" parent="Nature" instance=ExtResource("20_r")]
+transform = Transform3D(0.141238, 0, 0.151856, 0, 0.207385, 0, -0.151856, 0, 0.141238, 5.24371, 0.1, -14.5274)
+
+[node name="tree_12_1_3" parent="Nature" instance=ExtResource("19_r")]
+transform = Transform3D(-0.290738, 0, -0.236105, 0, 0.374532, 0, 0.236105, 0, -0.290738, 4.47775, 0.1, -14.9842)
+
+[node name="grass_13_1" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -15)
+
+[node name="tree_13_1_0" parent="Nature" instance=ExtResource("20_r")]
+transform = Transform3D(0.212537, 0, 0.0868726, 0, 0.229605, 0, -0.0868726, 0, 0.212537, 6.50852, 0.1, -15.0398)
+
+[node name="tree_13_1_1" parent="Nature" instance=ExtResource("13_r")]
+transform = Transform3D(0.216525, 0, -0.19522, 0, 0.291537, 0, 0.19522, 0, 0.216525, 7.2735, 0.1, -14.9539)
+
+[node name="tree_13_1_2" parent="Nature" instance=ExtResource("13_r")]
+transform = Transform3D(-0.224106, 0, -0.0108706, 0, 0.22437, 0, 0.0108706, 0, -0.224106, 6.33523, 0.1, -15.463)
+
+[node name="tree_13_1_3" parent="Nature" instance=ExtResource("17_r")]
+transform = Transform3D(-0.151978, 0, 0.295452, 0, 0.332249, 0, -0.295452, 0, -0.151978, 7.09259, 0.1, -14.61)
+
+[node name="grass_14_1" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, -15)
+
+[node name="tree_14_1_0" parent="Nature" instance=ExtResource("20_r")]
+transform = Transform3D(-0.177882, 0, -0.0377541, 0, 0.181845, 0, 0.0377541, 0, -0.177882, 9.15921, 0.1, -15.4509)
+
+[node name="tree_14_1_1" parent="Nature" instance=ExtResource("22_r")]
+transform = Transform3D(0.20186, 0, -0.106418, 0, 0.228194, 0, 0.106418, 0, 0.20186, 8.96705, 0.1, -14.3377)
+
+[node name="tree_14_1_2" parent="Nature" instance=ExtResource("14_r")]
+transform = Transform3D(0.236331, 0, 0.226506, 0, 0.327349, 0, -0.226506, 0, 0.236331, 9.58913, 0.1, -15.4461)
+
+[node name="tree_14_1_3" parent="Nature" instance=ExtResource("13_r")]
+transform = Transform3D(0.0591497, 0, 0.247677, 0, 0.254642, 0, -0.247677, 0, 0.0591497, 8.91318, 0.1, -15.6412)
+
+[node name="tree_14_1_4" parent="Nature" instance=ExtResource("15_r")]
+transform = Transform3D(0.296323, 0, 0.372162, 0, 0.475723, 0, -0.372162, 0, 0.296323, 8.70417, 0.1, -15.5665)
+
+[node name="tree_14_1_5" parent="Nature" instance=ExtResource("13_r")]
+transform = Transform3D(-0.201781, 0, 0.150006, 0, 0.251431, 0, -0.150006, 0, -0.201781, 9.57425, 0.1, -14.2987)
+
+[node name="grass_15_1" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0, -15)
+
+[node name="tree_15_1_0" parent="Nature" instance=ExtResource("21_r")]
+transform = Transform3D(0.0969597, 0, 0.155941, 0, 0.183627, 0, -0.155941, 0, 0.0969597, 10.45, 0.1, -15.55)
+
+[node name="tree_15_1_1" parent="Nature" instance=ExtResource("20_r")]
+transform = Transform3D(-0.129008, 0, 0.0890913, 0, 0.156781, 0, -0.0890913, 0, -0.129008, 11.55, 0.1, -14.5)
+
+[node name="bush_15_1" parent="Nature" instance=ExtResource("26_r")]
+transform = Transform3D(0.116899, 0, 0.32953, 0, 0.34965, 0, -0.32953, 0, 0.116899, 11.5, 0.1, -15.5)
+
+[node name="bench_15_1" parent="Props" instance=ExtResource("24_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.7, 0.1, -14.55)
+
+[node name="grass_16_1" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0, -15)
+
+[node name="tree_16_1_0" parent="Nature" instance=ExtResource("17_r")]
+transform = Transform3D(-0.233372, 0, 0.0916224, 0, 0.250713, 0, -0.0916224, 0, -0.233372, 12.3883, 0.1, -15.2011)
+
+[node name="tree_16_1_1" parent="Nature" instance=ExtResource("20_r")]
+transform = Transform3D(0.212198, 0, -0.0533835, 0, 0.21881, 0, 0.0533835, 0, 0.212198, 12.2771, 0.1, -15.2528)
+
+[node name="tree_16_1_2" parent="Nature" instance=ExtResource("13_r")]
+transform = Transform3D(0.218349, 0, 0.127399, 0, 0.252798, 0, -0.127399, 0, 0.218349, 12.4193, 0.1, -14.3722)
+
+[node name="tree_16_1_3" parent="Nature" instance=ExtResource("19_r")]
+transform = Transform3D(0.111237, 0, -0.237253, 0, 0.262036, 0, 0.237253, 0, 0.111237, 12.6579, 0.1, -14.3912)
+
+[node name="tree_16_1_4" parent="Nature" instance=ExtResource("14_r")]
+transform = Transform3D(0.244863, 0, 0.334226, 0, 0.414324, 0, -0.334226, 0, 0.244863, 13.5244, 0.1, -14.736)
+
+[node name="grass_17_1" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, -15)
+
+[node name="tree_17_1_0" parent="Nature" instance=ExtResource("16_r")]
+transform = Transform3D(0.0835385, 0, -0.259391, 0, 0.272511, 0, 0.259391, 0, 0.0835385, 15.1059, 0.1, -14.6994)
+
+[node name="tree_17_1_1" parent="Nature" instance=ExtResource("16_r")]
+transform = Transform3D(-0.202323, 0, -0.227868, 0, 0.304727, 0, 0.227868, 0, -0.202323, 14.525, 0.1, -14.4071)
+
+[node name="tree_17_1_2" parent="Nature" instance=ExtResource("13_r")]
+transform = Transform3D(-0.0316044, 0, 0.347116, 0, 0.348552, 0, -0.347116, 0, -0.0316044, 15.4524, 0.1, -15.6244)
+
+[node name="tree_17_1_3" parent="Nature" instance=ExtResource("14_r")]
+transform = Transform3D(0.378667, 0, -0.187964, 0, 0.422752, 0, 0.187964, 0, 0.378667, 14.4325, 0.1, -15.7327)
+
+[node name="tree_17_1_4" parent="Nature" instance=ExtResource("21_r")]
+transform = Transform3D(0.222332, 0, -0.0910701, 0, 0.240261, 0, 0.0910701, 0, 0.222332, 14.6518, 0.1, -15.5562)
+
+[node name="tree_17_1_5" parent="Nature" instance=ExtResource("22_r")]
+transform = Transform3D(-0.119222, 0, -0.124853, 0, 0.172633, 0, 0.124853, 0, -0.119222, 15.7038, 0.1, -15.3572)
+
+[node name="grass_18_1" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 0, -15)
+
+[node name="rock_18_1_0" parent="Nature" instance=ExtResource("11_r")]
+transform = Transform3D(-0.0833075, 0, 0.642481, 0, 0.647859, 0, -0.642481, 0, -0.0833075, 17.3114, 0.1, -15.252)
+
+[node name="rock_18_1_1" parent="Nature" instance=ExtResource("27_r")]
+transform = Transform3D(-0.0505515, 0, -0.473722, 0, 0.476412, 0, 0.473722, 0, -0.0505515, 17.3644, 0.1, -14.4066)
+
+[node name="rock_18_1_2" parent="Nature" instance=ExtResource("12_r")]
+transform = Transform3D(-0.554941, 0, 0.191732, 0, 0.587129, 0, -0.191732, 0, -0.554941, 17.0613, 0.1, -15.3727)
+
+[node name="tree_18_1" parent="Nature" instance=ExtResource("17_r")]
+transform = Transform3D(-0.213808, 0, -0.0634394, 0, 0.223021, 0, 0.0634394, 0, -0.213808, 17.1583, 0.1, -14.8499)
+
+[node name="sand_19_1" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 0, -15)
+
+[node name="sand_0_2" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, 0, -13)
+
+[node name="grass_1_2" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 0, -13)
+
+[node name="tree_1_2_0" parent="Nature" instance=ExtResource("19_r")]
+transform = Transform3D(-0.238108, 0, 0.16248, 0, 0.288262, 0, -0.16248, 0, -0.238108, -16.7184, 0.1, -12.2763)
+
+[node name="tree_1_2_1" parent="Nature" instance=ExtResource("13_r")]
+transform = Transform3D(-0.167631, 0, -0.168578, 0, 0.237736, 0, 0.168578, 0, -0.167631, -17.2287, 0.1, -13.6684)
+
+[node name="tree_1_2_2" parent="Nature" instance=ExtResource("14_r")]
+transform = Transform3D(0.177886, 0, -0.188151, 0, 0.258929, 0, 0.188151, 0, 0.177886, -16.4302, 0.1, -13.1039)
+
+[node name="tree_1_2_3" parent="Nature" instance=ExtResource("22_r")]
+transform = Transform3D(0.171993, 0, 0.050247, 0, 0.179182, 0, -0.050247, 0, 0.171993, -16.7442, 0.1, -13.3271)
+
+[node name="tree_1_2_4" parent="Nature" instance=ExtResource("15_r")]
+transform = Transform3D(0.300059, 0, -0.0734621, 0, 0.308921, 0, 0.0734621, 0, 0.300059, -17.472, 0.1, -13.3464)
+
+[node name="grass_2_2" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, -13)
+
+[node name="tree_2_2_0" parent="Nature" instance=ExtResource("21_r")]
+transform = Transform3D(-0.17625, 0, 0.22261, 0, 0.283936, 0, -0.22261, 0, -0.17625, -15.2647, 0.1, -13.6983)
+
+[node name="tree_2_2_1" parent="Nature" instance=ExtResource("20_r")]
+transform = Transform3D(-0.112968, 0, -0.168537, 0, 0.202895, 0, 0.168537, 0, -0.112968, -15.7484, 0.1, -13.1776)
+
+[node name="tree_2_2_2" parent="Nature" instance=ExtResource("13_r")]
+transform = Transform3D(0.143369, 0, 0.182134, 0, 0.231792, 0, -0.182134, 0, 0.143369, -15.3777, 0.1, -12.5856)
+
+[node name="tree_2_2_3" parent="Nature" instance=ExtResource("21_r")]
+transform = Transform3D(0.183118, 0, 0.107494, 0, 0.212337, 0, -0.107494, 0, 0.183118, -14.8698, 0.1, -13.159)
+
+[node name="tree_2_2_4" parent="Nature" instance=ExtResource("14_r")]
+transform = Transform3D(0.0248163, 0, -0.275235, 0, 0.276351, 0, 0.275235, 0, 0.0248163, -14.3135, 0.1, -12.4701)
+
+[node name="tree_2_2_5" parent="Nature" instance=ExtResource("19_r")]
+transform = Transform3D(0.268254, 0, 0.0757247, 0, 0.278737, 0, -0.0757247, 0, 0.268254, -14.669, 0.1, -13.0087)
+
+[node name="river_3_2" parent="Ground" instance=ExtResource("18_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 0, -13)
+
+[node name="house_lv0_gecekondu_4_2" type="Node3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0, -13)
+script = ExtResource("3_r")
+model_name = "house_lv0_gecekondu"
+
+[node name="grass_5_2" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, -13)
+
+[node name="house_lv1_6_2" type="Node3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0, -13)
+script = ExtResource("3_r")
+model_name = "house_lv1"
+
+[node name="grass_7_2" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, -13)
+
+[node name="house_lv2_8_2" type="Node3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, -13)
+script = ExtResource("3_r")
+model_name = "house_lv2"
+
+[node name="house_lv1_9_2" type="Node3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, -13)
+script = ExtResource("3_r")
+model_name = "house_lv1"
+
+[node name="grass_10_2" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, -13)
+
+[node name="house_lv2_11_2" type="Node3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, -13)
+script = ExtResource("3_r")
+model_name = "house_lv2"
+
+[node name="building_A_12_2" type="Node3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, -13)
+script = ExtResource("3_r")
+model_name = "building_A"
+
+[node name="house_lv1_13_2" type="Node3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -13)
+script = ExtResource("3_r")
+model_name = "house_lv1"
+
+[node name="house_lv2_14_2" type="Node3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, -13)
+script = ExtResource("3_r")
+model_name = "house_lv2"
+
+[node name="grass_15_2" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0, -13)
+
+[node name="house_lv1_16_2" type="Node3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0, -13)
+script = ExtResource("3_r")
+model_name = "house_lv1"
+
+[node name="grass_17_2" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, -13)
+
+[node name="grass_18_2" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 0, -13)
+
+[node name="tree_18_2_0" parent="Nature" instance=ExtResource("16_r")]
+transform = Transform3D(0.165578, 0, -0.317974, 0, 0.358502, 0, 0.317974, 0, 0.165578, 17.6148, 0.1, -12.6207)
+
+[node name="tree_18_2_1" parent="Nature" instance=ExtResource("21_r")]
+transform = Transform3D(0.223222, 0, 0.132187, 0, 0.259425, 0, -0.132187, 0, 0.223222, 17.1261, 0.1, -12.4108)
+
+[node name="tree_18_2_2" parent="Nature" instance=ExtResource("14_r")]
+transform = Transform3D(0.213956, 0, -0.357557, 0, 0.416682, 0, 0.357557, 0, 0.213956, 16.3128, 0.1, -12.7943)
+
+[node name="tree_18_2_3" parent="Nature" instance=ExtResource("21_r")]
+transform = Transform3D(-0.251892, 0, 0.0169693, 0, 0.252463, 0, -0.0169693, 0, -0.251892, 17.0878, 0.1, -12.8083)
+
+[node name="sand_19_2" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 0, -13)
+
+[node name="rock_19_2" parent="Nature" instance=ExtResource("6_r")]
+transform = Transform3D(0.132631, 0, 0.0864581, 0, 0.158323, 0, -0.0864581, 0, 0.132631, 19.2977, 0.1, -12.7517)
+
+[node name="sand_0_3" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, 0, -11)
+
+[node name="grass_1_3" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 0, -11)
+
+[node name="tree_1_3_0" parent="Nature" instance=ExtResource("22_r")]
+transform = Transform3D(0.0153855, 0, 0.160455, 0, 0.161191, 0, -0.160455, 0, 0.0153855, -16.6448, 0.1, -11.3717)
+
+[node name="tree_1_3_1" parent="Nature" instance=ExtResource("17_r")]
+transform = Transform3D(-0.294773, 0, 0.011213, 0, 0.294986, 0, -0.011213, 0, -0.294773, -16.6153, 0.1, -11.4039)
+
+[node name="tree_1_3_2" parent="Nature" instance=ExtResource("16_r")]
+transform = Transform3D(-0.281299, 0, -0.254268, 0, 0.379185, 0, 0.254268, 0, -0.281299, -17.1762, 0.1, -11.0315)
+
+[node name="tree_1_3_3" parent="Nature" instance=ExtResource("22_r")]
+transform = Transform3D(-0.0980229, 0, -0.137689, 0, 0.169017, 0, 0.137689, 0, -0.0980229, -16.7859, 0.1, -11.6338)
+
+[node name="tree_1_3_4" parent="Nature" instance=ExtResource("17_r")]
+transform = Transform3D(0.205776, 0, 0.0824629, 0, 0.221685, 0, -0.0824629, 0, 0.205776, -16.7107, 0.1, -10.8183)
+
+[node name="tree_1_3_5" parent="Nature" instance=ExtResource("17_r")]
+transform = Transform3D(-0.0764192, 0, 0.29112, 0, 0.300983, 0, -0.29112, 0, -0.0764192, -17.3468, 0.1, -10.742)
+
+[node name="grass_2_3" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, -11)
+
+[node name="river_3_3" parent="Ground" instance=ExtResource("18_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 0, -11)
+
+[node name="house_lv0_gecekondu_4_3" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -11, 0, -11)
+script = ExtResource("3_r")
+model_name = "house_lv0_gecekondu"
+
+[node name="road_5_3" parent="Roads" instance=ExtResource("28_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, -11)
+
+[node name="road_6_3" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7, 0, -11)
+
+[node name="road_7_3" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5, 0, -11)
+
+[node name="road_8_3" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -3, 0, -11)
+
+[node name="road_9_3" parent="Roads" instance=ExtResource("30_r")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -1, 0, -11)
+
+[node name="road_10_3" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1, 0, -11)
+
+[node name="road_11_3" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 3, 0, -11)
+
+[node name="road_12_3" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 5, 0, -11)
+
+[node name="road_13_3" parent="Roads" instance=ExtResource("30_r")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 7, 0, -11)
+
+[node name="road_14_3" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 9, 0, -11)
+
+[node name="road_15_3" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 11, 0, -11)
+
+[node name="road_16_3" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 13, 0, -11)
+
+[node name="road_17_3" parent="Roads" instance=ExtResource("28_r")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 15, 0, -11)
+
+[node name="house_lv1_18_3" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 17, 0, -11)
+script = ExtResource("3_r")
+model_name = "house_lv1"
+
+[node name="sand_19_3" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 0, -11)
+
+[node name="sand_0_4" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, 0, -9)
+
+[node name="grass_1_4" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 0, -9)
+
+[node name="rock_1_4_0" parent="Nature" instance=ExtResource("8_r")]
+transform = Transform3D(0.532357, 0, -0.225407, 0, 0.578111, 0, 0.225407, 0, 0.532357, -16.408, 0.1, -8.94111)
+
+[node name="tree_1_4" parent="Nature" instance=ExtResource("20_r")]
+transform = Transform3D(0.164172, 0, -0.0333447, 0, 0.167525, 0, 0.0333447, 0, 0.164172, -17.4825, 0.1, -9.04103)
+
+[node name="grass_2_4" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, -9)
+
+[node name="river_3_4" parent="Ground" instance=ExtResource("18_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 0, -9)
+
+[node name="house_lv0_gecekondu_4_4" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -11, 0, -9)
+script = ExtResource("3_r")
+model_name = "house_lv0_gecekondu"
+
+[node name="road_5_4" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, -9)
+
+[node name="house_lv1_6_4" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -7, 0, -9)
+script = ExtResource("3_r")
+model_name = "house_lv1"
+
+[node name="house_lv2_7_4" type="Node3D" parent="Buildings"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -5, 0, -9)
+script = ExtResource("3_r")
+model_name = "house_lv2"
+
+[node name="house_lv1_8_4" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -3, 0, -9)
+script = ExtResource("3_r")
+model_name = "house_lv1"
+
+[node name="road_9_4" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, -9)
+
+[node name="grass_10_4" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, -9)
+
+[node name="bush_10_4" parent="Nature" instance=ExtResource("31_r")]
+transform = Transform3D(0.497098, 0, 0.316797, 0, 0.589463, 0, -0.316797, 0, 0.497098, 0.651805, 0.1, -8.4653)
+
+[node name="building_school_11_4" type="Node3D" parent="Buildings"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 3, 0, -9)
+script = ExtResource("3_r")
+model_name = "building_school"
+
+[node name="grass_12_4" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, -9)
+
+[node name="road_13_4" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -9)
+
+[node name="house_lv3_14_4" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 9, 0, -9)
+script = ExtResource("3_r")
+model_name = "house_lv3"
+
+[node name="house_lv2_15_4" type="Node3D" parent="Buildings"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 11, 0, -9)
+script = ExtResource("3_r")
+model_name = "house_lv2"
+
+[node name="house_lv3_16_4" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 13, 0, -9)
+script = ExtResource("3_r")
+model_name = "house_lv3"
+
+[node name="road_17_4" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, -9)
+
+[node name="house_lv1_18_4" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 17, 0, -9)
+script = ExtResource("3_r")
+model_name = "house_lv1"
+
+[node name="sand_19_4" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 0, -9)
+
+[node name="sand_0_5" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, 0, -7)
+
+[node name="grass_1_5" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 0, -7)
+
+[node name="tree_1_5_0" parent="Nature" instance=ExtResource("15_r")]
+transform = Transform3D(0.0582858, 0, 0.496021, 0, 0.499434, 0, -0.496021, 0, 0.0582858, -16.5197, 0.1, -6.98688)
+
+[node name="tree_1_5_1" parent="Nature" instance=ExtResource("16_r")]
+transform = Transform3D(0.248119, 0, -0.0806884, 0, 0.260909, 0, 0.0806884, 0, 0.248119, -16.4034, 0.1, -7.02079)
+
+[node name="tree_1_5_2" parent="Nature" instance=ExtResource("14_r")]
+transform = Transform3D(-0.209387, 0, 0.312476, 0, 0.376144, 0, -0.312476, 0, -0.209387, -16.7276, 0.1, -7.14187)
+
+[node name="tree_1_5_3" parent="Nature" instance=ExtResource("15_r")]
+transform = Transform3D(0.163853, 0, -0.261408, 0, 0.308515, 0, 0.261408, 0, 0.163853, -17.2759, 0.1, -6.48965)
+
+[node name="tree_1_5_4" parent="Nature" instance=ExtResource("22_r")]
+transform = Transform3D(-0.00463519, 0, 0.229628, 0, 0.229674, 0, -0.229628, 0, -0.00463519, -17.5699, 0.1, -6.3604)
+
+[node name="tree_1_5_5" parent="Nature" instance=ExtResource("13_r")]
+transform = Transform3D(-0.224714, 0, 0.26918, 0, 0.350648, 0, -0.26918, 0, -0.224714, -17.6525, 0.1, -7.16476)
+
+[node name="grass_2_5" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, -7)
+
+[node name="river_3_5" parent="Ground" instance=ExtResource("18_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 0, -7)
+
+[node name="house_lv0_gecekondu_4_5" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -11, 0, -7)
+script = ExtResource("3_r")
+model_name = "house_lv0_gecekondu"
+
+[node name="road_5_5" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, -7)
+
+[node name="house_lv2_6_5" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -7, 0, -7)
+script = ExtResource("3_r")
+model_name = "house_lv2"
+
+[node name="grass_7_5" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, -7)
+
+[node name="tree_7_5_0" parent="Nature" instance=ExtResource("16_r")]
+transform = Transform3D(-0.0482068, 0, 0.247321, 0, 0.251975, 0, -0.247321, 0, -0.0482068, -5.55, 0.1, -7.55)
+
+[node name="tree_7_5_1" parent="Nature" instance=ExtResource("22_r")]
+transform = Transform3D(-0.0927786, 0, -0.105188, 0, 0.140258, 0, 0.105188, 0, -0.0927786, -4.45, 0.1, -6.5)
+
+[node name="bush_7_5" parent="Nature" instance=ExtResource("32_r")]
+transform = Transform3D(0.00159896, 0, 0.37685, 0, 0.376853, 0, -0.37685, 0, 0.00159896, -4.5, 0.1, -7.5)
+
+[node name="bench_7_5" parent="Props" instance=ExtResource("24_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.3, 0.1, -6.55)
+
+[node name="house_lv1_8_5" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -3, 0, -7)
+script = ExtResource("3_r")
+model_name = "house_lv1"
+
+[node name="road_9_5" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, -7)
+
+[node name="grass_10_5" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, -7)
+
+[node name="tree_10_5_0" parent="Nature" instance=ExtResource("20_r")]
+transform = Transform3D(-0.0597739, 0, 0.13671, 0, 0.149206, 0, -0.13671, 0, -0.0597739, 0.45, 0.1, -7.55)
+
+[node name="tree_10_5_1" parent="Nature" instance=ExtResource("14_r")]
+transform = Transform3D(0.210785, 0, -0.187565, 0, 0.282154, 0, 0.187565, 0, 0.210785, 1.55, 0.1, -6.5)
+
+[node name="bush_10_5" parent="Nature" instance=ExtResource("33_r")]
+transform = Transform3D(0.0296546, 0, -0.404211, 0, 0.405298, 0, 0.404211, 0, 0.0296546, 1.5, 0.1, -7.5)
+
+[node name="bench_10_5" parent="Props" instance=ExtResource("24_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7, 0.1, -6.55)
+
+[node name="grass_11_5" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, -7)
+
+[node name="tree_11_5_0" parent="Nature" instance=ExtResource("20_r")]
+transform = Transform3D(-0.147971, 0, -0.0472865, 0, 0.155343, 0, 0.0472865, 0, -0.147971, 2.45, 0.1, -7.55)
+
+[node name="tree_11_5_1" parent="Nature" instance=ExtResource("16_r")]
+transform = Transform3D(0.261522, 0, -0.116177, 0, 0.286166, 0, 0.116177, 0, 0.261522, 3.55, 0.1, -6.5)
+
+[node name="bush_11_5" parent="Nature" instance=ExtResource("26_r")]
+transform = Transform3D(-0.333117, 0, 0.106249, 0, 0.34965, 0, -0.106249, 0, -0.333117, 3.5, 0.1, -7.5)
+
+[node name="bench_11_5" parent="Props" instance=ExtResource("24_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.7, 0.1, -6.55)
+
+[node name="grass_12_5" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, -7)
+
+[node name="tree_12_5_0" parent="Nature" instance=ExtResource("22_r")]
+transform = Transform3D(-0.171772, 0, 0.0156112, 0, 0.17248, 0, -0.0156112, 0, -0.171772, 4.45, 0.1, -7.55)
+
+[node name="tree_12_5_1" parent="Nature" instance=ExtResource("20_r")]
+transform = Transform3D(0.124532, 0, 0.128203, 0, 0.178729, 0, -0.128203, 0, 0.124532, 5.55, 0.1, -6.5)
+
+[node name="bush_12_5" parent="Nature" instance=ExtResource("34_r")]
+transform = Transform3D(-0.195526, 0, 0.115855, 0, 0.227273, 0, -0.115855, 0, -0.195526, 5.5, 0.1, -7.5)
+
+[node name="bench_12_5" parent="Props" instance=ExtResource("24_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.7, 0.1, -6.55)
+
+[node name="road_13_5" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -7)
+
+[node name="house_lv2_reinforced_14_5" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 9, 0, -7)
+script = ExtResource("3_r")
+model_name = "house_lv2_reinforced"
+
+[node name="grass_15_5" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0, -7)
+
+[node name="tree_15_5_0" parent="Nature" instance=ExtResource("22_r")]
+transform = Transform3D(-0.010386, 0, -0.150477, 0, 0.150835, 0, 0.150477, 0, -0.010386, 10.45, 0.1, -7.55)
+
+[node name="tree_15_5_1" parent="Nature" instance=ExtResource("22_r")]
+transform = Transform3D(-0.151932, 0, 0.101574, 0, 0.182758, 0, -0.101574, 0, -0.151932, 11.55, 0.1, -6.5)
+
+[node name="bush_15_5" parent="Nature" instance=ExtResource("25_r")]
+transform = Transform3D(-0.0962744, 0, 0.291089, 0, 0.306596, 0, -0.291089, 0, -0.0962744, 11.5, 0.1, -7.5)
+
+[node name="bench_15_5" parent="Props" instance=ExtResource("24_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.7, 0.1, -6.55)
+
+[node name="house_lv2_16_5" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 13, 0, -7)
+script = ExtResource("3_r")
+model_name = "house_lv2"
+
+[node name="road_17_5" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, -7)
+
+[node name="grass_18_5" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 0, -7)
+
+[node name="sand_19_5" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 0, -7)
+
+[node name="sand_0_6" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, 0, -5)
+
+[node name="grass_1_6" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 0, -5)
+
+[node name="tree_1_6_0" parent="Nature" instance=ExtResource("20_r")]
+transform = Transform3D(0.0447171, 0, 0.234618, 0, 0.238841, 0, -0.234618, 0, 0.0447171, -17.6372, 0.1, -4.99909)
+
+[node name="tree_1_6_1" parent="Nature" instance=ExtResource("19_r")]
+transform = Transform3D(-0.292041, 0, -0.0904169, 0, 0.305717, 0, 0.0904169, 0, -0.292041, -16.3906, 0.1, -4.25529)
+
+[node name="tree_1_6_2" parent="Nature" instance=ExtResource("15_r")]
+transform = Transform3D(0.0292209, 0, 0.427042, 0, 0.428041, 0, -0.427042, 0, 0.0292209, -17.3839, 0.1, -5.48796)
+
+[node name="tree_1_6_3" parent="Nature" instance=ExtResource("14_r")]
+transform = Transform3D(-0.299442, 0, 0.271311, 0, 0.404073, 0, -0.271311, 0, -0.299442, -17.3625, 0.1, -4.89557)
+
+[node name="grass_2_6" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, -5)
+
+[node name="river_3_6" parent="Ground" instance=ExtResource("18_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 0, -5)
+
+[node name="house_lv0_gecekondu_4_6" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -11, 0, -5)
+script = ExtResource("3_r")
+model_name = "house_lv0_gecekondu"
+
+[node name="road_5_6" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, -5)
+
+[node name="house_lv1_6_6" type="Node3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0, -5)
+script = ExtResource("3_r")
+model_name = "house_lv1"
+
+[node name="house_lv2_7_6" type="Node3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, -5)
+script = ExtResource("3_r")
+model_name = "house_lv2"
+
+[node name="house_lv2_kacak_8_6" type="Node3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, -5)
+script = ExtResource("3_r")
+model_name = "house_lv2_kacak"
+
+[node name="road_9_6" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, -5)
+
+[node name="grass_10_6" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, -5)
+
+[node name="tree_10_6_0" parent="Nature" instance=ExtResource("22_r")]
+transform = Transform3D(-0.142765, 0, -0.0719314, 0, 0.159862, 0, 0.0719314, 0, -0.142765, 0.815299, 0.1, -5.2427)
+
+[node name="tree_10_6_1" parent="Nature" instance=ExtResource("21_r")]
+transform = Transform3D(0.200967, 0, 0.132188, 0, 0.240545, 0, -0.132188, 0, 0.200967, 0.790218, 0.1, -4.71987)
+
+[node name="tree_10_6_2" parent="Nature" instance=ExtResource("14_r")]
+transform = Transform3D(0.346893, 0, -0.103284, 0, 0.361942, 0, 0.103284, 0, 0.346893, 1.59519, 0.1, -5.17316)
+
+[node name="tree_10_6_3" parent="Nature" instance=ExtResource("16_r")]
+transform = Transform3D(-0.232136, 0, 0.117912, 0, 0.260366, 0, -0.117912, 0, -0.232136, 1.52303, 0.1, -4.44066)
+
+[node name="grass_11_6" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, -5)
+
+[node name="billboard_11_6" parent="Props" instance=ExtResource("35_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.1, -5)
+
+[node name="grass_12_6" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, -5)
+
+[node name="tree_12_6_0" parent="Nature" instance=ExtResource("20_r")]
+transform = Transform3D(0.0984888, 0, -0.126212, 0, 0.160092, 0, 0.126212, 0, 0.0984888, 5.70242, 0.1, -5.01526)
+
+[node name="tree_12_6_1" parent="Nature" instance=ExtResource("19_r")]
+transform = Transform3D(0.144442, 0, 0.204339, 0, 0.250236, 0, -0.204339, 0, 0.144442, 5.70836, 0.1, -5.3773)
+
+[node name="tree_12_6_2" parent="Nature" instance=ExtResource("17_r")]
+transform = Transform3D(0.275338, 0, 0.162842, 0, 0.319889, 0, -0.162842, 0, 0.275338, 5.70783, 0.1, -5.58666)
+
+[node name="tree_12_6_3" parent="Nature" instance=ExtResource("16_r")]
+transform = Transform3D(-0.170304, 0, -0.221001, 0, 0.279007, 0, 0.221001, 0, -0.170304, 5.41529, 0.1, -5.74795)
+
+[node name="tree_12_6_4" parent="Nature" instance=ExtResource("14_r")]
+transform = Transform3D(-0.0930836, 0, -0.278028, 0, 0.293196, 0, 0.278028, 0, -0.0930836, 4.70567, 0.1, -5.55805)
+
+[node name="road_13_6" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -5)
+
+[node name="house_lv2_14_6" type="Node3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, -5)
+script = ExtResource("3_r")
+model_name = "house_lv2"
+
+[node name="house_lv3_15_6" type="Node3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0, -5)
+script = ExtResource("3_r")
+model_name = "house_lv3"
+
+[node name="house_lv2_kacak_16_6" type="Node3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0, -5)
+script = ExtResource("3_r")
+model_name = "house_lv2_kacak"
+
+[node name="road_17_6" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, -5)
+
+[node name="house_lv1_18_6" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 17, 0, -5)
+script = ExtResource("3_r")
+model_name = "house_lv1"
+
+[node name="sand_19_6" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 0, -5)
+
+[node name="sand_0_7" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, 0, -3)
+
+[node name="rock_0_7" parent="Nature" instance=ExtResource("36_r")]
+transform = Transform3D(0.0575059, 0, -0.221158, 0, 0.228512, 0, 0.221158, 0, 0.0575059, -18.9756, 0.1, -2.91711)
+
+[node name="grass_1_7" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 0, -3)
+
+[node name="tree_1_7_0" parent="Nature" instance=ExtResource("15_r")]
+transform = Transform3D(-0.250623, 0, -0.321329, 0, 0.40751, 0, 0.321329, 0, -0.250623, -17.7343, 0.1, -3.29772)
+
+[node name="tree_1_7_1" parent="Nature" instance=ExtResource("21_r")]
+transform = Transform3D(0.200917, 0, 0.0373869, 0, 0.204366, 0, -0.0373869, 0, 0.200917, -16.4243, 0.1, -3.03704)
+
+[node name="tree_1_7_2" parent="Nature" instance=ExtResource("21_r")]
+transform = Transform3D(-0.182307, 0, 0.00193563, 0, 0.182317, 0, -0.00193563, 0, -0.182307, -17.1323, 0.1, -2.77553)
+
+[node name="tree_1_7_3" parent="Nature" instance=ExtResource("14_r")]
+transform = Transform3D(0.262224, 0, -0.133276, 0, 0.294149, 0, 0.133276, 0, 0.262224, -16.7383, 0.1, -3.11998)
+
+[node name="grass_2_7" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, -3)
+
+[node name="tree_2_7_0" parent="Nature" instance=ExtResource("15_r")]
+transform = Transform3D(-0.190388, 0, -0.422135, 0, 0.463083, 0, 0.422135, 0, -0.190388, -15.0106, 0.1, -2.70627)
+
+[node name="tree_2_7_1" parent="Nature" instance=ExtResource("20_r")]
+transform = Transform3D(0.210657, 0, 0.0950079, 0, 0.231091, 0, -0.0950079, 0, 0.210657, -15.4529, 0.1, -2.5544)
+
+[node name="tree_2_7_2" parent="Nature" instance=ExtResource("21_r")]
+transform = Transform3D(0.0324323, 0, 0.267661, 0, 0.269618, 0, -0.267661, 0, 0.0324323, -15.0065, 0.1, -3.44938)
+
+[node name="tree_2_7_3" parent="Nature" instance=ExtResource("17_r")]
+transform = Transform3D(-0.188374, 0, -0.156033, 0, 0.244604, 0, 0.156033, 0, -0.188374, -15.4178, 0.1, -2.60929)
+
+[node name="river_3_7" parent="Ground" instance=ExtResource("18_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 0, -3)
+
+[node name="house_lv0_gecekondu_4_7" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -11, 0, -3)
+script = ExtResource("3_r")
+model_name = "house_lv0_gecekondu"
+
+[node name="road_5_7" parent="Roads" instance=ExtResource("30_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, -3)
+
+[node name="road_6_7" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7, 0, -3)
+
+[node name="road_7_7" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5, 0, -3)
+
+[node name="road_8_7" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -3, 0, -3)
+
+[node name="road_9_7" parent="Roads" instance=ExtResource("37_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, -3)
+
+[node name="road_10_7" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1, 0, -3)
+
+[node name="road_11_7" parent="Roads" instance=ExtResource("38_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 3, 0, -3)
+
+[node name="road_12_7" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 5, 0, -3)
+
+[node name="road_13_7" parent="Roads" instance=ExtResource("37_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -3)
+
+[node name="road_14_7" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 9, 0, -3)
+
+[node name="road_15_7" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 11, 0, -3)
+
+[node name="road_16_7" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 13, 0, -3)
+
+[node name="road_17_7" parent="Roads" instance=ExtResource("30_r")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 15, 0, -3)
+
+[node name="house_lv1_18_7" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 17, 0, -3)
+script = ExtResource("3_r")
+model_name = "house_lv1"
+
+[node name="sand_19_7" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 0, -3)
+
+[node name="sand_0_8" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, 0, -1)
+
+[node name="grass_1_8" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 0, -1)
+
+[node name="rock_1_8_0" parent="Nature" instance=ExtResource("27_r")]
+transform = Transform3D(0.185487, 0, 0.782329, 0, 0.804017, 0, -0.782329, 0, 0.185487, -17.5323, 0.1, -0.886237)
+
+[node name="rock_1_8_1" parent="Nature" instance=ExtResource("27_r")]
+transform = Transform3D(0.19388, 0, 0.441205, 0, 0.481924, 0, -0.441205, 0, 0.19388, -16.4311, 0.1, -1.42971)
+
+[node name="rock_1_8_2" parent="Nature" instance=ExtResource("8_r")]
+transform = Transform3D(0.578976, 0, -0.00898683, 0, 0.579046, 0, 0.00898683, 0, 0.578976, -17.0604, 0.1, -0.745558)
+
+[node name="tree_1_8" parent="Nature" instance=ExtResource("19_r")]
+transform = Transform3D(-0.147093, 0, -0.209203, 0, 0.255739, 0, 0.209203, 0, -0.147093, -16.5684, 0.1, -1.17076)
+
+[node name="grass_2_8" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, -1)
+
+[node name="river_3_8" parent="Ground" instance=ExtResource("18_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 0, -1)
+
+[node name="house_lv0_gecekondu_4_8" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -11, 0, -1)
+script = ExtResource("3_r")
+model_name = "house_lv0_gecekondu"
+
+[node name="road_5_8" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, -1)
+
+[node name="building_B_6_8" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -7, 0, -1)
+script = ExtResource("3_r")
+model_name = "building_B"
+
+[node name="building_news_7_8" type="Node3D" parent="Buildings"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -5, 0, -1)
+script = ExtResource("3_r")
+model_name = "building_news"
+
+[node name="building_C_8_8" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -3, 0, -1)
+script = ExtResource("3_r")
+model_name = "building_C"
+
+[node name="road_9_8" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, -1)
+
+[node name="plaza_10_8" parent="Ground" instance=ExtResource("39_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, -1)
+
+[node name="plaza_11_8" parent="Ground" instance=ExtResource("39_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, -1)
+
+[node name="plaza_12_8" parent="Ground" instance=ExtResource("39_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, -1)
+
+[node name="road_13_8" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -1)
+
+[node name="building_hospital_14_8" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 9, 0, -1)
+script = ExtResource("3_r")
+model_name = "building_hospital"
+
+[node name="building_D_15_8" type="Node3D" parent="Buildings"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 11, 0, -1)
+script = ExtResource("3_r")
+model_name = "building_D"
+
+[node name="building_afad_16_8" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 13, 0, -1)
+script = ExtResource("3_r")
+model_name = "building_afad"
+
+[node name="road_17_8" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, -1)
+
+[node name="house_lv1_18_8" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 17, 0, -1)
+script = ExtResource("3_r")
+model_name = "house_lv1"
+
+[node name="sand_19_8" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 0, -1)
+
+[node name="sand_0_9" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, 0, 1)
+
+[node name="grass_1_9" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 0, 1)
+
+[node name="tree_1_9_0" parent="Nature" instance=ExtResource("19_r")]
+transform = Transform3D(0.221921, 0, 0.181154, 0, 0.286471, 0, -0.181154, 0, 0.221921, -17.1821, 0.1, 0.810825)
+
+[node name="tree_1_9_1" parent="Nature" instance=ExtResource("13_r")]
+transform = Transform3D(-0.261484, 0, -0.10568, 0, 0.282032, 0, 0.10568, 0, -0.261484, -17.6326, 0.1, 0.371144)
+
+[node name="tree_1_9_2" parent="Nature" instance=ExtResource("22_r")]
+transform = Transform3D(0.103016, 0, -0.211939, 0, 0.235649, 0, 0.211939, 0, 0.103016, -16.6118, 0.1, 0.820195)
+
+[node name="tree_1_9_3" parent="Nature" instance=ExtResource("15_r")]
+transform = Transform3D(-0.396377, 0, -0.105842, 0, 0.410265, 0, 0.105842, 0, -0.396377, -17.1013, 0.1, 0.323886)
+
+[node name="tree_1_9_4" parent="Nature" instance=ExtResource("17_r")]
+transform = Transform3D(0.301841, 0, 0.0581339, 0, 0.307389, 0, -0.0581339, 0, 0.301841, -17.0805, 0.1, 0.734964)
+
+[node name="tree_1_9_5" parent="Nature" instance=ExtResource("16_r")]
+transform = Transform3D(-0.279649, 0, 0.277661, 0, 0.39408, 0, -0.277661, 0, -0.279649, -17.1338, 0.1, 1.46774)
+
+[node name="grass_2_9" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, 1)
+
+[node name="river_3_9" parent="Ground" instance=ExtResource("18_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 0, 1)
+
+[node name="house_lv0_gecekondu_4_9" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -11, 0, 1)
+script = ExtResource("3_r")
+model_name = "house_lv0_gecekondu"
+
+[node name="road_5_9" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, 1)
+
+[node name="building_E_6_9" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -7, 0, 1)
+script = ExtResource("3_r")
+model_name = "building_E"
+
+[node name="plaza_7_9" parent="Ground" instance=ExtResource("39_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 1)
+
+[node name="building_F_8_9" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -3, 0, 1)
+script = ExtResource("3_r")
+model_name = "building_F"
+
+[node name="road_9_9" parent="Roads" instance=ExtResource("38_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 1)
+
+[node name="plaza_10_9" parent="Ground" instance=ExtResource("39_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1)
+
+[node name="building_townhall_lv1_11_9" type="Node3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 1)
+script = ExtResource("3_r")
+model_name = "building_townhall_lv1"
+
+[node name="plaza_12_9" parent="Ground" instance=ExtResource("39_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 1)
+
+[node name="road_13_9" parent="Roads" instance=ExtResource("38_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, 1)
+
+[node name="grass_14_9" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, 1)
+
+[node name="plaza_15_9" parent="Ground" instance=ExtResource("39_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0, 1)
+
+[node name="building_firestation_16_9" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 13, 0, 1)
+script = ExtResource("3_r")
+model_name = "building_firestation"
+
+[node name="road_17_9" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, 1)
+
+[node name="grass_18_9" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 0, 1)
+
+[node name="bush_18_9" parent="Nature" instance=ExtResource("40_r")]
+transform = Transform3D(-0.0821978, 0, 0.582413, 0, 0.588185, 0, -0.582413, 0, -0.0821978, 16.6339, 0.1, 0.475422)
+
+[node name="sand_19_9" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 0, 1)
+
+[node name="sand_0_10" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, 0, 3)
+
+[node name="grass_1_10" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 0, 3)
+
+[node name="tree_1_10_0" parent="Nature" instance=ExtResource("22_r")]
+transform = Transform3D(0.252254, 0, 0.00597897, 0, 0.252325, 0, -0.00597897, 0, 0.252254, -16.6303, 0.1, 3.28437)
+
+[node name="tree_1_10_1" parent="Nature" instance=ExtResource("13_r")]
+transform = Transform3D(0.311, 0, 0.0477697, 0, 0.314647, 0, -0.0477697, 0, 0.311, -16.6165, 0.1, 3.62469)
+
+[node name="tree_1_10_2" parent="Nature" instance=ExtResource("14_r")]
+transform = Transform3D(0.102996, 0, -0.403259, 0, 0.416204, 0, 0.403259, 0, 0.102996, -17.3992, 0.1, 2.96278)
+
+[node name="tree_1_10_3" parent="Nature" instance=ExtResource("17_r")]
+transform = Transform3D(0.0906259, 0, 0.2022, 0, 0.221581, 0, -0.2022, 0, 0.0906259, -16.3797, 0.1, 3.4722)
+
+[node name="tree_1_10_4" parent="Nature" instance=ExtResource("19_r")]
+transform = Transform3D(-0.286293, 0, -0.228639, 0, 0.366387, 0, 0.228639, 0, -0.286293, -16.5461, 0.1, 3.35773)
+
+[node name="grass_2_10" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, 3)
+
+[node name="tree_2_10_0" parent="Nature" instance=ExtResource("13_r")]
+transform = Transform3D(-0.336567, 0, -0.0251797, 0, 0.337508, 0, 0.0251797, 0, -0.336567, -14.4581, 0.1, 2.94117)
+
+[node name="tree_2_10_1" parent="Nature" instance=ExtResource("16_r")]
+transform = Transform3D(-0.327471, 0, 0.0378412, 0, 0.32965, 0, -0.0378412, 0, -0.327471, -15.1625, 0.1, 2.48991)
+
+[node name="tree_2_10_2" parent="Nature" instance=ExtResource("13_r")]
+transform = Transform3D(0.282176, 0, -0.0216301, 0, 0.283004, 0, 0.0216301, 0, 0.282176, -14.9331, 0.1, 2.49104)
+
+[node name="tree_2_10_3" parent="Nature" instance=ExtResource("17_r")]
+transform = Transform3D(0.21586, 0, -0.015717, 0, 0.216431, 0, 0.015717, 0, 0.21586, -15.3527, 0.1, 2.37612)
+
+[node name="tree_2_10_4" parent="Nature" instance=ExtResource("17_r")]
+transform = Transform3D(-0.161255, 0, -0.152016, 0, 0.221612, 0, 0.152016, 0, -0.161255, -14.2918, 0.1, 2.50979)
+
+[node name="river_3_10" parent="Ground" instance=ExtResource("18_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 0, 3)
+
+[node name="house_lv0_gecekondu_4_10" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -11, 0, 3)
+script = ExtResource("3_r")
+model_name = "house_lv0_gecekondu"
+
+[node name="road_5_10" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, 3)
+
+[node name="building_G_6_10" type="Node3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0, 3)
+script = ExtResource("3_r")
+model_name = "building_G"
+
+[node name="building_H_7_10" type="Node3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 3)
+script = ExtResource("3_r")
+model_name = "building_H"
+
+[node name="building_A_8_10" type="Node3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 3)
+script = ExtResource("3_r")
+model_name = "building_A"
+
+[node name="road_9_10" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 3)
+
+[node name="plaza_10_10" parent="Ground" instance=ExtResource("39_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 3)
+
+[node name="plaza_11_10" parent="Ground" instance=ExtResource("39_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 3)
+
+[node name="plaza_12_10" parent="Ground" instance=ExtResource("39_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 3)
+
+[node name="road_13_10" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, 3)
+
+[node name="building_B_14_10" type="Node3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, 3)
+script = ExtResource("3_r")
+model_name = "building_B"
+
+[node name="grass_15_10" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0, 3)
+
+[node name="billboard_15_10" parent="Props" instance=ExtResource("35_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0.1, 3)
+
+[node name="building_C_16_10" type="Node3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0, 3)
+script = ExtResource("3_r")
+model_name = "building_C"
+
+[node name="road_17_10" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, 3)
+
+[node name="house_lv1_18_10" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 17, 0, 3)
+script = ExtResource("3_r")
+model_name = "house_lv1"
+
+[node name="sand_19_10" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 0, 3)
+
+[node name="sand_0_11" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, 0, 5)
+
+[node name="grass_1_11" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 0, 5)
+
+[node name="tree_1_11_0" parent="Nature" instance=ExtResource("22_r")]
+transform = Transform3D(-0.168655, 0, -0.0753663, 0, 0.184728, 0, 0.0753663, 0, -0.168655, -16.6107, 0.1, 5.41963)
+
+[node name="tree_1_11_1" parent="Nature" instance=ExtResource("21_r")]
+transform = Transform3D(0.0785774, 0, 0.183912, 0, 0.199995, 0, -0.183912, 0, 0.0785774, -17.1905, 0.1, 5.3571)
+
+[node name="tree_1_11_2" parent="Nature" instance=ExtResource("21_r")]
+transform = Transform3D(-0.132454, 0, 0.254641, 0, 0.28703, 0, -0.254641, 0, -0.132454, -17.3967, 0.1, 4.67203)
+
+[node name="tree_1_11_3" parent="Nature" instance=ExtResource("21_r")]
+transform = Transform3D(-0.140241, 0, -0.192112, 0, 0.237854, 0, 0.192112, 0, -0.140241, -17.1559, 0.1, 5.73867)
+
+[node name="tree_1_11_4" parent="Nature" instance=ExtResource("16_r")]
+transform = Transform3D(-0.259796, 0, 0.0415448, 0, 0.263097, 0, -0.0415448, 0, -0.259796, -17.5992, 0.1, 4.94587)
+
+[node name="tree_1_11_5" parent="Nature" instance=ExtResource("16_r")]
+transform = Transform3D(0.300902, 0, -0.293868, 0, 0.420596, 0, 0.293868, 0, 0.300902, -16.5213, 0.1, 5.51083)
+
+[node name="grass_2_11" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, 5)
+
+[node name="bush_2_11" parent="Nature" instance=ExtResource("25_r")]
+transform = Transform3D(0.307899, 0, -0.144476, 0, 0.34011, 0, 0.144476, 0, 0.307899, -15.5395, 0.1, 5.12059)
+
+[node name="river_3_11" parent="Ground" instance=ExtResource("18_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 0, 5)
+
+[node name="house_lv0_gecekondu_4_11" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -11, 0, 5)
+script = ExtResource("3_r")
+model_name = "house_lv0_gecekondu"
+
+[node name="road_5_11" parent="Roads" instance=ExtResource("30_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, 5)
+
+[node name="road_6_11" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7, 0, 5)
+
+[node name="road_7_11" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5, 0, 5)
+
+[node name="road_8_11" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -3, 0, 5)
+
+[node name="road_9_11" parent="Roads" instance=ExtResource("37_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 5)
+
+[node name="road_10_11" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1, 0, 5)
+
+[node name="road_11_11" parent="Roads" instance=ExtResource("38_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 3, 0, 5)
+
+[node name="road_12_11" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 5, 0, 5)
+
+[node name="road_13_11" parent="Roads" instance=ExtResource("37_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, 5)
+
+[node name="road_14_11" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 9, 0, 5)
+
+[node name="road_15_11" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 11, 0, 5)
+
+[node name="road_16_11" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 13, 0, 5)
+
+[node name="road_17_11" parent="Roads" instance=ExtResource("30_r")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 15, 0, 5)
+
+[node name="grass_18_11" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 0, 5)
+
+[node name="bush_18_11" parent="Nature" instance=ExtResource("33_r")]
+transform = Transform3D(-0.190297, 0, -0.32065, 0, 0.372867, 0, 0.32065, 0, -0.190297, 17.4394, 0.1, 4.93894)
+
+[node name="sand_19_11" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 0, 5)
+
+[node name="rock_19_11" parent="Nature" instance=ExtResource("27_r")]
+transform = Transform3D(-0.317099, 0, 0.343215, 0, 0.467277, 0, -0.343215, 0, -0.317099, 19.1375, 0.1, 5.20971)
+
+[node name="sand_0_12" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, 0, 7)
+
+[node name="grass_1_12" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 0, 7)
+
+[node name="tree_1_12_0" parent="Nature" instance=ExtResource("21_r")]
+transform = Transform3D(0.105045, 0, -0.243821, 0, 0.265486, 0, 0.243821, 0, 0.105045, -16.2502, 0.1, 6.30735)
+
+[node name="tree_1_12_1" parent="Nature" instance=ExtResource("22_r")]
+transform = Transform3D(0.170391, 0, 0.0908141, 0, 0.193081, 0, -0.0908141, 0, 0.170391, -16.5218, 0.1, 6.86349)
+
+[node name="tree_1_12_2" parent="Nature" instance=ExtResource("14_r")]
+transform = Transform3D(0.268189, 0, 0.198447, 0, 0.333626, 0, -0.198447, 0, 0.268189, -17.7028, 0.1, 6.99344)
+
+[node name="tree_1_12_3" parent="Nature" instance=ExtResource("13_r")]
+transform = Transform3D(-0.180474, 0, -0.258713, 0, 0.315441, 0, 0.258713, 0, -0.180474, -17.1571, 0.1, 7.07521)
+
+[node name="grass_2_12" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, 7)
+
+[node name="bush_2_12" parent="Nature" instance=ExtResource("26_r")]
+transform = Transform3D(0.353354, 0, -0.107034, 0, 0.369209, 0, 0.107034, 0, 0.353354, -15.2746, 0.1, 7.58589)
+
+[node name="river_3_12" parent="Ground" instance=ExtResource("18_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 0, 7)
+
+[node name="house_lv0_gecekondu_4_12" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -11, 0, 7)
+script = ExtResource("3_r")
+model_name = "house_lv0_gecekondu"
+
+[node name="road_5_12" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, 7)
+
+[node name="house_lv1_6_12" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -7, 0, 7)
+script = ExtResource("3_r")
+model_name = "house_lv1"
+
+[node name="house_lv1_kacak_7_12" type="Node3D" parent="Buildings"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -5, 0, 7)
+script = ExtResource("3_r")
+model_name = "house_lv1_kacak"
+
+[node name="house_lv2_8_12" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -3, 0, 7)
+script = ExtResource("3_r")
+model_name = "house_lv2"
+
+[node name="road_9_12" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 7)
+
+[node name="grass_10_12" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 7)
+
+[node name="tree_10_12_0" parent="Nature" instance=ExtResource("16_r")]
+transform = Transform3D(0.217575, 0, -0.249158, 0, 0.330785, 0, 0.249158, 0, 0.217575, 1.36801, 0.1, 7.57554)
+
+[node name="tree_10_12_1" parent="Nature" instance=ExtResource("14_r")]
+transform = Transform3D(0.0814201, 0, 0.271735, 0, 0.283671, 0, -0.271735, 0, 0.0814201, 1.74493, 0.1, 6.79567)
+
+[node name="tree_10_12_2" parent="Nature" instance=ExtResource("13_r")]
+transform = Transform3D(-0.234922, 0, 0.157039, 0, 0.282577, 0, -0.157039, 0, -0.234922, 0.258815, 0.1, 7.60245)
+
+[node name="tree_10_12_3" parent="Nature" instance=ExtResource("16_r")]
+transform = Transform3D(0.270695, 0, 0.0911533, 0, 0.28563, 0, -0.0911533, 0, 0.270695, 1.57426, 0.1, 6.94136)
+
+[node name="tree_10_12_4" parent="Nature" instance=ExtResource("15_r")]
+transform = Transform3D(-0.0315093, 0, -0.392448, 0, 0.393711, 0, 0.392448, 0, -0.0315093, 0.463745, 0.1, 7.4597)
+
+[node name="grass_11_12" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 7)
+
+[node name="tree_11_12_0" parent="Nature" instance=ExtResource("15_r")]
+transform = Transform3D(-0.06089, 0, 0.286804, 0, 0.293197, 0, -0.286804, 0, -0.06089, 2.45, 0.1, 6.45)
+
+[node name="tree_11_12_1" parent="Nature" instance=ExtResource("13_r")]
+transform = Transform3D(0.178489, 0, 0.145393, 0, 0.230212, 0, -0.145393, 0, 0.178489, 3.55, 0.1, 7.5)
+
+[node name="bush_11_12" parent="Nature" instance=ExtResource("34_r")]
+transform = Transform3D(0.00507727, 0, -0.227216, 0, 0.227273, 0, 0.227216, 0, 0.00507727, 3.5, 0.1, 6.5)
+
+[node name="bench_11_12" parent="Props" instance=ExtResource("24_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.7, 0.1, 7.45)
+
+[node name="grass_12_12" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 7)
+
+[node name="tree_12_12_0" parent="Nature" instance=ExtResource("17_r")]
+transform = Transform3D(-0.0824006, 0, 0.191983, 0, 0.20892, 0, -0.191983, 0, -0.0824006, 4.70242, 0.1, 7.50594)
+
+[node name="tree_12_12_1" parent="Nature" instance=ExtResource("19_r")]
+transform = Transform3D(-0.156759, 0, -0.190277, 0, 0.246533, 0, 0.190277, 0, -0.156759, 5.16147, 0.1, 7.20455)
+
+[node name="tree_12_12_2" parent="Nature" instance=ExtResource("21_r")]
+transform = Transform3D(0.11982, 0, -0.220611, 0, 0.25105, 0, 0.220611, 0, 0.11982, 5.53488, 0.1, 7.18158)
+
+[node name="tree_12_12_3" parent="Nature" instance=ExtResource("20_r")]
+transform = Transform3D(0.108053, 0, 0.162218, 0, 0.194911, 0, -0.162218, 0, 0.108053, 4.52445, 0.1, 6.57721)
+
+[node name="road_13_12" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, 7)
+
+[node name="house_lv2_14_12" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 9, 0, 7)
+script = ExtResource("3_r")
+model_name = "house_lv2"
+
+[node name="construction_15_12" parent="Props" instance=ExtResource("41_r")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 11, 0, 7)
+
+[node name="crane_15_12" parent="Props" instance=ExtResource("42_r")]
+transform = Transform3D(0, 0, 0.9, 0, 0.9, 0, -0.9, 0, 0, 10.3, 0.1, 6.3)
+
+[node name="house_lv3_16_12" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 13, 0, 7)
+script = ExtResource("3_r")
+model_name = "house_lv3"
+
+[node name="road_17_12" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, 7)
+
+[node name="house_lv1_18_12" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 17, 0, 7)
+script = ExtResource("3_r")
+model_name = "house_lv1"
+
+[node name="sand_19_12" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 0, 7)
+
+[node name="sand_0_13" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, 0, 9)
+
+[node name="grass_1_13" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 0, 9)
+
+[node name="rock_1_13_0" parent="Nature" instance=ExtResource("43_r")]
+transform = Transform3D(0.0287299, 0, -0.612385, 0, 0.613058, 0, 0.612385, 0, 0.0287299, -16.6212, 0.1, 8.63111)
+
+[node name="rock_1_13_1" parent="Nature" instance=ExtResource("7_r")]
+transform = Transform3D(-0.668334, 0, 0.190833, 0, 0.695045, 0, -0.190833, 0, -0.668334, -17.5542, 0.1, 9.40585)
+
+[node name="rock_1_13_2" parent="Nature" instance=ExtResource("44_r")]
+transform = Transform3D(-0.291833, 0, -0.166762, 0, 0.336119, 0, 0.166762, 0, -0.291833, -16.5812, 0.1, 9.3337)
+
+[node name="tree_1_13" parent="Nature" instance=ExtResource("17_r")]
+transform = Transform3D(-0.222965, 0, -0.00501392, 0, 0.223021, 0, 0.00501392, 0, -0.222965, -17.0743, 0.1, 9.15884)
+
+[node name="grass_2_13" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, 9)
+
+[node name="bush_2_13" parent="Nature" instance=ExtResource("34_r")]
+transform = Transform3D(0.0191236, 0, -0.223826, 0, 0.224642, 0, 0.223826, 0, 0.0191236, -15.5958, 0.1, 9.58337)
+
+[node name="river_3_13" parent="Ground" instance=ExtResource("18_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 0, 9)
+
+[node name="house_lv0_gecekondu_4_13" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -11, 0, 9)
+script = ExtResource("3_r")
+model_name = "house_lv0_gecekondu"
+
+[node name="road_5_13" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, 9)
+
+[node name="house_lv2_6_13" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -7, 0, 9)
+script = ExtResource("3_r")
+model_name = "house_lv2"
+
+[node name="grass_7_13" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 9)
+
+[node name="tree_7_13_0" parent="Nature" instance=ExtResource("17_r")]
+transform = Transform3D(0.118951, 0, -0.19675, 0, 0.229913, 0, 0.19675, 0, 0.118951, -5.55, 0.1, 8.45)
+
+[node name="tree_7_13_1" parent="Nature" instance=ExtResource("14_r")]
+transform = Transform3D(0.222855, 0, 0.177568, 0, 0.284946, 0, -0.177568, 0, 0.222855, -4.45, 0.1, 9.5)
+
+[node name="bush_7_13" parent="Nature" instance=ExtResource("32_r")]
+transform = Transform3D(-0.237606, 0, 0.292509, 0, 0.376853, 0, -0.292509, 0, -0.237606, -4.5, 0.1, 8.5)
+
+[node name="bench_7_13" parent="Props" instance=ExtResource("24_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.3, 0.1, 9.45)
+
+[node name="house_lv1_8_13" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -3, 0, 9)
+script = ExtResource("3_r")
+model_name = "house_lv1"
+
+[node name="road_9_13" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 9)
+
+[node name="grass_10_13" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 9)
+
+[node name="tree_10_13_0" parent="Nature" instance=ExtResource("17_r")]
+transform = Transform3D(-0.204617, 0, -0.00558373, 0, 0.204693, 0, 0.00558373, 0, -0.204617, 0.45, 0.1, 8.45)
+
+[node name="tree_10_13_1" parent="Nature" instance=ExtResource("16_r")]
+transform = Transform3D(-0.184153, 0, -0.212722, 0, 0.28136, 0, 0.212722, 0, -0.184153, 1.55, 0.1, 9.5)
+
+[node name="bush_10_13" parent="Nature" instance=ExtResource("45_r")]
+transform = Transform3D(0.561305, 0, -0.298887, 0, 0.635922, 0, 0.298887, 0, 0.561305, 1.5, 0.1, 8.5)
+
+[node name="bench_10_13" parent="Props" instance=ExtResource("24_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7, 0.1, 9.45)
+
+[node name="grass_11_13" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 9)
+
+[node name="assembly_marker_11_13" parent="Props" instance=ExtResource("46_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.1, 9)
+
+[node name="assembly_sign_11_13" parent="Props" instance=ExtResource("47_r")]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 3.85, 0.1, 9.85)
+
+[node name="grass_12_13" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 9)
+
+[node name="tree_12_13_0" parent="Nature" instance=ExtResource("20_r")]
+transform = Transform3D(0.132687, 0, 0.0729104, 0, 0.151399, 0, -0.0729104, 0, 0.132687, 4.45, 0.1, 8.45)
+
+[node name="tree_12_13_1" parent="Nature" instance=ExtResource("14_r")]
+transform = Transform3D(-0.160977, 0, -0.2298, 0, 0.280574, 0, 0.2298, 0, -0.160977, 5.55, 0.1, 9.5)
+
+[node name="bush_12_13" parent="Nature" instance=ExtResource("33_r")]
+transform = Transform3D(0.265756, 0, 0.306007, 0, 0.405298, 0, -0.306007, 0, 0.265756, 5.5, 0.1, 8.5)
+
+[node name="bench_12_13" parent="Props" instance=ExtResource("24_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.7, 0.1, 9.45)
+
+[node name="road_13_13" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, 9)
+
+[node name="house_lv2_14_13" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 9, 0, 9)
+script = ExtResource("3_r")
+model_name = "house_lv2"
+
+[node name="grass_15_13" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0, 9)
+
+[node name="tree_15_13_0" parent="Nature" instance=ExtResource("13_r")]
+transform = Transform3D(0.0873451, 0, 0.236564, 0, 0.252174, 0, -0.236564, 0, 0.0873451, 10.45, 0.1, 8.45)
+
+[node name="tree_15_13_1" parent="Nature" instance=ExtResource("17_r")]
+transform = Transform3D(-0.0571013, 0, 0.235357, 0, 0.242184, 0, -0.235357, 0, -0.0571013, 11.55, 0.1, 9.5)
+
+[node name="bush_15_13" parent="Nature" instance=ExtResource("33_r")]
+transform = Transform3D(0.350199, 0, -0.204027, 0, 0.405298, 0, 0.204027, 0, 0.350199, 11.5, 0.1, 8.5)
+
+[node name="bench_15_13" parent="Props" instance=ExtResource("24_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.7, 0.1, 9.45)
+
+[node name="house_lv2_16_13" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 13, 0, 9)
+script = ExtResource("3_r")
+model_name = "house_lv2"
+
+[node name="road_17_13" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, 9)
+
+[node name="grass_18_13" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 0, 9)
+
+[node name="bush_18_13" parent="Nature" instance=ExtResource("40_r")]
+transform = Transform3D(-0.37352, 0, -0.310765, 0, 0.485893, 0, 0.310765, 0, -0.37352, 17.3461, 0.1, 9.5167)
+
+[node name="sand_19_13" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 0, 9)
+
+[node name="sand_0_14" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, 0, 11)
+
+[node name="grass_1_14" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 0, 11)
+
+[node name="tree_1_14_0" parent="Nature" instance=ExtResource("20_r")]
+transform = Transform3D(0.163409, 0, -0.0372515, 0, 0.167601, 0, 0.0372515, 0, 0.163409, -17.3375, 0.1, 11.4734)
+
+[node name="tree_1_14_1" parent="Nature" instance=ExtResource("21_r")]
+transform = Transform3D(-0.105632, 0, 0.227899, 0, 0.25119, 0, -0.227899, 0, -0.105632, -17.0298, 0.1, 11.1378)
+
+[node name="tree_1_14_2" parent="Nature" instance=ExtResource("22_r")]
+transform = Transform3D(-0.0729043, 0, -0.154124, 0, 0.170497, 0, 0.154124, 0, -0.0729043, -17.6948, 0.1, 10.5231)
+
+[node name="tree_1_14_3" parent="Nature" instance=ExtResource("13_r")]
+transform = Transform3D(0.0386679, 0, -0.335444, 0, 0.337666, 0, 0.335444, 0, 0.0386679, -16.4069, 0.1, 10.5031)
+
+[node name="tree_1_14_4" parent="Nature" instance=ExtResource("17_r")]
+transform = Transform3D(-0.319642, 0, -0.115487, 0, 0.339866, 0, 0.115487, 0, -0.319642, -17.6771, 0.1, 11.5374)
+
+[node name="tree_1_14_5" parent="Nature" instance=ExtResource("20_r")]
+transform = Transform3D(-0.112055, 0, -0.11899, 0, 0.163447, 0, 0.11899, 0, -0.112055, -16.8799, 0.1, 11.5738)
+
+[node name="grass_2_14" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, 11)
+
+[node name="tree_2_14_0" parent="Nature" instance=ExtResource("15_r")]
+transform = Transform3D(-0.344109, 0, -0.18181, 0, 0.389186, 0, 0.18181, 0, -0.344109, -14.6431, 0.1, 10.8072)
+
+[node name="tree_2_14_1" parent="Nature" instance=ExtResource("19_r")]
+transform = Transform3D(-0.227911, 0, -0.201884, 0, 0.304468, 0, 0.201884, 0, -0.227911, -15.2096, 0.1, 11.397)
+
+[node name="tree_2_14_2" parent="Nature" instance=ExtResource("22_r")]
+transform = Transform3D(-0.133707, 0, -0.160057, 0, 0.208556, 0, 0.160057, 0, -0.133707, -14.313, 0.1, 10.6946)
+
+[node name="tree_2_14_3" parent="Nature" instance=ExtResource("15_r")]
+transform = Transform3D(-0.0480041, 0, -0.448738, 0, 0.451298, 0, 0.448738, 0, -0.0480041, -14.2739, 0.1, 11.1288)
+
+[node name="tree_2_14_4" parent="Nature" instance=ExtResource("14_r")]
+transform = Transform3D(-0.260792, 0, 0.148347, 0, 0.300032, 0, -0.148347, 0, -0.260792, -14.6293, 0.1, 10.5825)
+
+[node name="river_3_14" parent="Ground" instance=ExtResource("18_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 0, 11)
+
+[node name="grass_4_14" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0, 11)
+
+[node name="bush_4_14" parent="Nature" instance=ExtResource("48_r")]
+transform = Transform3D(1.37762, 0, 0.194206, 0, 1.39124, 0, -0.194206, 0, 1.37762, -11.5427, 0.1, 10.9861)
+
+[node name="road_5_14" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, 11)
+
+[node name="house_lv1_6_14" type="Node3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0, 11)
+script = ExtResource("3_r")
+model_name = "house_lv1"
+
+[node name="house_lv2_7_14" type="Node3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 11)
+script = ExtResource("3_r")
+model_name = "house_lv2"
+
+[node name="house_lv1_kacak_8_14" type="Node3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 11)
+script = ExtResource("3_r")
+model_name = "house_lv1_kacak"
+
+[node name="road_9_14" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 11)
+
+[node name="grass_10_14" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 11)
+
+[node name="tree_10_14_0" parent="Nature" instance=ExtResource("20_r")]
+transform = Transform3D(0.0335042, 0, 0.205344, 0, 0.20806, 0, -0.205344, 0, 0.0335042, 1.10068, 0.1, 10.7056)
+
+[node name="tree_10_14_1" parent="Nature" instance=ExtResource("17_r")]
+transform = Transform3D(0.125852, 0, 0.19457, 0, 0.231725, 0, -0.19457, 0, 0.125852, 1.12539, 0.1, 11.1336)
+
+[node name="tree_10_14_2" parent="Nature" instance=ExtResource("17_r")]
+transform = Transform3D(0.249867, 0, 0.171663, 0, 0.303153, 0, -0.171663, 0, 0.249867, 0.271168, 0.1, 11.4523)
+
+[node name="tree_10_14_3" parent="Nature" instance=ExtResource("14_r")]
+transform = Transform3D(0.145531, 0, -0.357229, 0, 0.385736, 0, 0.357229, 0, 0.145531, 1.20732, 0.1, 11.5569)
+
+[node name="grass_11_14" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 11)
+
+[node name="tree_11_14_0" parent="Nature" instance=ExtResource("16_r")]
+transform = Transform3D(-0.187147, 0, -0.241103, 0, 0.305213, 0, 0.241103, 0, -0.187147, 2.45, 0.1, 10.45)
+
+[node name="tree_11_14_1" parent="Nature" instance=ExtResource("15_r")]
+transform = Transform3D(-0.272685, 0, -0.184627, 0, 0.329309, 0, 0.184627, 0, -0.272685, 3.55, 0.1, 11.5)
+
+[node name="bush_11_14" parent="Nature" instance=ExtResource("31_r")]
+transform = Transform3D(-0.612055, 0, 0.225781, 0, 0.652372, 0, -0.225781, 0, -0.612055, 3.5, 0.1, 10.5)
+
+[node name="bench_11_14" parent="Props" instance=ExtResource("24_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.7, 0.1, 11.45)
+
+[node name="grass_12_14" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 11)
+
+[node name="tree_12_14_0" parent="Nature" instance=ExtResource("16_r")]
+transform = Transform3D(0.387747, 0, 0.157844, 0, 0.418644, 0, -0.157844, 0, 0.387747, 5.35028, 0.1, 10.6227)
+
+[node name="tree_12_14_1" parent="Nature" instance=ExtResource("13_r")]
+transform = Transform3D(0.241492, 0, 0.018777, 0, 0.242221, 0, -0.018777, 0, 0.241492, 4.28784, 0.1, 10.5285)
+
+[node name="tree_12_14_2" parent="Nature" instance=ExtResource("21_r")]
+transform = Transform3D(-0.191732, 0, -0.0220923, 0, 0.193001, 0, 0.0220923, 0, -0.191732, 5.07638, 0.1, 11.6614)
+
+[node name="tree_12_14_3" parent="Nature" instance=ExtResource("19_r")]
+transform = Transform3D(-0.299632, 0, -0.0161612, 0, 0.300068, 0, 0.0161612, 0, -0.299632, 5.21404, 0.1, 11.2214)
+
+[node name="tree_12_14_4" parent="Nature" instance=ExtResource("17_r")]
+transform = Transform3D(-0.0741627, 0, -0.335732, 0, 0.343826, 0, 0.335732, 0, -0.0741627, 4.34565, 0.1, 11.1889)
+
+[node name="tree_12_14_5" parent="Nature" instance=ExtResource("17_r")]
+transform = Transform3D(0.269897, 0, 0.149436, 0, 0.308505, 0, -0.149436, 0, 0.269897, 4.25952, 0.1, 11.5166)
+
+[node name="road_13_14" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, 11)
+
+[node name="house_lv1_14_14" type="Node3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, 11)
+script = ExtResource("3_r")
+model_name = "house_lv1"
+
+[node name="house_lv3_15_14" type="Node3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0, 11)
+script = ExtResource("3_r")
+model_name = "house_lv3"
+
+[node name="house_lv2_16_14" type="Node3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0, 11)
+script = ExtResource("3_r")
+model_name = "house_lv2"
+
+[node name="road_17_14" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, 11)
+
+[node name="house_lv1_18_14" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 17, 0, 11)
+script = ExtResource("3_r")
+model_name = "house_lv1"
+
+[node name="sand_19_14" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 0, 11)
+
+[node name="sand_0_15" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, 0, 13)
+
+[node name="grass_1_15" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 0, 13)
+
+[node name="tree_1_15_0" parent="Nature" instance=ExtResource("22_r")]
+transform = Transform3D(-0.0396804, 0, -0.161626, 0, 0.166426, 0, 0.161626, 0, -0.0396804, -17.3579, 0.1, 13.216)
+
+[node name="tree_1_15_1" parent="Nature" instance=ExtResource("20_r")]
+transform = Transform3D(0.195689, 0, -0.0349244, 0, 0.198781, 0, 0.0349244, 0, 0.195689, -17.351, 0.1, 13.0807)
+
+[node name="tree_1_15_2" parent="Nature" instance=ExtResource("13_r")]
+transform = Transform3D(0.258372, 0, -0.24249, 0, 0.354341, 0, 0.24249, 0, 0.258372, -17.3066, 0.1, 13.6429)
+
+[node name="tree_1_15_3" parent="Nature" instance=ExtResource("21_r")]
+transform = Transform3D(0.192307, 0, -0.0696475, 0, 0.204531, 0, 0.0696475, 0, 0.192307, -17.7272, 0.1, 12.6406)
+
+[node name="grass_2_15" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, 13)
+
+[node name="river_3_15" parent="Ground" instance=ExtResource("18_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 0, 13)
+
+[node name="grass_4_15" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0, 13)
+
+[node name="bush_4_15" parent="Nature" instance=ExtResource("49_r")]
+transform = Transform3D(0.221126, 0, -0.296728, 0, 0.37006, 0, 0.296728, 0, 0.221126, -10.5438, 0.1, 12.7943)
+
+[node name="road_5_15" parent="Roads" instance=ExtResource("28_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -9, 0, 13)
+
+[node name="road_6_15" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7, 0, 13)
+
+[node name="road_7_15" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5, 0, 13)
+
+[node name="road_8_15" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -3, 0, 13)
+
+[node name="road_9_15" parent="Roads" instance=ExtResource("30_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1, 0, 13)
+
+[node name="road_10_15" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1, 0, 13)
+
+[node name="road_11_15" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 3, 0, 13)
+
+[node name="road_12_15" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 5, 0, 13)
+
+[node name="road_13_15" parent="Roads" instance=ExtResource("30_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 7, 0, 13)
+
+[node name="road_14_15" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 9, 0, 13)
+
+[node name="road_15_15" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 11, 0, 13)
+
+[node name="road_16_15" parent="Roads" instance=ExtResource("29_r")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 13, 0, 13)
+
+[node name="road_17_15" parent="Roads" instance=ExtResource("28_r")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 15, 0, 13)
+
+[node name="grass_18_15" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 0, 13)
+
+[node name="sand_19_15" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 0, 13)
+
+[node name="sand_0_16" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, 0, 15)
+
+[node name="grass_1_16" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 0, 15)
+
+[node name="tree_1_16_0" parent="Nature" instance=ExtResource("16_r")]
+transform = Transform3D(-0.352367, 0, 0.146698, 0, 0.381684, 0, -0.146698, 0, -0.352367, -17.0458, 0.1, 15.5096)
+
+[node name="tree_1_16_1" parent="Nature" instance=ExtResource("21_r")]
+transform = Transform3D(-0.165704, 0, 0.134363, 0, 0.213333, 0, -0.134363, 0, -0.165704, -16.6631, 0.1, 15.1055)
+
+[node name="tree_1_16_2" parent="Nature" instance=ExtResource("16_r")]
+transform = Transform3D(0.283152, 0, 0.0483234, 0, 0.287246, 0, -0.0483234, 0, 0.283152, -16.872, 0.1, 15.0978)
+
+[node name="tree_1_16_3" parent="Nature" instance=ExtResource("19_r")]
+transform = Transform3D(-0.0879096, 0, -0.274899, 0, 0.288614, 0, 0.274899, 0, -0.0879096, -17.59, 0.1, 15.6434)
+
+[node name="tree_1_16_4" parent="Nature" instance=ExtResource("16_r")]
+transform = Transform3D(-0.121578, 0, -0.351548, 0, 0.371977, 0, 0.351548, 0, -0.121578, -17.7037, 0.1, 14.4576)
+
+[node name="tree_1_16_5" parent="Nature" instance=ExtResource("15_r")]
+transform = Transform3D(0.136367, 0, 0.413603, 0, 0.435504, 0, -0.413603, 0, 0.136367, -16.6448, 0.1, 14.3486)
+
+[node name="grass_2_16" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, 15)
+
+[node name="river_3_16" parent="Ground" instance=ExtResource("18_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 0, 15)
+
+[node name="grass_4_16" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0, 15)
+
+[node name="house_lv0_gecekondu_5_16" type="Node3D" parent="Buildings"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -9, 0, 15)
+script = ExtResource("3_r")
+model_name = "house_lv0_gecekondu"
+
+[node name="house_lv1_6_16" type="Node3D" parent="Buildings"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -7, 0, 15)
+script = ExtResource("3_r")
+model_name = "house_lv1"
+
+[node name="grass_7_16" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 15)
+
+[node name="house_lv2_8_16" type="Node3D" parent="Buildings"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -3, 0, 15)
+script = ExtResource("3_r")
+model_name = "house_lv2"
+
+[node name="house_lv1_9_16" type="Node3D" parent="Buildings"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -1, 0, 15)
+script = ExtResource("3_r")
+model_name = "house_lv1"
+
+[node name="grass_10_16" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 15)
+
+[node name="house_lv1_11_16" type="Node3D" parent="Buildings"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 3, 0, 15)
+script = ExtResource("3_r")
+model_name = "house_lv1"
+
+[node name="house_lv0_gecekondu_12_16" type="Node3D" parent="Buildings"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 5, 0, 15)
+script = ExtResource("3_r")
+model_name = "house_lv0_gecekondu"
+
+[node name="grass_13_16" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, 15)
+
+[node name="house_lv1_14_16" type="Node3D" parent="Buildings"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 9, 0, 15)
+script = ExtResource("3_r")
+model_name = "house_lv1"
+
+[node name="house_lv2_15_16" type="Node3D" parent="Buildings"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 11, 0, 15)
+script = ExtResource("3_r")
+model_name = "house_lv2"
+
+[node name="grass_16_16" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0, 15)
+
+[node name="grass_17_16" parent="Ground" instance=ExtResource("9_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, 15)
+
+[node name="bush_17_16" parent="Nature" instance=ExtResource("50_r")]
+transform = Transform3D(0.165861, 0, -0.103641, 0, 0.195579, 0, 0.103641, 0, 0.165861, 14.6959, 0.1, 14.6438)
+
+[node name="sand_18_16" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 0, 15)
+
+[node name="sand_19_16" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 0, 15)
+
+[node name="sand_0_17" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, 0, 17)
+
+[node name="sand_1_17" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 0, 17)
+
+[node name="sand_2_17" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, 17)
+
+[node name="river_3_17" parent="Ground" instance=ExtResource("18_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 0, 17)
+
+[node name="sand_4_17" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0, 17)
+
+[node name="sand_5_17" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, 17)
+
+[node name="sand_6_17" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0, 17)
+
+[node name="sand_7_17" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 17)
+
+[node name="sand_8_17" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 17)
+
+[node name="sand_9_17" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 17)
+
+[node name="sand_10_17" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 17)
+
+[node name="sand_11_17" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 17)
+
+[node name="sand_12_17" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 17)
+
+[node name="rock_12_17" parent="Nature" instance=ExtResource("7_r")]
+transform = Transform3D(-0.801132, 0, -0.0188159, 0, 0.801353, 0, 0.0188159, 0, -0.801132, 5.25985, 0.1, 17.4103)
+
+[node name="sand_13_17" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, 17)
+
+[node name="sand_14_17" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, 17)
+
+[node name="sand_15_17" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0, 17)
+
+[node name="rock_15_17" parent="Nature" instance=ExtResource("10_r")]
+transform = Transform3D(-0.274305, 0, 0.0542193, 0, 0.279612, 0, -0.0542193, 0, -0.274305, 10.9129, 0.1, 16.9364)
+
+[node name="sand_16_17" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0, 17)
+
+[node name="rock_16_17" parent="Nature" instance=ExtResource("7_r")]
+transform = Transform3D(0.349823, 0, -0.745708, 0, 0.823684, 0, 0.745708, 0, 0.349823, 13.0661, 0.1, 17.2144)
+
+[node name="sand_17_17" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, 17)
+
+[node name="sand_18_17" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 0, 17)
+
+[node name="rock_18_17" parent="Nature" instance=ExtResource("27_r")]
+transform = Transform3D(-0.369971, 0, 0.524286, 0, 0.641681, 0, -0.524286, 0, -0.369971, 16.702, 0.1, 17.2622)
+
+[node name="sand_19_17" parent="Ground" instance=ExtResource("5_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 0, 17)
+
+[node name="lamp_10_8" parent="Props" instance=ExtResource("51_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.85, 0.1, -1)
+
+[node name="lamp_12_8" parent="Props" instance=ExtResource("51_r")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 4.15, 0.1, -1)
+
+[node name="lamp_10_10" parent="Props" instance=ExtResource("51_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.85, 0.1, 3)
+
+[node name="lamp_12_10" parent="Props" instance=ExtResource("51_r")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 4.15, 0.1, 3)
+
+[node name="newspaper_kiosk" parent="Props" instance=ExtResource("52_r")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 1, 0.1, 1.5)
+
+[node name="siren_pole" parent="Props" instance=ExtResource("53_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.6, 0.1, 0.4)
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="Help" type="Label" parent="HUD"]
+offset_left = 14.0
+offset_top = 10.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+text = "WASD / sag tik: kaydir   Tekerlek: zoom   Q/E: dondur\n1: deprem testi   2: tum binalari onar   3: rastgele evi gelistir"

@@ -49,6 +49,48 @@
    "ai": true
   }
  ],
+ "insanlar": [
+  {
+   "name": "person_a",
+   "ai": true
+  },
+  {
+   "name": "person_afad",
+   "ai": true
+  },
+  {
+   "name": "person_b",
+   "ai": true
+  },
+  {
+   "name": "person_c",
+   "ai": true
+  },
+  {
+   "name": "person_d",
+   "ai": true
+  },
+  {
+   "name": "person_doctor",
+   "ai": true
+  },
+  {
+   "name": "person_e",
+   "ai": true
+  },
+  {
+   "name": "person_f",
+   "ai": true
+  },
+  {
+   "name": "person_g",
+   "ai": true
+  },
+  {
+   "name": "person_h",
+   "ai": true
+  }
+ ],
  "binalar/konut": [
   {
    "name": "house_lv0_gecekondu",
@@ -87,6 +129,10 @@
    "ai": true
   },
   {
+   "name": "house_lv1_reinforced_damaged",
+   "ai": true
+  },
+  {
    "name": "house_lv2",
    "ai": true
   },
@@ -108,6 +154,10 @@
   },
   {
    "name": "house_lv2_reinforced",
+   "ai": true
+  },
+  {
+   "name": "house_lv2_reinforced_damaged",
    "ai": true
   },
   {
@@ -243,7 +293,23 @@
  ],
  "binalar/hasar": [
   {
+   "name": "building_A_collapsed",
+   "ai": true
+  },
+  {
    "name": "building_A_damaged",
+   "ai": true
+  },
+  {
+   "name": "building_B_collapsed",
+   "ai": true
+  },
+  {
+   "name": "building_B_damaged",
+   "ai": true
+  },
+  {
+   "name": "building_C_collapsed",
    "ai": true
   },
   {
@@ -251,7 +317,107 @@
    "ai": true
   },
   {
-   "name": "building_collapsed",
+   "name": "building_D_collapsed",
+   "ai": true
+  },
+  {
+   "name": "building_D_damaged",
+   "ai": true
+  },
+  {
+   "name": "building_E_collapsed",
+   "ai": true
+  },
+  {
+   "name": "building_E_damaged",
+   "ai": true
+  },
+  {
+   "name": "building_F_collapsed",
+   "ai": true
+  },
+  {
+   "name": "building_F_damaged",
+   "ai": true
+  },
+  {
+   "name": "building_G_collapsed",
+   "ai": true
+  },
+  {
+   "name": "building_G_damaged",
+   "ai": true
+  },
+  {
+   "name": "building_H_collapsed",
+   "ai": true
+  },
+  {
+   "name": "building_H_damaged",
+   "ai": true
+  },
+  {
+   "name": "building_afad_collapsed",
+   "ai": true
+  },
+  {
+   "name": "building_afad_damaged",
+   "ai": true
+  },
+  {
+   "name": "building_firestation_collapsed",
+   "ai": true
+  },
+  {
+   "name": "building_firestation_damaged",
+   "ai": true
+  },
+  {
+   "name": "building_hospital_collapsed",
+   "ai": true
+  },
+  {
+   "name": "building_hospital_damaged",
+   "ai": true
+  },
+  {
+   "name": "building_news_collapsed",
+   "ai": true
+  },
+  {
+   "name": "building_news_damaged",
+   "ai": true
+  },
+  {
+   "name": "building_school_collapsed",
+   "ai": true
+  },
+  {
+   "name": "building_school_damaged",
+   "ai": true
+  },
+  {
+   "name": "building_townhall_lv1_collapsed",
+   "ai": true
+  },
+  {
+   "name": "building_townhall_lv1_damaged",
+   "ai": true
+  },
+  {
+   "name": "building_townhall_lv2_collapsed",
+   "ai": true
+  },
+  {
+   "name": "building_townhall_lv2_damaged",
+   "ai": true
+  },
+  {
+   "name": "building_townhall_lv3_collapsed",
+   "ai": true
+  },
+  {
+   "name": "building_townhall_lv3_damaged",
    "ai": true
   }
  ],
@@ -398,6 +564,10 @@
   },
   {
    "name": "tile_river_straight",
+   "ai": true
+  },
+  {
+   "name": "tile_sand",
    "ai": true
   },
   {
