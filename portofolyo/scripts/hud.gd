@@ -7,11 +7,18 @@ extends CanvasLayer
 ##   Sol       : secili bina karti, afet raporu
 ##   Harita    : yardim isaretleri (IncidentMarker), haritaya bagli etiketler (world_toast)
 ##   Orta      : sadece karar pencereleri (olay karti, giris, oyun sonu) ve magaza
+##
+## Nufus sistemi:
+##   Sehrin maksimum nufusu MAX_POP (10.000). Oyun %40 nufusla (4.000) baslar:
+##   ilk okunan gercek nufus 4.000'e olceklenir, sonraki degisimler ayni oranla yansir.
+##   Nufus %20'nin altina duserse oyun biter.
+##   Basari yuzdesi = nufus orani x farkindalik orani / 100
 
 signal action_pressed(id: String)
 signal building_action(id: String)
 signal precaution_pressed(id: String)
 signal risk_toggled(on: bool)
+signal game_over  # nufus %20'nin altina dustu (GameManager dinleyebilir)
 signal _modal_done(result: int)
 
 const C_BG := Color(0.07, 0.09, 0.14, 0.9)
@@ -24,6 +31,7 @@ const C_GOOD := Color(0.45, 0.95, 0.55)
 const C_BAD := Color(1.0, 0.45, 0.35)
 const C_ACCENT := Color(1.0, 0.6, 0.2)
 const C_BLUE := Color(0.4, 0.68, 1.0)
+const C_POP := Color(0.75, 0.85, 1.0)
 const KIND_COLORS := {"info": C_BLUE, "good": C_GOOD, "bad": C_BAD, "disaster": Color(1.0, 0.3, 0.25)}
 const KIND_ICONS := {"info": "star", "good": "check", "bad": "warning", "disaster": "warning"}
 const TAB_STYLE := {"aw": ["news", Color(0.4, 0.68, 1.0)], "infra": ["wave", Color(0.3, 0.8, 0.7)],
@@ -32,6 +40,10 @@ const UNIT_ICONS := {"fire": ["fire", Color(1.0, 0.45, 0.3)], "medic": ["medic",
 	"rescue": ["rescue", Color(1.0, 0.7, 0.25)]}
 const FORECAST_ICONS := {"forest_fire": "tree", "flood": "wave", "house_fire": "fire"}
 const RISK_TEXT := {"fire": "Yangın", "forest": "Orman yangını", "flood": "Sel", "quake": "Deprem"}
+
+const MAX_POP := 10000           # sehrin maksimum nufusu
+const START_POP_RATIO := 40.0    # oyun %40 nufusla baslar (4.000)
+const MIN_POP_RATIO := 20.0      # bunun alti = oyun biter
 
 var game: Node  # GameManager (game_manager.gd _ready'de atar)
 var font: Font
@@ -44,6 +56,7 @@ var _money: Label
 var _money_sub: Label
 var _money_chip: Control
 var _pop: Label
+var _pop_bar: ProgressBar
 var _aw: Label
 var _aw_chip: Control
 var _aw_bar: ProgressBar
@@ -73,6 +86,8 @@ var _flash: ColorRect
 var _summary: PanelContainer
 var _black: ColorRect
 var dialog: DialogPlayer
+var _pop_scale := 0.0     # gercek nufus -> oyun nufusu carpani (ilk okumada hesaplanir)
+var _game_over := false   # oyun sonu bir kez tetiklensin
 
 
 func _ready() -> void:
@@ -274,12 +289,19 @@ func _build_stats() -> void:
 	_money = _label(v, "", 22, C_GOLD, true)
 	_money_sub = _label(v, "", 12, C_MUTED)
 	p.mouse_filter = Control.MOUSE_FILTER_STOP
-	# nufus
+	# nufus (yazi + bar)
 	p = _panel(row, C_BG, C_LINE, 12, 6)
 	h = _hbox(p, 8)
-	_icon(h, "people", Color(0.75, 0.85, 1.0), 26)
-	_pop = _label(h, "", 20, C_TEXT, true)
-	p.tooltip_text = "Nüfus: vergi geliri getirir"
+	_icon(h, "people", C_POP, 26)
+	var pv := _vbox(h, 2)
+	_pop = _label(pv, "", 15, C_TEXT, true)
+	_pop_bar = ProgressBar.new()
+	_pop_bar.custom_minimum_size = Vector2(96, 7)
+	_pop_bar.show_percentage = false
+	_pop_bar.add_theme_stylebox_override("background", sb(Color(1, 1, 1, 0.1), 4, 0, Color.TRANSPARENT, 0, 0))
+	_pop_bar.add_theme_stylebox_override("fill", sb(C_POP, 4, 0, Color.TRANSPARENT, 0, 0))
+	pv.add_child(_pop_bar)
+	p.tooltip_text = "Nüfus: vergi geliri getirir\n%%%d'nin altına düşerse oyun biter" % int(MIN_POP_RATIO)
 	p.mouse_filter = Control.MOUSE_FILTER_STOP
 	# farkindalik
 	p = _panel(row, C_BG, C_LINE, 12, 6)
@@ -306,12 +328,18 @@ func _build_stats() -> void:
 
 func update_stats(g: Node) -> void:
 	_money.text = GameManager.fmt_money(g.money)
-	var net: int = g.daily_income() - g.upkeep() - g.repair_cost_today()
+	# her biri tum binalari geziyor: bir kez hesapla
+	var income: int = g.daily_income()
+	var upkeep: int = g.upkeep()
+	var repair: int = g.repair_cost_today()
+	var net: int = income - upkeep - repair
 	_money_sub.text = "%s%s / gün" % ["+" if net >= 0 else "", GameManager.fmt_money(net)]
 	_money_sub.add_theme_color_override("font_color", C_MUTED if net >= 0 else C_BAD)
-	_money_chip.tooltip_text = "Vergi +%s\nGider -%s\nOnarım -%s" % [GameManager.fmt_money(g.daily_income()),
-		GameManager.fmt_money(g.upkeep()), GameManager.fmt_money(g.repair_cost_today())]
-	_pop.text = str(g.population())
+	_money_chip.tooltip_text = "Vergi +%s\nGider -%s\nOnarım -%s" % [GameManager.fmt_money(income),
+		GameManager.fmt_money(upkeep), GameManager.fmt_money(repair)]
+	var pop := city_pop(g)
+	_pop.text = "%d / %d" % [pop, MAX_POP]
+	_pop_bar.value = pop_ratio(pop)
 	var aw: float = g.awareness
 	_aw.text = "Farkındalık %%%d" % int(aw)
 	_aw_bar.value = aw
@@ -324,6 +352,7 @@ func update_stats(g: Node) -> void:
 		_units[unit].text = "%d/%d" % [g.units_free(unit), g.units_total(unit)]
 	if _shop and _shop.visible:
 		_fill_shop()
+	_check_population(g, pop)
 
 
 ## Para degisimi: para cipinden ucan sayi.
@@ -350,6 +379,52 @@ func _float_from(c: Control, text: String, color: Color) -> void:
 	tw.tween_property(l, "position:y", l.position.y + 34, 1.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tw.tween_property(l, "modulate:a", 0.0, 0.6).set_delay(1.1)
 	tw.chain().tween_callback(l.queue_free)
+
+
+# ------------------------------------------------------------------ nufus orani ve basari yuzdesi
+## Oyun nufusu: gercek nufus, oyun basinda MAX_POP'un %40'ina (4.000) denk gelecek sekilde olceklenir.
+## Ornek: gercek baslangic 1.200 ise carpan 4000/1200 = 3.33; nufus 900'e duserse oyun nufusu 3.000 (%30) olur.
+func city_pop(g: Node) -> int:
+	var real: int = g.population()
+	if _pop_scale <= 0.0:
+		if real <= 0:
+			return 0  # harita henuz yuklenmedi
+		_pop_scale = MAX_POP * START_POP_RATIO / 100.0 / float(real)
+	return int(round(real * _pop_scale))
+
+
+## Nufus orani: 0-100 (10.000 nufus = %100)
+static func pop_ratio(pop: int) -> float:
+	return clampf(float(pop) / float(MAX_POP) * 100.0, 0.0, 100.0)
+
+
+## Basari yuzdesi = nufus orani x farkindalik orani / 100
+static func success_rate(pop: int, awareness: float) -> float:
+	var p := pop_ratio(pop)
+	var a := clampf(awareness, 0.0, 100.0)
+	return p * a / 100.0
+
+
+## Nufus %20'nin altina duserse oyun biter (mevcut oyun sonu penceresi acilir).
+func _check_population(g: Node, pop: int) -> void:
+	if _game_over or _pop_scale <= 0.0:
+		return
+	if pop_ratio(pop) < MIN_POP_RATIO:
+		_game_over = true
+		_end_by_population.call_deferred(g)
+
+
+func _end_by_population(g: Node) -> void:
+	# acik bir karar penceresi varsa (olay karti, rapor) kapanmasini bekle
+	while _modal_root.get_child_count() > 0:
+		await get_tree().process_frame
+	close_shop()
+	hide_building()
+	if _pause:
+		_close_pause()
+	get_tree().paused = true  # afetler ve zaman dursun (HUD calismaya devam eder)
+	game_over.emit()
+	await show_end(g, true)
 
 
 # ------------------------------------------------------------------ sol alt: ekipler
@@ -809,22 +884,26 @@ func _process(delta: float) -> void:
 	if game == null or _world_toasts.is_empty():
 		return
 	var cam: Camera3D = game.city.camera_rig.camera
-	for item in _world_toasts.duplicate():
+	# sondan basa: her karede dizi kopyalamadan silinebilsin
+	for idx in range(_world_toasts.size() - 1, -1, -1):
+		var item: Array = _world_toasts[idx]
 		var p: PanelContainer = item[0]
 		item[3] -= delta
 		if item[3] > 0.0:
 			continue
+		var first: bool = item[2] == 0.0
 		item[2] += delta
 		var t: float = item[2]
 		var life := 3.2
 		if t > life or not is_instance_valid(p):
-			_world_toasts.erase(item)
+			_world_toasts.remove_at(idx)
 			if is_instance_valid(p):
 				p.queue_free()
 			continue
 		p.visible = not cam.is_position_behind(item[1])
 		var sp := cam.unproject_position(item[1])
-		p.reset_size()
+		if first or p.size.x < 1.0:
+			p.reset_size()  # yazi sabit: boyut bir kez hesaplanir
 		p.position = sp - Vector2(p.size.x / 2.0, p.size.y + 10.0 + t * 14.0)
 		p.modulate.a = clampf(t * 5.0, 0.0, 1.0) * clampf((life - t) * 2.0, 0.0, 1.0)
 
@@ -1002,7 +1081,7 @@ func show_building(b: Building, options: Array, g: Node) -> void:
 	var st_col: Color = [C_GOOD, C_GOLD, C_BAD][b.state]
 	_chip(chips, ["check", "warning", "rubble"][b.state], ["Sağlam", "Hasarlı", "Yıkık"][b.state], st_col, 13)
 	if b.population() > 0:
-		_chip(chips, "people", str(b.population()), Color(0.75, 0.85, 1.0), 13)
+		_chip(chips, "people", str(b.population()), C_POP, 13)
 	var risk_txt: String = info.risk
 	var risk_col := C_BAD if risk_txt.begins_with("Çok y") else (C_GOOD if risk_txt.ends_with("düşük") else C_GOLD)
 	_chip(chips, "warning" if risk_col == C_BAD else "shield", "Deprem: " + risk_txt.to_lower(), risk_col, 13)
@@ -1425,10 +1504,15 @@ func _fill_decision(v: VBoxContainer, w: int, text: String) -> void:
 	_text(v, "[center]" + text + "[/center]", w, 18)
 
 
-func show_end(g: Node) -> void:
+## Oyun sonu. failed = true ise nufus %20'nin altina dustugu icin erken bitti (sadece baslik degisir).
+func show_end(g: Node, failed := false) -> void:
+	_game_over = true  # normal bitiste nufus kontrolu artik tetiklenmesin
 	var gr: Array = g.grade()
 	var col: Color = {"A": C_GOOD, "B": Color(0.6, 0.9, 0.4), "C": C_GOLD, "D": C_ACCENT, "F": C_BAD}[gr[0]]
-	var choice: int = await _modal("20 Gün Tamamlandı", "star", col, 640, _fill_end.bind(g, gr, col), ["Yeniden Oyna", "Ana Menü"])
+	var title := "Şehir Boşaldı" if failed else "20 Gün Tamamlandı"
+	var choice: int = await _modal(title, "warning" if failed else "star", C_BAD if failed else col, 640,
+		_fill_end.bind(g, gr, col, failed), ["Yeniden Oyna", "Ana Menü"])
+	get_tree().paused = false
 	Engine.time_scale = 1.0
 	if choice == 1:
 		get_tree().change_scene_to_file(MENU_SCENE)
@@ -1517,7 +1601,7 @@ func _to_menu() -> void:
 	get_tree().change_scene_to_file(MENU_SCENE)
 
 
-func _fill_end(v: VBoxContainer, w: int, g: Node, gr: Array, col: Color) -> void:
+func _fill_end(v: VBoxContainer, w: int, g: Node, gr: Array, col: Color, failed := false) -> void:
 	var t: Dictionary = g.totals
 	var msg := {"A": "Örnek bir şehir! Halkın bilinçli, binalar sağlam.",
 		"B": "Çok iyi! Birkaç eksik dışında şehir afetlere hazırdı.",
@@ -1535,6 +1619,16 @@ func _fill_end(v: VBoxContainer, w: int, g: Node, gr: Array, col: Color) -> void
 	var m := _label(tv, msg[gr[0]], 16, C_MUTED)
 	m.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	m.custom_minimum_size.x = w - 160
+	if failed:
+		_text(v, "[color=#ff7359]Nüfus %%%d sınırının altına düştü, halk şehri terk etti.[/color]" % int(MIN_POP_RATIO), w, 16)
+	# --- basari yuzdesi = nufus orani x farkindalik orani / 100 ---
+	var pop := city_pop(g)
+	var aw: float = g.awareness
+	_label(v, "Başarı yüzdesi", 16, C_TEXT, true)
+	_percent_bar(v, "Nüfus (%d / %d)" % [pop, MAX_POP], pop_ratio(pop), C_POP, w)
+	_percent_bar(v, "Farkındalık", aw, C_GOOD, w)
+	_percent_bar(v, "BAŞARI", success_rate(pop, aw), C_GOLD, w)
+	# --- can karsilastirmasi ---
 	_label(v, "Hazırlığın kaç can kurtardı?", 16, C_TEXT, true)
 	_bar(v, "Hiç hazırlık yapmasaydın", baseline, baseline, C_BAD, w)
 	_bar(v, "Senin şehrin", casualties, baseline, C_GOOD, w)
@@ -1560,3 +1654,21 @@ func _bar(parent: Node, caption: String, value: int, max_value: int, color: Colo
 	var target := (width - 280) * clampf(float(value) / maxf(1.0, float(max_value)), 0.0, 1.0)
 	fill.create_tween().tween_property(fill, "custom_minimum_size:x", maxf(4.0, target), 1.2).set_delay(0.4).set_trans(Tween.TRANS_QUAD)
 	_label(h, "%d can" % value, 16, color, true)
+
+
+## Yuzde bari (0-100): oyun sonundaki nufus / farkindalik / basari satirlari.
+func _percent_bar(parent: Node, caption: String, percent: float, color: Color, width: int) -> void:
+	var h := _hbox(parent, 10)
+	var l := _label(h, caption, 14, C_MUTED)
+	l.custom_minimum_size.x = 190
+	var bg := _panel(h, Color(1, 1, 1, 0.06), Color.TRANSPARENT, 0, 0, 8)
+	bg.custom_minimum_size = Vector2(width - 280, 22)
+	var fill := ColorRect.new()
+	fill.color = color
+	fill.custom_minimum_size = Vector2(0, 22)
+	fill.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	bg.add_child(fill)
+	var target := (width - 280) * clampf(percent / 100.0, 0.0, 1.0)
+	fill.create_tween().tween_property(fill, "custom_minimum_size:x", maxf(4.0, target), 1.2) \
+		.set_delay(0.4).set_trans(Tween.TRANS_QUAD)
+	_label(h, "%%%d" % int(round(percent)), 16, color, true)
