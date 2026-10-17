@@ -109,7 +109,7 @@ func apply_time(h: float) -> void:
 	var dusk_k := clampf(1.0 - absf(elev) / 0.35, 0.0, 1.0)  # gun dogumu/batimi kizilligi
 
 	sun.rotation = Vector3(-deg_to_rad(maxf(elev * 65.0, 3.0)), deg_to_rad((h / 24.0 - 0.5) * 180.0 + 25.0), 0.0)
-	sun.light_energy = 1.15 * day_k
+	sun.light_energy = 1.35 * day_k
 	sun.light_color = Color(1.0, 0.55, 0.3).lerp(Color(1.0, 0.97, 0.92), smoothstep(0.0, 0.5, elev))
 	moon.light_energy = 0.3 * (1.0 - day_k)
 	moon.visible = day_k < 0.99
@@ -125,7 +125,7 @@ func apply_time(h: float) -> void:
 	sky.sky_horizon_color = horizon
 	sky.ground_horizon_color = horizon
 	sky.ground_bottom_color = top.darkened(0.4)
-	env.ambient_light_energy = lerpf(0.3, 0.9, day_k) * (1.0 - gloom * 0.45)
+	env.ambient_light_energy = lerpf(0.3, 0.7, day_k) * (1.0 - gloom * 0.45)  # daha az duz, golgeler belirgin
 	sea_material.set_shader_parameter("light", lerpf(0.3, 1.0, day_k) * (1.0 - gloom * 0.35))
 	if traffic:
 		traffic.set_night(1.0 - day_k)  # gece sokaklar sakinlesir

@@ -32,9 +32,14 @@ var _grill_smoke: Array[Node3D] = []
 var _rain: GPUParticles3D
 var _flood_mat: StandardMaterial3D
 var _used_spots := {}  # olay kartlariyla doldurulan yerler
+var _quake_day := -100  # son deprem gunu (depremden hemen sonraki selde kacis trafigi yogun)
+var life: Node  # city_life.gd: tatbikat gruplari, sabah trafigi, cadirlar, yikinti basindaki komsular
 
 
 func _ready() -> void:
+	life = preload("res://scripts/city_life.gd").new()
+	life.name = "CityLife"
+	add_child(life)
 	for n in city.get_node("Nature").get_children():
 		if String(n.name).begins_with("tree_"):
 			var k := tile_key(n.position)
@@ -82,6 +87,10 @@ func spawn_incident(kind: String, pos: Vector3, people: int, seconds: float, bui
 	inc.position = Vector3(pos.x, 0.1, pos.z)
 	effects.add_child(inc)
 	incident_spawned.emit(inc)
+	# kurtarilanlar haritada gorunsun: yardim noktasindan toplanma alanina yururler
+	inc.resolved.connect(func(i: Incident, saved: int, _lost: int):
+		if saved > 0 and i.tile == Vector2i.ZERO:
+			traffic.rescued_walk(i.global_position, mini(saved, 3)))
 	return inc
 
 
@@ -171,6 +180,9 @@ func earthquake(magnitude: float) -> Dictionary:
 	camera_rig.shake(2.0 + magnitude * 1.5)
 	traffic.panic(5.0)
 	r.evacuated = traffic.evacuate(game.evac_ratio(Vector3.INF))
+	# herkes sokaga iner: farkindalik yuksekse toplanma alanlarina, dusukse sokakta panik
+	traffic.residents_out(city.buildings(), func(p): return game.evac_ratio(p))
+	_quake_day = game.day
 	var collapsed: Array = []
 	var damaged: Array = []
 	var collapse_k := 0.45 if magnitude > 1.3 else 0.25
@@ -211,6 +223,7 @@ func earthquake(magnitude: float) -> Dictionary:
 	if magnitude > 1.3 or randf() < 0.7:
 		_aftershock(r, magnitude)
 	await respond(r)
+	life.after_quake(r)
 	return r
 
 
@@ -328,6 +341,7 @@ func house_fire(b: Building, focus := true) -> Dictionary:
 ## Binayi tutustur: yangin isareti cikar. Zamaninda sondurulmezse bina coker ve komsuya sicrar.
 func _ignite(b: Building, r: Dictionary, seconds: float) -> void:
 	b.set_on_fire(true)
+	traffic.gather_onlookers(b.global_position, game.district_awareness(b.position) / 100.0)
 	var people := maxi(1, int(round(b.population() * 0.3 * (1.0 - game.evac_ratio(b.position)))))
 	var inc := spawn_incident("fire", b.global_position, people, seconds, b)
 	_track(inc, r)
@@ -335,6 +349,7 @@ func _ignite(b: Building, r: Dictionary, seconds: float) -> void:
 		_track(spawn_incident("injured", b.global_position + Vector3(0.6, 0, 0.6), maxi(1, people / 2), 30.0, b), r)
 	inc.resolved.connect(func(_i, saved, _lost):
 		b.set_on_fire(false)
+		traffic.release_onlookers(b.global_position)
 		if saved > 0:
 			if b.state == Building.State.NORMAL:
 				b.damage()
@@ -342,6 +357,7 @@ func _ignite(b: Building, r: Dictionary, seconds: float) -> void:
 			return
 		b.collapse()
 		r.collapsed += 1
+		life.mourners(b)
 		# sondurulemeyen yangin komsuya sicrar
 		for o in city.buildings():
 			if o != b and o.state != Building.State.COLLAPSED and not o.on_fire and o.position.distance_to(b.position) < 2.3:
@@ -504,6 +520,14 @@ func flood(severity: float, focus := true) -> Dictionary:
 		waters.append(w)
 		w.create_tween().tween_property(w, "position:y", level + randf_range(-0.01, 0.01), 3.0).set_trans(Tween.TRANS_SINE)
 	r.flooded = tiles.size()
+	# su basan yollar kapanir; dere kenarindan araclar kacar (depremden hemen sonraysa cok daha yogun)
+	var closed: Array[Vector2i] = []
+	for p in tiles:
+		var k := Vector2i(roundi(p.x), roundi(p.y))
+		if traffic.road.has(k) and not traffic.blocked.has(k):
+			traffic.set_blocked(k, true)
+			closed.append(k)
+	traffic.flee_traffic(_river_z(), 18 if game.day - _quake_day <= 2 else 8)
 	await _wait(2.5)
 	for b in city.buildings():
 		if not _in_flood_zone(b.position):
@@ -537,6 +561,8 @@ func flood(severity: float, focus := true) -> Dictionary:
 	_spawn_clustered("stranded", stranded, 0.4, 24.0, r, 5)  # yakin binalar tek isarette
 	await respond(r)
 	_set_rain(false)
+	for k in closed:
+		traffic.set_blocked(k, false)
 	for w in waters:
 		var tw := w.create_tween()
 		tw.tween_property(w, "position:y", -0.05, 3.0)
@@ -618,6 +644,8 @@ func _set_rain(on: bool) -> void:
 		effects.add_child(_rain)
 	if _rain:
 		_rain.emitting = on
+	Agent.hurry = 1.6 if on else 1.0  # yagmurda yayalar kosar adim, semsiye acar
+	Agent.raining = on
 	game.audio.set_rain(on)
 
 

@@ -49,6 +49,20 @@ var _siren: OmniLight3D
 var _siren_t := 0.0
 var _kit: Node3D
 var kit_roll := randf()  # farkindalik bu degeri gecince deprem cantasi tasir
+## Gecici sakin (depremde evden cikan, yangini izlemeye gelen komsu, kurtarilan): is bitince
+## home_tile'a (evinin onundeki yol) yurur ve kaybolur.
+var is_temp := false
+var home_tile := Vector2i.ZERO
+var _look := Vector3.INF  # HOLD'da bu noktaya bakar (yangin izleyicisi)
+## Yagmurda yayalar hizlanir ve semsiye acar (Disasters sel sirasinda ayarlar).
+static var hurry := 1.0
+static var raining := false
+const UMBRELLA_COLORS := [Color(0.85, 0.2, 0.2), Color(0.2, 0.45, 0.85), Color(0.95, 0.75, 0.15),
+	Color(0.2, 0.65, 0.4), Color(0.6, 0.3, 0.7), Color(0.15, 0.15, 0.2)]
+static var _umbrella_mesh: CylinderMesh
+static var _stick_mesh: CylinderMesh
+static var _umbrella_mats := []
+var _umbrella: Node3D
 
 
 func setup(manager: Node, model: Node3D, start_tile: Vector2i, start_dir: Vector2i) -> void:
@@ -107,12 +121,47 @@ func evacuate(goal: Vector2i, target: Vector3) -> void:
 	mode = Mode.EVAC
 
 
+## Yangini izle: yoldan cikip target'a yurur, orada look'a donup bekler (stop_watching ile doner).
+func watch(target: Vector3, look: Vector3) -> void:
+	if kind == Kind.WALKER:
+		_resume_tile = tile
+		_resume_dir = dir
+	_target = target
+	_look = look
+	mode = Mode.GATHER
+
+
+func is_watching() -> bool:
+	return _look != Vector3.INF
+
+
+func stop_watching() -> void:
+	if is_watching():
+		end_evacuation()
+
+
+## Gecici sakin evine doner (yol agi uzerinden) ve varinca kaybolur.
+func go_home() -> void:
+	route = traffic.find_route(tile + _next * 2, home_tile)
+	if route.is_empty():
+		traffic.remove_agent(self)
+		return
+	mode = Mode.RESPOND
+	despawn_on_arrival = true
+
+
 ## Tahliye bitti: yola geri don ve normal hayata devam et.
 func end_evacuation() -> void:
+	_look = Vector3.INF
 	match mode:
+		Mode.NORMAL:
+			if is_temp:
+				go_home()
 		Mode.EVAC:
 			route.clear()
 			mode = Mode.NORMAL
+			if is_temp:
+				go_home()
 		Mode.GATHER, Mode.HOLD:
 			if kind == Kind.WALKER:
 				var d := Vector3(_resume_dir.x, 0, _resume_dir.y)
@@ -159,16 +208,21 @@ func _process(delta: float) -> void:
 			target_k = 0.0 if _blocked_time < 2.5 else 1.0  # kilitlenmeyi coz
 		else:
 			_blocked_time = 0.0
+	elif is_watching():
+		target_k = 2.4 if mode == Mode.GATHER else 1.0  # merakla kosar adim gelir
 	elif _panic > 0.0 or mode == Mode.EVAC or mode == Mode.GATHER:
 		target_k = 2.6  # kosar
 	_speed_k = move_toward(_speed_k, target_k, delta * 3.0)
 	var dist := speed * _speed_k * delta
+	if kind != Kind.CAR:
+		dist *= hurry
 
 	match mode:
 		Mode.GATHER, Mode.RETURN:
 			_walk_straight(dist, delta)
 		Mode.HOLD:
-			pass
+			if is_watching():  # yangina don
+				rotation.y = lerp_angle(rotation.y, atan2(_look.x - position.x, _look.z - position.z), minf(1.0, delta * 5.0))
 		_:
 			if kind == Kind.WANDERER or kind == Kind.PICNIC:
 				_wander(delta, dist)
@@ -267,6 +321,8 @@ func _walk_straight(dist: float, delta: float) -> void:
 			dir = _resume_dir
 			_plan()
 			_t = 0.0
+			if is_temp:
+				go_home()
 		return
 	position += to.normalized() * minf(dist, to.length())
 	position.y = height
@@ -327,7 +383,46 @@ func _add_headlights() -> void:
 	add_child(lamp)
 
 
+## Yagmurda yayalarin elinde semsiye (modeller arasi paylasilan mesh / malzemeler).
+func _update_umbrella() -> void:
+	if kind == Kind.CAR or _model == null:
+		return
+	if raining and _umbrella == null:
+		if _umbrella_mesh == null:
+			_umbrella_mesh = CylinderMesh.new()
+			_umbrella_mesh.top_radius = 0.004
+			_umbrella_mesh.bottom_radius = 0.12
+			_umbrella_mesh.height = 0.05
+			_umbrella_mesh.radial_segments = 8
+			_umbrella_mesh.rings = 1
+			_stick_mesh = CylinderMesh.new()
+			_stick_mesh.top_radius = 0.004
+			_stick_mesh.bottom_radius = 0.004
+			_stick_mesh.height = 0.2
+			_stick_mesh.radial_segments = 4
+			for c in UMBRELLA_COLORS:
+				var m := StandardMaterial3D.new()
+				m.albedo_color = c
+				_umbrella_mats.append(m)
+		_umbrella = Node3D.new()
+		_umbrella.position = Vector3(0.035, 0.0, 0.01)
+		var stick := MeshInstance3D.new()
+		stick.mesh = _stick_mesh
+		stick.position.y = 0.32
+		_umbrella.add_child(stick)
+		var top := MeshInstance3D.new()
+		top.mesh = _umbrella_mesh
+		top.material_override = _umbrella_mats.pick_random()
+		top.position.y = 0.43
+		_umbrella.add_child(top)
+		_model.add_child(_umbrella)
+	if _umbrella:
+		_umbrella.visible = raining
+
+
 func _animate(dist: float, delta: float) -> void:
+	if raining != (_umbrella != null and _umbrella.visible):
+		_update_umbrella()
 	for w in _wheels:
 		w.rotation.x += dist / 0.075
 	if _limbs.is_empty():
@@ -340,6 +435,8 @@ func _animate(dist: float, delta: float) -> void:
 		swing = sin(_phase * 2.0) * 0.15  # mangal basinda sohbet
 	if mode == Mode.HOLD and kind != Kind.CAR:
 		swing = sin(_phase * 3.0) * 0.25  # toplanma alaninda bekler
+		if is_watching():
+			swing = sin(_phase * 1.2) * 0.1  # yangini izler, agirligini bir ayagindan otekine verir
 	for limb in _limbs:
 		var s := swing if limb in ["leg_l", "arm_r"] else -swing
 		var node: Node3D = _limbs[limb]

@@ -6,6 +6,17 @@ extends Node3D
 @onready var map_info: MapInfo = $MapInfo
 
 
+func _ready() -> void:
+	# golge optimizasyonu + yavas makinede kademeli grafik kalitesi (bkz. graphics_quality.gd)
+	var quality: Node = preload("res://scripts/graphics_quality.gd").new()
+	quality.name = "GraphicsQuality"
+	add_child(quality)
+	# zemin / dag renk uyumu ve ortam isigi (bkz. map_visuals.gd)
+	var visuals: Node = preload("res://scripts/map_visuals.gd").new()
+	visuals.name = "MapVisuals"
+	add_child(visuals)
+
+
 func buildings() -> Array[Node]:
 	return get_tree().get_nodes_in_group("buildings")
 

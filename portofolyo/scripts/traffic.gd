@@ -30,6 +30,8 @@ var _plaza: Array[Vector3] = []
 
 
 func _ready() -> void:
+	Agent.hurry = 1.0  # onceki sahneden (yagmur) kalmasin
+	Agent.raining = false
 	for r in get_node(roads_path).get_children():
 		road[_key(r.position)] = true
 	for k in road:
@@ -280,8 +282,202 @@ func release(a: Agent) -> void:
 func remove_agent(a: Agent) -> void:
 	cars.erase(a)
 	people.erase(a)
+	picnickers.erase(a)
 	leave_tile(a.tile, a)
-	a.queue_free()
+	if a.kind == Agent.Kind.CAR:
+		a.queue_free()
+		return
+	# yaya kaybolurken kuculur (eve / binaya girdi)
+	a.set_process(false)
+	var tw := a.create_tween()
+	tw.tween_property(a, "scale", Vector3.ONE * 0.01, 0.3)
+	tw.tween_callback(a.queue_free)
+
+
+# ------------------------------------------------------------------ afet aninda kalabalik
+const MAX_TEMP := 70  # ayni anda en fazla gecici yaya (performans)
+const MAX_TEMP_CARS := 24  # ayni anda en fazla kacis araci
+var _onlookers: Array = []  # [Agent, yangin konumu]
+
+
+func _temp_count(list: Array = people) -> int:
+	var n := 0
+	for a in list:
+		if a.is_temp:
+			n += 1
+	return n
+
+
+## Gecici yaya: evinin onundeki yol karosunda kapidan cikiyormus gibi buyuyerek belirir.
+func _spawn_temp(at: Vector2i, model := "") -> Agent:
+	var a := _spawn(Agent.Kind.WALKER, "insanlar/" + (model if model != "" else PEOPLE.pick_random()), at)
+	a.lane = 0.98 if randf() < 0.5 else -0.98
+	a.speed = randf_range(0.3, 0.45)
+	a.height = 0.1
+	a.is_temp = true
+	a.home_tile = at
+	a.setup(self, a.get_meta("model"), at, a.dir)
+	people.append(a)
+	a.scale = Vector3.ONE * 0.01
+	a.create_tween().tween_property(a, "scale", Vector3.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	return a
+
+
+## Yangin izleyicileri: yakindaki yayalar (yetmezse komsular evden cikar) yangina yurur ve guvenli
+## mesafede yarim halka olup izler. aware (0-1, mahalle farkindaligi) yuksekse daha az kisi gelir
+## ve daha geride durur.
+func gather_onlookers(center: Vector3, aware: float, count := -1) -> void:
+	if count < 0:
+		count = int(round(lerpf(10.0, 4.0, aware)))
+	var dist := lerpf(1.6, 2.7, aware)
+	# yakindan gecen yayalar (en fazla yarisi; gerisi komsular)
+	var cand: Array = people.filter(func(a): return a.visible and a.mode == Agent.Mode.NORMAL \
+		and not a.is_temp and a.kind == Agent.Kind.WALKER and a.position.distance_to(center) < 7.0)
+	cand.sort_custom(func(a, b): return a.position.distance_squared_to(center) < b.position.distance_squared_to(center))
+	cand = cand.slice(0, count / 2)
+	# komsular: yangin cevresindeki evlerden hemen cikanlar (kalabalik cabuk olussun)
+	var homes: Array = get_tree().get_nodes_in_group("buildings").filter(func(b): return b.is_house() \
+		and b.state != Building.State.COLLAPSED and not b.on_fire and b.position.distance_to(center) < 7.0)
+	if homes.is_empty():
+		homes = [{"position": center}]
+	homes.shuffle()
+	var i := 0
+	while cand.size() < count and _temp_count() < MAX_TEMP:
+		cand.append(_spawn_temp(nearest_road(homes[i % homes.size()].position, true)))
+		i += 1
+	# binanin onundeki caddede, yangina bakan bir yay halinde dururlar (kamera acisindan gorunur)
+	var rk := nearest_road(center, true)
+	var street := Vector3(rk.x, 0.0, rk.y)
+	var to_fire := Vector3(center.x - street.x, 0.0, center.z - street.z)
+	to_fire = to_fire.normalized() if to_fire.length() > 0.05 else Vector3.FORWARD
+	var side := Vector3(-to_fire.z, 0.0, to_fire.x)
+	var back := lerpf(0.0, 0.7, aware)  # bilincli mahallede daha geride, kalabalik daha seyrek
+	for j in cand.size():
+		var a: Agent = cand[j]
+		var u := (float(j) / maxf(1.0, cand.size() - 1.0) - 0.5) * 2.0  # -1..1
+		var spot := street + side * u * (0.6 + dist * 0.35) - to_fire * (back + absf(u) * 0.25 + randf_range(-0.12, 0.12))
+		spot.y = a.height
+		a.watch(spot, Vector3(center.x, a.height, center.z))
+		_onlookers.append([a, center])
+
+
+## Yangin sondu / bina coktu: izleyiciler dagilir.
+func release_onlookers(center: Vector3) -> void:
+	for item in _onlookers.duplicate():
+		if item[1].distance_to(center) > 0.5:
+			continue
+		_onlookers.erase(item)
+		if is_instance_valid(item[0]):
+			item[0].stop_watching()
+
+
+## Deprem: evlerden insanlar sokaga dokulur (bina nufusuna gore). evac_at(konum) -> 0-1 tahliye
+## orani: o kadari toplanma alanina yurur (farkindalik arttikca alanlar kalabaliklasir), gerisi
+## sokakta panikle kosusturur. Ertesi sabah (end_evacuation) evlerine donup kaybolurlar.
+## Kurtarilanlar / izleyiciler icin yer kalsin diye en fazla MAX_TEMP - 15 kisi.
+func residents_out(buildings: Array, evac_at: Callable) -> int:
+	var list := buildings.filter(func(b): return b.is_house() and b.population() > 0)
+	list.shuffle()
+	var n := 0
+	for b in list:
+		for j in clampi(int(round(b.population() / 12.0)), 1, 3):
+			if _temp_count() >= MAX_TEMP - 15:
+				return n
+			var a := _spawn_temp(nearest_road(b.position, true))
+			n += 1
+			if map_info and not map_info.assembly_points.is_empty() and randf() < float(evac_at.call(b.position)):
+				var target := map_info.nearest(map_info.assembly_points, b.position)
+				var t3 := MapInfo.to3(target, 0.1) + Vector3(randf_range(-0.85, 0.85), 0, randf_range(-0.85, 0.85))
+				a.evacuate(nearest_road(t3), t3)
+			else:
+				a.panic(randf_range(6.0, 12.0))
+	return n
+
+
+## Kurtarilanlar: yardim noktasinin yanindaki yoldan cikip toplanma alanina yururler.
+func rescued_walk(at: Vector3, n: int) -> void:
+	if map_info == null or map_info.assembly_points.is_empty():
+		return
+	for i in n:
+		if _temp_count() >= MAX_TEMP:
+			return
+		var a := _spawn_temp(nearest_road(at, true))
+		var target := map_info.nearest(map_info.assembly_points, at)
+		var t3 := MapInfo.to3(target, 0.1) + Vector3(randf_range(-0.85, 0.85), 0, randf_range(-0.85, 0.85))
+		a.evacuate(nearest_road(t3), t3)
+
+
+## Sel: dere kenarindan araclar sehirden uzaklasir (kacis trafigi). Araclar araliklarla cikar,
+## dereden en uzak yollara rota ile gider ve orada kaybolur. Kapali (su basan) yollardan kacinirlar.
+func flee_traffic(river_z: float, n: int) -> void:
+	var tiles: Array = road.keys()
+	var near: Array = tiles.filter(func(k): return absf(k.y - river_z) < 8.0 and not blocked.has(k))
+	var far: Array = tiles.filter(func(k): return absf(k.y - river_z) > 14.0)
+	temp_cars(near, far, n, Vector2(0.25, 0.6), Vector2(2.0, 2.6))
+
+
+## Gecici araclar: starts'tan cikip ends'e rota ile gider, varinca kaybolur (araliklarla cikarlar).
+func temp_cars(starts: Array, ends: Array, n: int, gap := Vector2(0.25, 0.6), spd := Vector2(1.6, 2.4)) -> void:
+	if starts.is_empty() or ends.is_empty():
+		return
+	var pool := _weighted_pool()
+	for i in n:
+		if _temp_count(cars) >= MAX_TEMP_CARS:
+			return
+		var start: Vector2i = starts.pick_random()
+		var a := _spawn(Agent.Kind.CAR, "araclar/" + pool.pick_random(), start)
+		a.lane = 0.45
+		a.speed = randf_range(spd.x, spd.y)
+		a.height = 0.1307
+		a.is_temp = true
+		a.setup(self, a.get_meta("model"), start, a.dir)
+		cars.append(a)
+		a.route = find_route(a.tile + a._next * 2, ends.pick_random())
+		a.mode = Agent.Mode.RESPOND
+		a.despawn_on_arrival = true
+		await get_tree().create_timer(randf_range(gap.x, gap.y)).timeout
+
+
+## Sabah trafigi: evlerin onundeki yollardan is yerlerine / kamu binalarina giden araclar.
+func morning_commute(n: int) -> void:
+	var homes: Array = []
+	var work: Array = []
+	for b in get_tree().get_nodes_in_group("buildings"):
+		if b.state == Building.State.COLLAPSED:
+			continue
+		var k := nearest_road(b.position, true)
+		if b.is_house():
+			homes.append(k)
+		else:
+			work.append(k)
+	temp_cars(homes, work, n, Vector2(0.3, 0.9), Vector2(1.8, 2.4))
+
+
+## Tatbikat grubu: toplanma alanina bir AFAD gorevlisi ve birkac mahalleli yurur, orada bekler
+## (toplanma animasyonu). Donen dizi: gruptaki ajanlar (end_drill ile dagitilir).
+func drill_group(point: Vector2, n: int) -> Array:
+	var group: Array = []
+	var start := nearest_road(MapInfo.to3(point), true)
+	for i in n:
+		if _temp_count() >= MAX_TEMP:
+			break
+		var d: Vector2i = DIRS.pick_random()
+		var from: Vector2i = start + d * 2 * randi_range(0, 2)
+		if not road.has(from):
+			from = start
+		var a := _spawn_temp(from, "person_afad" if i == 0 else "")
+		var t3 := MapInfo.to3(point, 0.1) + Vector3(randf_range(-0.7, 0.7), 0, randf_range(-0.7, 0.7))
+		if i == 0:
+			t3 = MapInfo.to3(point, 0.1) + Vector3(0.0, 0, -0.75)  # gorevli grubun onunde
+		a.evacuate(nearest_road(t3), t3)
+		group.append(a)
+	return group
+
+
+func end_drill(group: Array) -> void:
+	for a in group:
+		if is_instance_valid(a):
+			a.end_evacuation()
 
 
 func _station_pos(station_model: String, fallback: Vector3) -> Vector3:
