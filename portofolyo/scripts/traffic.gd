@@ -23,6 +23,7 @@ var junctions := {}  # Vector2i -> sahibi Agent (kavsaktaki arac)
 var cars: Array[Agent] = []
 var people: Array[Agent] = []
 var picnickers: Array[Agent] = []
+var dirt := {}  # Vector2i -> true: orman patikalari (sadece acil durum araclari girer)
 var blocked := {}  # Vector2i -> true: enkazla kapanan yol karolari (araclar etrafindan dolasir)
 var _plaza: Array[Vector3] = []
 
@@ -34,6 +35,8 @@ func _ready() -> void:
 	Agent.raining = false
 	for r in get_node(roads_path).get_children():
 		road[_key(r.position)] = true
+		if String(r.name).begins_with("path_"):
+			dirt[_key(r.position)] = true
 	for k in road:
 		if neighbors(k).size() >= 3:
 			junctions[k] = null
@@ -42,7 +45,7 @@ func _ready() -> void:
 			_plaza.append(MapInfo.to3(p, 0.0))
 	if road.is_empty():
 		return
-	var tiles: Array = road.keys()
+	var tiles: Array = road.keys().filter(func(k): return not dirt.has(k))  # sivil araclar patikada dogmasin
 	var pool := _weighted_pool()
 	for i in car_count:
 		var a := _spawn(Agent.Kind.CAR, "araclar/" + pool.pick_random(), tiles.pick_random())
@@ -133,7 +136,7 @@ func next_dir(a: Agent) -> Vector2i:
 		if road.has(n) and (a.emergency or not blocked.has(n)):
 			return d
 		a.route.clear()
-	var options := neighbors(a.tile).filter(func(d): return d != -a.dir)
+	var options := neighbors(a.tile).filter(func(d): return d != -a.dir and (a.emergency or not dirt.has(a.tile + d * 2)))
 	return options.pick_random() if not options.is_empty() else -a.dir
 
 
@@ -410,7 +413,7 @@ func rescued_walk(at: Vector3, n: int) -> void:
 ## Sel: dere kenarindan araclar sehirden uzaklasir (kacis trafigi). Araclar araliklarla cikar,
 ## dereden en uzak yollara rota ile gider ve orada kaybolur. Kapali (su basan) yollardan kacinirlar.
 func flee_traffic(river_z: float, n: int) -> void:
-	var tiles: Array = road.keys()
+	var tiles: Array = road.keys().filter(func(k): return not dirt.has(k))  # sivil araclar patikada dogmasin
 	var near: Array = tiles.filter(func(k): return absf(k.y - river_z) < 8.0 and not blocked.has(k))
 	var far: Array = tiles.filter(func(k): return absf(k.y - river_z) > 14.0)
 	temp_cars(near, far, n, Vector2(0.25, 0.6), Vector2(2.0, 2.6))

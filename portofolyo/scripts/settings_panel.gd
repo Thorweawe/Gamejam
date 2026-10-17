@@ -5,9 +5,9 @@ extends PanelContainer
 signal closed
 
 const HUD := preload("res://scripts/hud.gd")
-const C_TEXT := Color(0.94, 0.96, 1.0)
-const C_MUTED := Color(0.63, 0.69, 0.8)
-const C_ACCENT := Color(1.0, 0.6, 0.2)
+const C_TEXT := Color("#3b3330")
+const C_MUTED := Color("#8a7666")
+const C_ACCENT := Color("#d76f34")
 
 var bold: Font
 
@@ -17,7 +17,7 @@ func _ready() -> void:
 	fv.base_font = load("res://assets/fonts/Fredoka.ttf")
 	fv.variation_opentype = {TextServerManager.get_primary_interface().name_to_tag("wght"): 600}
 	bold = fv
-	add_theme_stylebox_override("panel", HUD.sb(Color(0.07, 0.09, 0.14, 0.97), 20, 1, Color(1, 1, 1, 0.12), 26, 22, 10))
+	add_theme_stylebox_override("panel", HUD.sb(Color("#fffaf2"), 20, 2, Color("#d9b98f"), 26, 22, 10))
 	custom_minimum_size = Vector2(460, 0)
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 14)
@@ -87,7 +87,7 @@ func _slider(parent: Node, caption: String, key: String) -> void:
 	s.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	s.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	s.focus_mode = Control.FOCUS_NONE
-	s.add_theme_stylebox_override("slider", HUD.sb(Color(1, 1, 1, 0.12), 4, 0, Color.TRANSPARENT, 0, 3))
+	s.add_theme_stylebox_override("slider", HUD.sb(Color(0.47, 0.4, 0.34, 0.18), 4, 0, Color.TRANSPARENT, 0, 3))
 	s.add_theme_stylebox_override("grabber_area", HUD.sb(C_ACCENT, 4, 0, Color.TRANSPARENT, 0, 3))
 	s.add_theme_stylebox_override("grabber_area_highlight", HUD.sb(C_ACCENT.lightened(0.15), 4, 0, Color.TRANSPARENT, 0, 3))
 	h.add_child(s)
@@ -108,7 +108,7 @@ func _toggle(parent: Node, caption: String, key: String) -> void:
 	c.button_pressed = bool(Settings.get_value(key))
 	c.add_theme_font_size_override("font_size", 16)
 	c.add_theme_color_override("font_color", C_TEXT)
-	c.add_theme_color_override("font_hover_color", Color.WHITE)
+	c.add_theme_color_override("font_hover_color", C_TEXT)
 	c.add_theme_color_override("font_pressed_color", C_TEXT)
 	c.toggled.connect(func(on: bool):
 		_sfx("click")

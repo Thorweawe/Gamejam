@@ -104,6 +104,10 @@ func work_time(unit: String) -> float:
 			t = maxf(1.2, 3.5 - (lvl - 1) * 1.0)
 		_:
 			t = maxf(1.0, 2.5 - (lvl - 1) * 0.6)
+	if unit == "fire" and game.hydrants:
+		t *= 0.75  # yangin muslugu
+	if unit == "rescue" and game.volunteers:
+		t *= 0.8  # mahalle gonulluleri
 	return t * game.chief_factor(unit)  # sefle iliski
 
 
@@ -340,6 +344,8 @@ func house_fire(b: Building, focus := true) -> Dictionary:
 
 ## Binayi tutustur: yangin isareti cikar. Zamaninda sondurulmezse bina coker ve komsuya sicrar.
 func _ignite(b: Building, r: Dictionary, seconds: float) -> void:
+	if game.extinguishers:
+		seconds += 5.0  # halk yangin tupuyle ilk mudahaleyi yapar
 	b.set_on_fire(true)
 	traffic.gather_onlookers(b.global_position, game.district_awareness(b.position) / 100.0)
 	var people := maxi(1, int(round(b.population() * 0.3 * (1.0 - game.evac_ratio(b.position)))))
@@ -398,7 +404,7 @@ func forest_fire(start: Vector2i, focus := true) -> Dictionary:
 	var ignite := func(k: Vector2i):
 		handled[k] = true
 		props[k] = _spawn_tile_fire(k)
-		var inc := spawn_incident("fire", Vector3(k.x, 0, k.y), 4, 11.0)
+		var inc := spawn_incident("fire", Vector3(k.x, 0, k.y), 4, 16.0 if game.fire_plane else 11.0)
 		inc.tile = k
 		inc.subject = "hektar"
 		burning[k] = inc
@@ -411,7 +417,7 @@ func forest_fire(start: Vector2i, focus := true) -> Dictionary:
 				_burn_tile(k)
 				r.burned += 1)
 	ignite.call(start)
-	var spread: float = 0.03 * game.risk.forest
+	var spread: float = 0.03 * game.risk.forest * (0.5 if game.fire_plane else 1.0)
 	var t := 0.0
 	responding = true
 	response_changed.emit(true)
@@ -544,6 +550,8 @@ func flood(severity: float, focus := true) -> Dictionary:
 		if protection == 1 and randf() < 0.45:
 			r.held.append(b)  # dere islahi suyu yavaslatti
 		var weak := 1.6 if ("gecekondu" in b.model_name or "kacak" in b.model_name) else 1.0
+		if game.flood_barriers:
+			weak *= 0.7
 		var k: float = severity * game.risk.flood * weak * (1.0 - protection * 0.45)
 		var pop: int = b.population()
 		var roll := randf()
@@ -613,6 +621,96 @@ func place_sandbag(k: Vector2i) -> bool:
 	return true
 
 
+## Onlenen afet: tehlike gelir ama onlem sayesinde zarar vermez; oyuncu bunu gorur.
+## Doner: {"title", "text", "held": [korunan binalar]}
+func averted(type: String) -> Dictionary:
+	var out := {"title": "AFET ÖNLENDİ!", "text": "", "held": []}
+	match type:
+		"flood":
+			camera_rig.focus(Vector3(0, 0, _river_z() + 3.0), 40.0, 1.2)
+			_set_rain(true)
+			await _wait(1.5)
+			var waters: Array[Node3D] = []
+			for p in map_info.river_tiles:  # dere kabarir ama yatagindan tasmaz
+				var w: Node3D = (load(M + "yol_zemin/flood_water_overlay.gltf") as PackedScene).instantiate()
+				w.position = Vector3(p.x, 0.0, p.y)
+				effects.add_child(w)
+				for mi in w.find_children("*", "MeshInstance3D", true, false):
+					mi.material_override = _flood_material()
+				waters.append(w)
+				w.create_tween().tween_property(w, "position:y", 0.12, 2.5).set_trans(Tween.TRANS_SINE)
+			await _wait(3.0)
+			for b in city.buildings():
+				if _in_flood_zone(b.position):
+					out.held.append(b)
+			out.text = "Dere kabardı ama kum torbaları ve tahliye sayesinde kimse zarar görmedi."
+			await _wait(1.5)
+			_set_rain(false)
+			for w in waters:
+				var tw := w.create_tween()
+				tw.tween_property(w, "position:y", -0.05, 2.5)
+				tw.tween_callback(w.queue_free)
+			river_evacuated = false
+		"forest_fire":
+			var p: Vector2 = map_info.picnic_spots[randi() % map_info.picnic_spots.size()] if not map_info.picnic_spots.is_empty() else Vector2.ZERO
+			var at := Vector3(p.x, 0.1, p.y)
+			camera_rig.focus(at, 24.0, 1.2)
+			await _wait(1.4)
+			var smoke: Node3D = (load(M + "afet/smoke_column.gltf") as PackedScene).instantiate()
+			smoke.position = at + Vector3(-0.3, 0.2, 0.1)
+			smoke.scale = Vector3.ONE * 0.6
+			effects.add_child(smoke)
+			game.hud.world_toast(at + Vector3.UP * 1.5, "Mangal yakılmadı · yasak işe yaradı", Color(0.45, 0.95, 0.55), "tree")
+			await _wait(2.5)
+			var tw := smoke.create_tween()
+			tw.tween_property(smoke, "scale", Vector3.ONE * 0.01, 1.0)
+			tw.tween_callback(smoke.queue_free)
+			out.text = "Sıcak ve rüzgârlı havada ormanda ateş yakılmadı; yangın başlamadan önlendi."
+		_:
+			var b := pick_fire_building()
+			if b:
+				camera_rig.focus(b.global_position, 22.0, 1.2)
+				await _wait(1.4)
+				var smoke: Node3D = (load(M + "afet/smoke_column.gltf") as PackedScene).instantiate()
+				smoke.position = Vector3(0.2, b.top_height(), 0.0)
+				smoke.scale = Vector3.ONE * 0.5
+				b.add_child(smoke)
+				game.hud.world_toast(b.global_position + Vector3.UP * (b.top_height() + 0.8), "Arızalı soba söküldü", Color(0.45, 0.95, 0.55), "fire")
+				await _wait(2.5)
+				var tw := smoke.create_tween()
+				tw.tween_property(smoke, "scale", Vector3.ONE * 0.01, 1.0)
+				tw.tween_callback(smoke.queue_free)
+				out.held.append(b)
+			out.text = "Denetimde bulunan arızalı soba yangın çıkmadan söküldü."
+	return out
+
+
+## Yangin muslugu: sehrin yollarinin kenarina kirmizi musluklar dikilir (gorunur etki).
+func place_hydrants() -> void:
+	var keys: Array = traffic.road.keys().filter(func(k): return not traffic.dirt.has(k) and absf(k.x) < 18 and absf(k.y - 4) < 16)
+	keys.shuffle()
+	for i in mini(16, keys.size()):
+		var k: Vector2i = keys[i]
+		var h := _place("sokak/firehydrant", Vector3(k.x + 0.9 * (1 if i % 2 else -1), 0.1, k.y + 0.9), 0.0)
+		h.scale = Vector3.ONE * 0.01
+		var tw := h.create_tween()
+		tw.tween_interval(0.5 + i * 0.08)
+		tw.tween_property(h, "scale", Vector3.ONE * 1.3, 0.35).set_trans(Tween.TRANS_BACK)
+
+
+## Uyarida "Kum Torbasi Diz": icinde bina olan dere kenari karolarina sirayla kum torbasi dizer.
+func place_sandbags_auto() -> int:
+	var keys := []
+	for b in city.buildings():
+		var k := tile_key(b.position)
+		if is_flood_tile(k) and not _sandbags.has(k) and not keys.has(k):
+			keys.append(k)
+	keys.sort_custom(func(a, b): return a.x < b.x)
+	for i in keys.size():
+		get_tree().create_timer(0.6 + i * 0.12).timeout.connect(place_sandbag.bind(keys[i]))
+	return keys.size()
+
+
 func has_sandbag(k: Vector2i) -> bool:
 	return _sandbags.has(k)
 
@@ -657,7 +755,7 @@ func finale() -> Dictionary:
 	parts.append(await earthquake(1.45))
 	game.notify.emit("Deprem sonrası gaz kaçakları ve devrilen sobalar yangın çıkardı!", "disaster")
 	var fires := _report("house_fire", "Yangınlar", "")
-	for i in 3:
+	for i in (1 if game.gas_valves else 3):  # gaz vanalari deprem sonrasi yanginlari azaltir
 		var b := pick_fire_building()
 		if b:
 			_ignite(b, fires, 18.0)
@@ -716,6 +814,30 @@ func add_assembly_point() -> bool:
 func remove_assembly_point() -> void:
 	if map_info.assembly_points.size() > 1:
 		_remove_assembly_at(map_info.assembly_points[map_info.assembly_points.size() - 1])
+
+
+## Muze arsasina muze kur: arsa (cit + tabela) kuculup kaybolur, bina yukselir. Doner: konum.
+func build_museum(kind: String) -> Vector3:
+	var i := map_info.museum_kinds.find(kind)
+	if i < 0:
+		return Vector3.INF
+	var p: Vector2 = map_info.museum_lots[i]
+	var c := Vector3(p.x, 0.0, p.y)
+	var yaw := 0.0
+	var lot: Node3D = city.get_node("Props").get_node_or_null("museum_lot_" + kind)
+	if lot:
+		yaw = lot.rotation.y
+		_shrink(lot)
+	var b := Building.new()
+	b.model_name = "building_museum_" + kind
+	b.set_meta("initial_model", b.model_name)
+	b.position = c
+	b.rotation.y = yaw
+	city.get_node("Buildings").add_child(b)
+	b.scale = Vector3(1, 0.01, 1)
+	b.create_tween().tween_property(b, "scale:y", 1.0, 0.9).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT).set_delay(0.3)
+	_dust(c)
+	return c
 
 
 ## Toplanma alanini kaldir: tabela ve zemin isareti kaybolur.

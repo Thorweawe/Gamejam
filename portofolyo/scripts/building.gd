@@ -51,9 +51,88 @@ func _ready() -> void:
 		_window_light.add_to_group("night_lights")
 		add_child(_window_light)
 	_build()
+	if not Engine.is_editor_hint():
+		_add_pin()
 
 
 static var _path_cache := {}  # model adi -> yol (ayni aramayi 120 bina tekrar tekrar yapmasin)
+
+
+# ------------------------------------------------------------------ haritada belirgin isaret (servis binalari, muzeler)
+## model oneki -> [ikon, renk]. Isaret her uzakliktan ayni boyutta gorunur ve hafifce suzulur.
+const PINS := {
+	"building_firestation": ["res://assets/textures/itfaiye_3_aracli.png", Color(0.93, 0.33, 0.25)],
+	"building_hospital": ["res://assets/textures/hastane_2_arti.png", Color(0.2, 0.62, 0.92)],
+	"building_afad": ["res://assets/textures/afad_1_merkez.png", Color(0.97, 0.6, 0.15)],
+	"building_museum_deprem": ["res://assets/textures/deprem_muze_1_klasik.png", Color(0.85, 0.55, 0.2)],
+	"building_museum_sel": ["res://assets/textures/sel_muze_1_klasik.png", Color(0.25, 0.55, 0.9)],
+	"building_museum_yangin": ["res://assets/textures/yangin_muze_1_klasik.png", Color(0.9, 0.3, 0.25)],
+}
+static var _pin_bg := {}  # renk -> doku (bir kez cizilir)
+var _pin: Node3D
+
+
+func _add_pin() -> void:
+	var key := ""
+	for k in PINS:
+		if model_name.begins_with(k):
+			key = k
+	if key == "" or _pin:
+		return
+	_pin = Node3D.new()
+	_pin.position = Vector3(0, top_height() + 0.9, 0)
+	add_child(_pin)
+	var bg := Sprite3D.new()
+	bg.texture = _pin_texture(PINS[key][1])
+	bg.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	bg.fixed_size = true
+	bg.pixel_size = 0.00045
+	bg.no_depth_test = true
+	bg.render_priority = 2
+	bg.offset = Vector2(0, 40)
+	_pin.add_child(bg)
+	var icon := Sprite3D.new()
+	icon.texture = load(PINS[key][0])
+	icon.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	icon.fixed_size = true
+	icon.pixel_size = 0.00045 * 0.82
+	icon.no_depth_test = true
+	icon.render_priority = 3
+	icon.offset = Vector2(0, 40 / 0.82 + 3)
+	_pin.add_child(icon)
+	var tw := _pin.create_tween().set_loops().set_trans(Tween.TRANS_SINE)
+	tw.tween_property(_pin, "position:y", _pin.position.y + 0.15, 1.2)
+	tw.tween_property(_pin, "position:y", _pin.position.y, 1.2)
+
+
+## Yuvarlak rozet + alt ucta igne: renkli kenarli beyaz daire (ikon net okunsun).
+static func _pin_texture(col: Color) -> Texture2D:
+	var key := col.to_html()
+	if _pin_bg.has(key):
+		return _pin_bg[key]
+	var size := 112
+	var img := Image.create(size, size + 22, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var c := Vector2(size / 2.0, size / 2.0)
+	for y in img.get_height():
+		for x in size:
+			var p := Vector2(x + 0.5, y + 0.5)
+			var d := p.distance_to(c)
+			# igne: asagi bakan ucgen
+			var tip := y > size * 0.7 and absf(x + 0.5 - c.x) < (size + 20 - y) * 0.45
+			var a := clampf(size * 0.5 - d, 0.0, 1.0)
+			if tip:
+				a = 1.0
+			if a <= 0.0:
+				continue
+			var col2 := col  # renkli kenar + igne, beyaz ic
+			if d < size * 0.5 - 9 and not (tip and d > size * 0.5 - 9):
+				col2 = Color(1.0, 0.99, 0.96)
+			col2.a = a
+			img.set_pixel(x, y, col2)
+	var tex := ImageTexture.create_from_image(img)
+	_pin_bg[key] = tex
+	return tex
 
 
 static func find_model(name: String) -> String:

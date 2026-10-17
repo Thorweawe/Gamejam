@@ -12,13 +12,15 @@ const OUTLINE_SHADER := preload("res://assets/shaders/outline.gdshader")
 const GraphicsQuality := preload("res://scripts/graphics_quality.gd")
 const MEADOW := Color(0.52, 0.6, 0.34)  # dag eteklerindeki soluk haki zemin bu cayir tonuna yaklasir
 ## Karo / model adi on eki -> shader ayarlari
+## terrain: renk karo basina degil arazi maskesine gore (orman / dag etegi yumusak gecis, kare kare gorunmez)
 const GROUND := {
-	"forest_": {"grass_shade": 0.7},  # orman tabani koyu: agac tepeleri zemine karismasin
-	"grass_": {},
-	"river_": {"variation": 0.6, "river_mode": 1.0},
+	"forest_": {"terrain": 1.0},
+	"grass_": {"terrain": 1.0},
+	"river_": {"variation": 0.6, "river_mode": 1.0, "terrain": 1.0},
 	"sand_": {"grass_amount": 0.0, "variation": 0.7},
-	"mountain_": {"tint": MEADOW, "tint_amount": 0.6, "variation": 1.2},
+	"mountain_": {"terrain": 1.0, "dirt_grass": 1.0, "meadow": MEADOW, "variation": 1.2},
 }
+const TERRAIN_MASK := preload("res://assets/textures/terrain_mask.png")
 const NATURE := {
 	"peak_": {"grass_shade": 0.78, "variation": 0.5},
 	"hill_": {"grass_shade": 0.85, "variation": 0.7},
@@ -181,6 +183,10 @@ func _apply(node: Node, settings: Dictionary) -> void:
 				mat.set_shader_parameter(p, settings[p])
 			if settings.has("coast_cut"):
 				for p in ["land_mask", "map_min", "map_size"]:
+					mat.set_shader_parameter(p, _sea_mat.get_shader_parameter(p))
+			if settings.has("terrain") and _sea_mat:
+				mat.set_shader_parameter("terrain_mask", TERRAIN_MASK)
+				for p in ["map_min", "map_size"]:
 					mat.set_shader_parameter(p, _sea_mat.get_shader_parameter(p))
 			_materials[key] = mat
 		mi.material_override = _materials[key]

@@ -8,8 +8,8 @@ extends Control
 ## Tikla / Bosluk / Enter: sonraki satir.  ESC / "Atla": sahneyi gec.
 
 const HUD := preload("res://scripts/hud.gd")
-const C_TEXT := Color(0.96, 0.97, 1.0)
-const C_MUTED := Color(0.65, 0.7, 0.8)
+const C_TEXT := Color("#3b3330")
+const C_MUTED := Color("#8a7666")
 const VOWELS := {"a": "a", "ı": "a", "e": "e", "i": "i", "o": "o", "ö": "o", "u": "o", "ü": "o"}
 const CHARS_PER_SEC := 40.0
 
@@ -139,7 +139,7 @@ void fragment() {
 	_right.setup("nermin")
 
 	_box = PanelContainer.new()
-	_box.add_theme_stylebox_override("panel", HUD.sb(Color(0.07, 0.09, 0.14, 0.96), 18, 2, Color(1, 1, 1, 0.12), 24, 18, 10))
+	_box.add_theme_stylebox_override("panel", HUD.sb(Color("#fffaf2"), 18, 2, Color("#d9b98f"), 24, 18, 10))
 	_box.custom_minimum_size = Vector2(620, 128)
 	add_child(_box)
 	var v := VBoxContainer.new()
@@ -153,7 +153,7 @@ void fragment() {
 	v.add_child(_text)
 	_more = UIIcon.new()
 	_more.kind = "play"
-	_more.color = Color(1.0, 0.75, 0.35)
+	_more.color = Color("#d76f34")
 	_more.custom_minimum_size = Vector2(16, 16)
 	_more.size_flags_horizontal = Control.SIZE_SHRINK_END
 	v.add_child(_more)
@@ -209,7 +209,7 @@ func _build_bark_ui() -> void:
 	_bark_box.add_child(_bark_portrait)
 	_bark_portrait.setup("nermin")
 	var bubble := PanelContainer.new()
-	bubble.add_theme_stylebox_override("panel", HUD.sb(Color(0.07, 0.09, 0.14, 0.95), 14, 2, Color(0.85, 0.45, 0.9, 0.6), 14, 10, 6))
+	bubble.add_theme_stylebox_override("panel", HUD.sb(Color("#fffaf2"), 14, 2, Color(0.85, 0.45, 0.9), 14, 10, 6))
 	bubble.position = Vector2(118, 22)
 	bubble.custom_minimum_size = Vector2(300, 0)
 	_bark_box.add_child(bubble)
@@ -304,7 +304,7 @@ func _scene_line(line: Dictionary) -> void:
 	var col: Color = info.color
 	_name.text = info.name
 	_name_tag.add_theme_stylebox_override("panel", HUD.sb(col.darkened(0.25), 10, 0, Color.TRANSPARENT, 14, 4, 4))
-	_box.add_theme_stylebox_override("panel", HUD.sb(Color(0.07, 0.09, 0.14, 0.96), 18, 2, Color(col.r, col.g, col.b, 0.55), 24, 18, 10))
+	_box.add_theme_stylebox_override("panel", HUD.sb(Color("#fffaf2"), 18, 3, col, 24, 18, 10))
 	_focus(line.get("focus", ""), p, other)
 	await _speak(p, line, _text, _voice, true)
 

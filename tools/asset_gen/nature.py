@@ -35,6 +35,31 @@ def mountain(name, R, H, seed, snow=True):
     return m
 
 
+def mountain_tall():
+    """Sivri, karli yuksek zirve."""
+    m = mountain("mountain_tall", 1.9, 4.6, 11)
+    rng = np.random.default_rng(12)
+    for i in range(3):  # yamacta kaya cikintilari
+        a = rng.uniform(0, 2 * math.pi)
+        r = rng.uniform(0.6, 1.0)
+        m.add(chunk(math.cos(a) * r, rng.uniform(0.6, 1.6), math.sin(a) * r, 0.35, 20 + i), "warmgrey", grad=(0.2, 0.8))
+    return m
+
+
+def mountain_ridge():
+    """Uzun dag sirti: uc zirveli, ortasi karli."""
+    m = Model("mountain_ridge")
+    rng = np.random.default_rng(13)
+    for x, h in ((-1.1, 1.6), (0.0, 2.3), (1.1, 1.5)):
+        base = _ring(1.1, 0.0, 8, rng, 0.15, x, 0.0)
+        mid = _ring(0.6, h * 0.55, 6, rng, 0.2, x, 0.0, 0.4)
+        m.add(base + mid + [(x + rng.uniform(-0.1, 0.1), h, rng.uniform(-0.1, 0.1))], "warmgrey", grad=(0.0, 0.9))
+        m.add(_ring(1.15, 0.0, 8, rng, 0.08, x, 0.0) + _ring(0.9, h * 0.25, 8, rng, 0.08, x, 0.0, 0.2), "darkgreen", grad=(0.1, 0.8))
+        if h > 2.0:
+            m.add(_ring(0.24, h * 0.78, 6, rng, 0.1, x, 0.0) + [(x, h * 1.01, 0.0)], "white", grad=(0.0, 0.4))
+    return m
+
+
 def mountain_large():
     return mountain("mountain_large", 2.4, 3.6, 1)
 
@@ -64,6 +89,44 @@ def tile_mountain():
         m.add(chunk(rng.uniform(-0.7, 0.7), T - 0.02, rng.uniform(-0.7, 0.7), 0.12, 70 + i, flat=0.35), "warmgrey",
               grad=(0.2, 0.7))
     return m
+
+
+def _path(name, sides):
+    """Orman ici toprak patika (itfaiye orman yanginina buradan gider). Acik kenarlar yol modelleriyle ayni kural."""
+    m = Model(name)
+    block(m, -1, 1, 0, T, -1, 1, "green", (0.0, 0.5))
+    w = 0.34
+    y0, y1 = T - 0.004, T + 0.006
+    block(m, -w, w, y0, y1, -w, w, "tan", (0.2, 0.8))
+    arms = {"+z": (-w, w, w, 1), "-z": (-w, w, -1, -w), "+x": (w, 1, -w, w), "-x": (-1, -w, -w, w)}
+    for sd in sides:
+        x0, x1, z0, z1 = arms[sd]
+        block(m, x0, x1, y0, y1, z0, z1, "tan", (0.2, 0.8))
+    rng = np.random.default_rng(len(name))
+    for i in range(5):  # tekerlek izi / cakil
+        m.add(cbox(rng.uniform(-0.2, 0.2), y1 + 0.003, rng.uniform(-0.8, 0.8) if "+z" in sides else rng.uniform(-0.2, 0.2),
+                   0.05, 0.008, 0.05), "brown", grad=(0.2, 0.6))
+    return m
+
+
+def path_straight():
+    return _path("path_straight", {"+z", "-z"})
+
+
+def path_corner():
+    return _path("path_corner", {"+x", "+z"})
+
+
+def path_tsplit():
+    return _path("path_tsplit", {"+x", "+z", "-z"})
+
+
+def path_junction():
+    return _path("path_junction", {"+x", "-x", "+z", "-z"})
+
+
+def path_end():
+    return _path("path_end", {"+z"})
 
 
 def tile_grass_burnt():
@@ -217,6 +280,18 @@ def deer():
     return quadruped("deer", "terracotta", "brown", "cream", 0.3, 0.3, 0.1, _antlers)
 
 
+def _horns(m, hy, L, Hh):
+    for sx in (1, -1):
+        h = cbox(sx * 0.025, hy + 0.06, L * 0.5, 0.014, 0.08, 0.014)
+        m.add(rot(h, rx=40, rz=-sx * 15, pivot=(sx * 0.025, hy + 0.03, L * 0.52)), "warmgrey", grad=(0.2, 0.6))
+    m.add(cbox(0, hy - 0.05, L * 0.62, 0.02, 0.05, 0.02), "lightgrey", grad=(0.0, 0.5))  # sakal
+
+
+def goat():
+    """Dag keçisi: daglarda gezer (wildlife.gd)."""
+    return quadruped("goat", "white", "warmgrey", "lightgrey", 0.22, 0.2, 0.08, _horns)
+
+
 def dog():
     return quadruped("dog", "ochre", "brown", "cream", 0.2, 0.14, 0.07)
 
@@ -339,4 +414,5 @@ def tile_grass_c():
     return _grass_tile("tile_grass_c", (0.3, 0.65), 0, 32)
 
 
-MODELS += [fountain, beach_umbrella, pier, lighthouse, tile_grass_b, tile_grass_c]
+MODELS += [fountain, beach_umbrella, pier, lighthouse, tile_grass_b, tile_grass_c, goat, mountain_tall, mountain_ridge,
+           path_straight, path_corner, path_tsplit, path_junction, path_end]

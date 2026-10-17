@@ -13,6 +13,8 @@ extends Node
 @export var beach_tiles: PackedVector2Array
 @export var mountain_tiles: PackedVector2Array
 @export var sea_points: PackedVector2Array
+@export var museum_lots: PackedVector2Array  ## muze arsalari (magazadan alininca muze kurulur)
+@export var museum_kinds: PackedStringArray  ## her arsanin turu: deprem / sel / yangin
 
 const TILE := 2.0
 

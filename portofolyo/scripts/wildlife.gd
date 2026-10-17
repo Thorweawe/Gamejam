@@ -10,6 +10,8 @@ extends Node3D
 @export var bird_count := 10
 @export var deer_count := 8
 @export var dog_count := 6
+@export var goat_count := 12
+@export var eagle_count := 4
 @export var boat_count := 5
 @export var map_info_path: NodePath = ^"../MapInfo"
 
@@ -33,6 +35,19 @@ func _ready() -> void:
 		_add_flyer("canlilar/bird_small", wild, randf_range(2.0, 3.5), randf_range(1.0, 3.0), 1.0)
 	for i in deer_count:
 		_add_walker("canlilar/deer", map_info.forest_tiles, 0.65, 0.18, 0.7)
+	# dag keçileri: daglarin sehre bakan eteklerinde (zirvelerin icinden gecmesinler)
+	var foothills := PackedVector2Array()
+	var east := -INF
+	for p in map_info.mountain_tiles:
+		east = maxf(east, p.x)
+	for p in map_info.mountain_tiles:
+		if p.x >= east - 3.0 or p.y > 18.0:
+			foothills.append(p)
+	for i in goat_count:
+		_add_walker("canlilar/goat", foothills, 1.0, 0.14, 0.8)
+	# kartallar: daglarin ustunde yuksekte suzulur
+	for i in eagle_count:
+		_add_flyer("canlilar/bird_small", map_info.mountain_tiles, randf_range(4.5, 6.0), randf_range(3.0, 5.0), 2.2)
 	var parks := map_info.park_tiles + map_info.plaza_tiles + map_info.assembly_points
 	for i in dog_count:
 		_add_walker("canlilar/dog", parks, 1.0, 0.35, 0.85)

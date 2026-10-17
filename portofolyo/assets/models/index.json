@@ -215,6 +215,18 @@
    "ai": true
   },
   {
+   "name": "building_museum_deprem",
+   "ai": true
+  },
+  {
+   "name": "building_museum_sel",
+   "ai": true
+  },
+  {
+   "name": "building_museum_yangin",
+   "ai": true
+  },
+  {
    "name": "building_news",
    "ai": true
   },
@@ -232,6 +244,10 @@
   },
   {
    "name": "building_townhall_lv3",
+   "ai": true
+  },
+  {
+   "name": "museum_lot",
    "ai": true
   }
  ],
@@ -457,6 +473,30 @@
    "ai": true
   },
   {
+   "name": "building_museum_deprem_collapsed",
+   "ai": true
+  },
+  {
+   "name": "building_museum_deprem_damaged",
+   "ai": true
+  },
+  {
+   "name": "building_museum_sel_collapsed",
+   "ai": true
+  },
+  {
+   "name": "building_museum_sel_damaged",
+   "ai": true
+  },
+  {
+   "name": "building_museum_yangin_collapsed",
+   "ai": true
+  },
+  {
+   "name": "building_museum_yangin_damaged",
+   "ai": true
+  },
+  {
    "name": "building_news_collapsed",
    "ai": true
   },
@@ -615,6 +655,26 @@
    "ai": true
   },
   {
+   "name": "path_corner",
+   "ai": true
+  },
+  {
+   "name": "path_end",
+   "ai": true
+  },
+  {
+   "name": "path_junction",
+   "ai": true
+  },
+  {
+   "name": "path_straight",
+   "ai": true
+  },
+  {
+   "name": "path_tsplit",
+   "ai": true
+  },
+  {
    "name": "river_wall",
    "ai": true
   },
@@ -759,6 +819,10 @@
    "ai": true
   },
   {
+   "name": "goat",
+   "ai": true
+  },
+  {
    "name": "seagull",
    "ai": true
   }
@@ -777,7 +841,15 @@
    "ai": true
   },
   {
+   "name": "mountain_ridge",
+   "ai": true
+  },
+  {
    "name": "mountain_small",
+   "ai": true
+  },
+  {
+   "name": "mountain_tall",
    "ai": true
   }
  ],

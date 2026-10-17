@@ -26,6 +26,12 @@ uniform float coast_cut = 0.0;
 // nehir karolari: maske nehri kara sayar; kiyi cizgisi nehrin iki yanindaki kumsaldan (z +-2) okunur
 // ki nehir kumsalla ayni yerde bitip denize acilsin (suyun altindaki kum yatak da birlikte kesilir)
 uniform float river_mode = 0.0;
+// arazi maskesi (map_gen.py): R orman, G dag. terrain > 0 iken cimen rengi karoya gore degil
+// dunyaya gore hesaplanir -> komsu karolar arasinda dikis / kare kare ton farki olmaz.
+uniform sampler2D terrain_mask : filter_linear, repeat_disable;
+uniform float terrain = 0.0;
+uniform float dirt_grass = 0.0;  // 1: kahverengi toprak da cimen olur (dag karosu); patikalarda 0
+uniform vec3 meadow : source_color = vec3(0.55, 0.62, 0.36);
 
 varying vec3 wpos;
 varying vec3 wnormal;
@@ -75,6 +81,27 @@ void fragment() {
 	float blades = noise(wpos.xz * vec2(36.0, 12.0)) * 0.6 + noise(wpos.xz * vec2(12.0, 36.0) + 9.0) * 0.4;
 	g *= 1.0 + ((mid - 0.5) * 0.3 + (fine - 0.5) * 0.12 + (blades - 0.5) * 0.14) * variation;
 
+	if (terrain > 0.0) {
+		vec3 tm = texture(terrain_mask, (wpos.xz - map_min) / map_size).rgb;
+		g *= mix(1.0, 0.8, tm.r);  // orman tabani hafif koyu
+		vec3 md = meadow * (0.88 + 0.24 * big) * (1.0 + (fine - 0.5) * 0.1);
+		g = mix(g, md, smoothstep(0.05, 0.85, tm.g) * 0.9);  // dag etegi cayir tonu
+		// dag karosunun kahverengi topragi da ayni zemin rengini alir (kaya lekeleri kalir)
+		float dirt = smoothstep(0.08, 0.16, base.r - base.b) * step(base.b, base.g) * (1.0 - grass) * dirt_grass;
+		grass = max(grass, dirt);
+	}
+	vec3 dirt_col = vec3(0.0);
+	float path = 0.0;
+	if (terrain > 0.0) {
+		// patika: maske gurultuyle kaydirilir -> kivrimli kenar, genislik yer yer degisir
+		vec2 warp = vec2(noise(wpos.xz * 0.55 + 3.0), noise(wpos.xz * 0.55 + 41.0)) - 0.5;
+		vec2 puv = (wpos.xz + warp * 0.55 - map_min) / map_size;
+		float pm = texture(terrain_mask, puv).b;
+		path = smoothstep(0.32, 0.5, pm + (fine - 0.5) * 0.12);
+		dirt_col = mix(vec3(0.3, 0.18, 0.08), vec3(0.43, 0.28, 0.13), smoothstep(0.3, 0.75, mid));  // sicak toprak (dogrusal renk)
+		dirt_col *= 1.0 + (fine - 0.5) * 0.18;
+		dirt_col = mix(dirt_col * 0.72, dirt_col, smoothstep(0.5, 0.75, pm));  // kenarlar koyu (cimen bitimi)
+	}
 	vec3 col = mix(base, tint * dot(base, vec3(0.3, 0.59, 0.11)) / 0.25, tint_amount);
 	col *= 1.0 + (big - 0.5) * 0.18 * variation + (mid - 0.5) * 0.08 * variation + (fine - 0.5) * 0.05 * variation;
 	col = mix(col, g, grass);
@@ -106,7 +133,8 @@ void fragment() {
 		col = mix(col, vec3(0.92, 0.95, 0.97), (1.0 - smoothstep(0.0, 0.012, e)) * 0.75);
 	}
 
+	col = mix(col, dirt_col, path);
 	ALBEDO = col;
-	ROUGHNESS = mix(mix(0.88, 0.96, grass), 0.12, water);
+	ROUGHNESS = mix(mix(0.88, 0.96, max(grass, path)), 0.12, water);
 	SPECULAR = mix(0.25, 0.5, water);
 }

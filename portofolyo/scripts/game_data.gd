@@ -44,6 +44,9 @@ const BUILDING_INFO := {
 	"building_afad_lv2": {"name": "AFAD Merkezi (Sv 2)", "pop": 0, "risk": "Düşük"},
 	"building_afad_lv3": {"name": "AFAD Merkezi (Sv 3)", "pop": 0, "risk": "Çok düşük"},
 	"building_news": {"name": "Gazete / TV", "pop": 0, "risk": "Orta"},
+	"building_museum_deprem": {"name": "Deprem Müzesi", "pop": 0, "risk": "Düşük"},
+	"building_museum_sel": {"name": "Sel Müzesi", "pop": 0, "risk": "Düşük"},
+	"building_museum_yangin": {"name": "Yangın Müzesi", "pop": 0, "risk": "Düşük"},
 }
 const SHOP_INFO := {"name": "İş yeri", "pop": 15, "risk": "Orta"}
 
@@ -62,7 +65,7 @@ const UPGRADES := {
 	"building_afad": ["building_afad_lv2", 5000, 1],
 	"building_afad_lv2": ["building_afad_lv3", 8000, 2],
 }
-const UPGRADE_DAYS := 2
+const UPGRADE_DAYS := 1  # gelistirme / guclendirme ertesi gun hazir
 const REINFORCE := {"house_lv1": 1800, "house_lv2": 3000}
 ## Magazadaki mahalle paketi: mahalledeki tum uygun binalar %50 indirimle
 const DISTRICT_DISCOUNT := 0.5
@@ -94,7 +97,7 @@ static func quake_risk(model: String) -> float:
 		return 0.5
 	if model.begins_with("house_lv2"):
 		return 0.45
-	if model.contains("hospital") or model.contains("afad") or model.contains("firestation"):
+	if model.contains("hospital") or model.contains("afad") or model.contains("firestation") or model.contains("museum"):
 		return 0.12
 	if model.contains("townhall") or model.contains("school"):
 		return 0.25
@@ -108,29 +111,75 @@ static func info(model: String) -> Dictionary:
 # ------------------------------------------------------------------ belediye eylemleri
 ## "target": true olan eylemler haritada bir mahalleye tiklanarak uygulanir.
 ## "hall": gereken belediye seviyesi (belediye binasini gelistirince acilir).
-const ACTIONS := [
-	{"id": "news", "tab": "aw", "name": "Gazete İlanı", "cost": 1200, "hall": 1, "target": true, "icon": "news",
-		"desc": "Bir mahalleye tıkla: o mahallede farkındalık +12"},
-	{"id": "drill", "tab": "aw", "name": "Tatbikat", "cost": 2000, "hall": 1, "target": true, "icon": "drill",
-		"desc": "Bir mahalleye tıkla: farkındalık +15, halk toplanma alanını öğrenir"},
-	{"id": "tv", "tab": "aw", "name": "TV Kampanyası", "cost": 4000, "hall": 2, "icon": "tv",
-		"desc": "Tüm şehirde farkındalık +7"},
-	{"id": "kits", "tab": "aw", "name": "Deprem Çantası", "cost": 3500, "hall": 2, "icon": "kit",
-		"desc": "Enkaz altındakiler daha uzun dayanır, sokakta çantalı insanlar"},
-	{"id": "forest", "tab": "infra", "name": "Orman Önlemleri", "cost": 3000, "hall": 1, "icon": "tree",
-		"desc": "Mangal yasağı tabelaları ve gözetleme kulesi: orman yangını riski -%40"},
-	{"id": "assembly", "tab": "infra", "name": "Toplanma Alanı", "cost": 2500, "hall": 1, "icon": "flag",
-		"desc": "Bir parkı toplanma alanı yap: tahliye kapasitesi artar"},
-	{"id": "river", "tab": "infra", "name": "Dere Islahı", "cost": 8000, "hall": 2, "icon": "wave",
-		"desc": "Nehir kıyılarına beton duvar: sel hasarı büyük ölçüde azalır"},
-	{"id": "levee", "tab": "infra", "name": "Taşkın Seti", "cost": 7000, "hall": 3, "icon": "wave",
-		"desc": "Kalıcı set: sel neredeyse hiç zarar veremez"},
-	{"id": "warning", "tab": "infra", "name": "Erken Uyarı", "cost": 7000, "hall": 3, "icon": "siren",
-		"desc": "Siren ve SMS ağı: afette tahliye çok daha başarılı"},
-	{"id": "renewal", "tab": "build", "name": "Kentsel Dönüşüm", "cost": 12000, "hall": 3, "icon": "house",
-		"desc": "Tüm gecekondular güvenli eve dönüşür (2 gün inşaat)"},
+## Magaza (shop.tscn) urunleri. Hazirlik sekmesi Deprem / Sel / Yangin olarak uce ayrilir.
+##   cat     : deprem | sel | yangin | farkindalik  (Kamu Binalari sekmesi binalardan uretilir)
+##   req     : gereken bina seviyeleri {belediye, itfaiye, hastane, afad}
+##   once    : bir kez alinir ("Alındı" olur);  max: en fazla kac kez alinir
+##   target  : satin alinca haritada bir mahalleye tiklanir
+##   cost    : TL (-1 = duruma gore hesaplanir: mahalle guclendirme, kacak kat operasyonu)
+const SHOP_ITEMS := [
+	# --- DEPREM ---
+	{"id": "reinforce_district", "cat": "deprem", "name": "Mahalle Binalarını Güçlendir", "cost": -1, "target": true,
+		"icon": "res://assets/ui_icons/reinforce_district.svg", "desc": "Bir mahalleye tıkla: oradaki tüm evler depreme karşı güçlendirilir. Tek tek yaptırmaktan %50 ucuz."},
+	{"id": "kacak_all", "cat": "deprem", "name": "Kaçak Kat Operasyonu", "cost": -1,
+		"icon": "res://assets/ui_icons/kacak_all.svg", "desc": "Şehirdeki bütün kaçak katlar yıkılır; depremde ilk çöken binalar güvenli hâle gelir."},
+	{"id": "gas_valves", "cat": "deprem", "name": "Otomatik Gaz Kesme Vanası", "cost": 3000, "once": true,
+		"icon": "res://assets/ui_icons/gas_valves.svg", "desc": "Sarsıntıda gazı otomatik keser. Deprem sonrası çıkan yangınlar ve yangın riski azalır."},
+	{"id": "assembly", "cat": "deprem", "name": "Deprem Toplanma Alanı", "cost": 2500, "max": 3,
+		"icon": "res://assets/ui_icons/assembly.svg", "desc": "Bir parkı toplanma alanı yapar. Afette daha çok insan güvenle tahliye olur."},
+	{"id": "renewal", "cat": "deprem", "name": "Kentsel Dönüşüm", "cost": 12000, "once": true, "req": {"belediye": 3},
+		"icon": "res://assets/ui_icons/renewal.svg", "desc": "Bütün gecekondular depreme dayanıklı evlere dönüşür (2 gün inşaat)."},
+	{"id": "museum_deprem", "cat": "deprem", "name": "Deprem Müzesi", "cost": 6000, "once": true, "req": {"belediye": 2},
+		"icon": "res://assets/textures/deprem_muze_1_klasik.png", "desc": "Haritadaki arsaya müze kurulur. Farkındalık +6, halk depremde daha doğru davranır (tahliye artar)."},
+	{"id": "warning", "cat": "deprem", "name": "Erken Uyarı Sistemi", "cost": 7000, "once": true, "req": {"belediye": 3},
+		"icon": "res://assets/ui_icons/warning.svg", "desc": "Sismik sensör, siren ve SMS ağı. Her afette tahliye çok daha başarılı olur."},
+	# --- SEL ---
+	{"id": "drain_clean", "cat": "sel", "name": "Dere Yatağını Temizle", "cost": 2000, "once": true,
+		"icon": "res://assets/ui_icons/drain_clean.svg", "desc": "Moloz ve çamur temizlenir, dere daha çok su taşır. Sel riski azalır."},
+	{"id": "storm_drains", "cat": "sel", "name": "Yağmur Suyu Kanalları", "cost": 3500, "once": true,
+		"icon": "res://assets/ui_icons/storm_drains.svg", "desc": "Sokaklardaki suyu toplayan yer altı kanalları. Sel riski azalır."},
+	{"id": "flood_barriers", "cat": "sel", "name": "Kıyıdaki Evlere Su Bariyeri", "cost": 2500, "once": true,
+		"icon": "res://assets/ui_icons/flood_barriers.svg", "desc": "Kapı ve pencerelere taşınabilir bariyer. Sel basan evler daha az hasar görür."},
+	{"id": "river", "cat": "sel", "name": "Dere Islahı", "cost": 8000, "max": 2, "req": {"belediye": 2},
+		"icon": "res://assets/ui_icons/river.svg", "desc": "Kıyılara beton duvar örülür, sel hasarı büyük ölçüde azalır."},
+	{"id": "museum_sel", "cat": "sel", "name": "Sel Müzesi", "cost": 6000, "once": true, "req": {"belediye": 2},
+		"icon": "res://assets/textures/sel_muze_1_klasik.png", "desc": "Haritadaki arsaya müze kurulur. Farkındalık +6, sel riski %15 azalır."},
+	# --- YANGIN ---
+	{"id": "forest", "cat": "yangin", "name": "Ormana Termal Kamera", "cost": 3000, "once": true,
+		"icon": "res://assets/ui_icons/forest.svg", "desc": "Gözetleme kulesi ve termal kamera. Orman yangını riski %40 azalır."},
+	{"id": "wiring", "cat": "yangin", "name": "Eski Elektrik Tesisatını Yenile", "cost": 3000, "once": true,
+		"icon": "res://assets/ui_icons/wiring.svg", "desc": "Eskimiş kablolar yenilenir. Ev yangını riski azalır."},
+	{"id": "hydrants", "cat": "yangin", "name": "Sokaklara Yangın Musluğu", "cost": 3500, "once": true,
+		"icon": "res://assets/ui_icons/hydrants.svg", "desc": "İtfaiye suya hemen bağlanır: yangınlar %25 daha hızlı söner."},
+	{"id": "extinguishers", "cat": "yangin", "name": "Evlere Yangın Tüpü Dağıt", "cost": 2500, "once": true, "req": {"itfaiye": 2},
+		"icon": "res://assets/ui_icons/extinguishers.svg", "desc": "Halk küçük yangına ilk müdahaleyi yapar: yangın daha yavaş büyür, itfaiyeye zaman kalır."},
+	{"id": "plane", "cat": "yangin", "name": "Yangın Söndürme Uçağı", "cost": 9000, "once": true, "req": {"itfaiye": 3},
+		"icon": "res://assets/ui_icons/plane.svg", "desc": "Orman yangınına havadan müdahale: yangın yarı hızda yayılır, söndürme kolaylaşır."},
+	{"id": "museum_yangin", "cat": "yangin", "name": "Yangın Müzesi", "cost": 6000, "once": true, "req": {"belediye": 2, "itfaiye": 2},
+		"icon": "res://assets/textures/yangin_muze_1_klasik.png", "desc": "Haritadaki arsaya müze kurulur. Farkındalık +6, ev ve orman yangını riski %15 azalır."},
+	# --- FARKINDALIK ---
+	{"id": "news", "cat": "farkindalik", "name": "Afet Rehberi Gazetesi", "cost": 1200, "target": true,
+		"icon": "res://assets/ui_icons/news.svg", "desc": "Bir mahalleye tıkla: o mahallede farkındalık +12."},
+	{"id": "drill", "cat": "farkindalik", "name": "Tahliye Tatbikatı", "cost": 2000, "target": true,
+		"icon": "res://assets/ui_icons/drill.svg", "desc": "Bir mahalleye tıkla: farkındalık +15, halk toplanma alanını öğrenir."},
+	{"id": "booklet", "cat": "farkindalik", "name": "Okullara Eğitim Kitapçığı", "cost": 1500,
+		"icon": "res://assets/ui_icons/booklet.svg", "desc": "Çocuklar öğrenir, ailelerine anlatır. Tüm şehirde farkındalık +4."},
+	{"id": "kits", "cat": "farkindalik", "name": "Deprem Çantası Kampanyası", "cost": 3500, "max": 2, "req": {"belediye": 2},
+		"icon": "res://assets/ui_icons/kits.svg", "desc": "Enkaz altındakiler daha uzun dayanır. Sokakta çantalı insanlar görürsün."},
+	{"id": "tv", "cat": "farkindalik", "name": "TV Kamu Spotu", "cost": 4000, "req": {"belediye": 2},
+		"icon": "res://assets/ui_icons/tv.svg", "desc": "Çök-Kapan-Tutun anlatılır. Tüm şehirde farkındalık +7."},
+	{"id": "volunteers", "cat": "farkindalik", "name": "Mahalle Afet Gönüllüleri", "cost": 4000, "once": true, "req": {"afad": 2},
+		"icon": "res://assets/ui_icons/volunteers.svg", "desc": "Eğitimli gönüllüler AFAD'a destek olur: enkaz kurtarma %20 hızlanır."},
 ]
-const SHOP_TABS := [["aw", "Farkındalık"], ["infra", "Altyapı"], ["build", "Güçlendirme"], ["units", "Belediye & Birimler"]]
+const SHOP_CATS := {"deprem": "Deprem", "sel": "Sel", "yangin": "Yangın", "farkindalik": "Farkındalık"}
+
+
+static func shop_item(id: String) -> Dictionary:
+	for it in SHOP_ITEMS:
+		if it.id == id:
+			return it
+	return {}
+
 
 # ------------------------------------------------------------------ uyarilar (deprem asla haber verilmez!)
 const FORECASTS := {
@@ -140,7 +189,7 @@ const FORECASTS := {
 	"flood": {"days": 2, "title": "Meteoroloji Uyarısı",
 		"text": "Dağlarda yoğun yağış bekleniyor. 2 gün içinde sel riski %%%d!",
 		"actions": [{"id": "evacuate_river", "name": "Kıyıyı Tahliye Et", "cost": 2500},
-			{"id": "sandbag", "name": "Kum Torbası Diz", "cost": 500}]},
+			{"id": "sandbag", "name": "Kum Torbası Diz", "cost": 2000}]},
 	"house_fire": {"days": 1, "title": "İtfaiye Uyarısı",
 		"text": "Soğuk hava nedeniyle soba ve ısıtıcı kullanımı artacak. Yangın riski %%%d!",
 		"actions": [{"id": "stove_check", "name": "Soba Denetimi", "cost": 1500}]},

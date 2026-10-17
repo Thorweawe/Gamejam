@@ -724,6 +724,88 @@ def house_collapsed(level):
     return collapsed_heap(name, colors, height, walls, seed=level + 40)
 
 
+# ---------------------------------------------------------------- muzeler (deprem / sel / yangin)
+MUSEUM_STYLE = {  # ana renk (cati, afis, amblem), ikinci renk
+    "deprem": ("orange", "brown"),
+    "sel": ("blue", "skyblue"),
+    "yangin": ("red", "flame"),
+}
+
+
+def museum(kind):
+    """Klasik muze: basamaklar, sutunlu giris, ucgen alinlik + afet amblemi, iki yanda renkli afis."""
+    main, second = MUSEUM_STYLE[kind]
+    m = Model(f"building_museum_{kind}")
+    base_slab(m)
+    hw, z0, z1 = 0.8, -0.65, 0.25
+    top = Y0 + 0.95
+    for i in range(3):  # basamaklar
+        block(m, -hw + 0.05 - i * 0.03, hw - 0.05 + i * 0.03, Y0, Y0 + (3 - i) * 0.04,
+              z1 + 0.05 + i * 0.12, z1 + 0.18 + i * 0.12, "lightgrey", (0.1, 0.5))
+    block(m, -hw, hw, Y0 + 0.12, top, z0, z1, "cream", (0.0, 0.7))
+    for x in (-0.6, -0.3, 0.0, 0.3, 0.6):  # sutunlar
+        m.add(cyl(0.06, 0.055, Y0 + 0.12, top - 0.02, n=8, center=(x, 0, z1 + 0.22)), "white", grad=(0.0, 0.4))
+        m.add(cbox(x, top - 0.02, z1 + 0.22, 0.15, 0.04, 0.15), "white", grad=(0.0, 0.3))
+        m.add(cbox(x, Y0 + 0.14, z1 + 0.22, 0.15, 0.04, 0.15), "white", grad=(0.0, 0.3))
+    block(m, -hw - 0.04, hw + 0.04, top, top + 0.1, z0 - 0.04, z1 + 0.34, "white", (0.0, 0.4))  # arsitrav
+    peak = 0.38
+    m.add([(-hw - 0.04, top + 0.1, z1 + 0.34), (hw + 0.04, top + 0.1, z1 + 0.34), (0, top + 0.1 + peak, z1 + 0.34),
+           (-hw - 0.04, top + 0.1, z0 - 0.04), (hw + 0.04, top + 0.1, z0 - 0.04), (0, top + 0.1 + peak, z0 - 0.04)],
+          "lightgrey", grad=(0.0, 0.5))
+    m.add([(-hw - 0.08, top + 0.1, z1 + 0.38), (hw + 0.08, top + 0.1, z1 + 0.38), (0, top + 0.12 + peak, z1 + 0.38),
+           (-hw - 0.08, top + 0.1, z0 - 0.08), (hw + 0.08, top + 0.1, z0 - 0.08), (0, top + 0.12 + peak, z0 - 0.08)],
+          main, grad=(0.3, 0.9))
+    # alinlik amblemi (beyaz disk + afet simgesi)
+    ey, ez = top + 0.21, z1 + 0.37
+    m.add(cyl(0.1, 0.1, ez - 0.01, ez + 0.01, n=12, axis="z", center=(0, ey, 0)), "white", grad=(0.0, 0.3))
+    if kind == "deprem":
+        for x, y in ((-0.05, 0.03), (-0.015, -0.02), (0.02, 0.025), (0.055, -0.02)):
+            m.add(cbox(x, ey + y, ez + 0.015, 0.035, 0.022, 0.01), main, grad=(0.2, 0.5))
+    elif kind == "sel":
+        for k in range(2):
+            for i in range(4):
+                m.add(cbox(-0.06 + i * 0.04, ey - 0.025 + k * 0.05 + (0.008 if i % 2 else -0.008), ez + 0.015,
+                           0.04, 0.016, 0.008), main, grad=(0.2, 0.5))
+    else:
+        m.add(cbox(0, ey - 0.02, ez + 0.015, 0.08, 0.07, 0.01), main, grad=(0.1, 0.5))
+        m.add(cbox(0, ey + 0.035, ez + 0.015, 0.04, 0.06, 0.01), main, grad=(0.1, 0.5))
+        m.add(cbox(0, ey - 0.025, ez + 0.022, 0.035, 0.035, 0.01), "sun", grad=(0.0, 0.3))
+    door(m, "+z", z1, 0, Y0 + 0.12, w=0.26, h=0.5, color="brown")
+    window_row(m, "+z", z1, [-0.45, 0.45], Y0 + 0.55, w=0.16, h=0.3)
+    for face, wall in (("+x", hw), ("-x", -hw)):
+        window_row(m, face, wall, [-0.35, 0.0], Y0 + 0.55, w=0.16, h=0.3)
+    for sx in (1, -1):  # dikey afisler
+        m.add(cbox(sx * (hw + 0.02), top - 0.3, 0.0, 0.02, 0.5, 0.22), main, grad=(0.1, 0.6))
+        m.add(cbox(sx * (hw + 0.035), top - 0.3, 0.0, 0.01, 0.12, 0.12), "white", grad=(0.0, 0.3))
+    for sx in (1, -1):  # saksida agaclar
+        m.add(cbox(sx * 0.82, Y0 + 0.06, 0.82, 0.16, 0.12, 0.16), "lightgrey", grad=(0.1, 0.5))
+        m.add(blob(sx * 0.82, Y0 + 0.25, 0.82, 0.13, seed=7 + int(sx)), "darkgreen", grad=(0.1, 0.7))
+    m.add(cbox(0.55, Y0 + 0.14, 0.88, 0.32, 0.18, 0.04), main, grad=(0.1, 0.6))  # tabela
+    m.add(cbox(0.55, Y0 + 0.14, 0.905, 0.24, 0.03, 0.01), "white", grad=(0.0, 0.3))
+    return m
+
+
+def museum_lot():
+    """Bos muze arsasi: cim zemin, beyaz cit, tabela, turuncu kaziklar."""
+    m = Model("museum_lot")
+    block(m, -0.95, 0.95, 0.0, 0.1, -0.95, 0.95, "green", (0.2, 0.7))
+    for i in range(7):
+        t = -0.9 + i * 0.3
+        for (x, z) in ((t, -0.9), (t, 0.9), (-0.9, t), (0.9, t)):
+            m.add(cbox(x, 0.18, z, 0.04, 0.16, 0.04), "white", grad=(0.0, 0.4))
+    for z in (-0.9, 0.9):
+        m.add(cbox(0, 0.22, z, 1.82, 0.03, 0.02), "white", grad=(0.0, 0.4))
+    for x in (-0.9, 0.9):
+        m.add(cbox(x, 0.22, 0, 0.02, 0.03, 1.82), "white", grad=(0.0, 0.4))
+    for x in (-0.25, 0.25):
+        m.add(cbox(x, 0.35, 0.6, 0.04, 0.5, 0.04), "brown", grad=(0.2, 0.6))
+    m.add(cbox(0, 0.52, 0.6, 0.62, 0.3, 0.04), "cream", grad=(0.0, 0.4))
+    m.add(cbox(0, 0.52, 0.625, 0.5, 0.05, 0.01), "brown", grad=(0.2, 0.5))
+    for (x, z) in ((-0.5, -0.4), (0.5, -0.4), (0.0, 0.1)):
+        m.add(cbox(x, 0.16, z, 0.04, 0.12, 0.04), "orange", grad=(0.1, 0.5))
+    return m
+
+
 def _mk(fn, *a, **k):
     f = lambda: fn(*a, **k)
     f.__name__ = fn.__name__
@@ -743,5 +825,7 @@ RESIDENTIAL = [
 
 SERVICE_LEVELS = [_mk(f, lv) for f in (hospital, fire_station, afad_center) for lv in (2, 3)]
 
-MODELS = RESIDENTIAL + SERVICE_LEVELS + [town_hall_1, town_hall_2, town_hall_3, hospital, fire_station, school, afad_center, news_building,
+MUSEUMS = [_mk(museum, k) for k in ("deprem", "sel", "yangin")] + [museum_lot]
+
+MODELS = RESIDENTIAL + SERVICE_LEVELS + MUSEUMS + [town_hall_1, town_hall_2, town_hall_3, hospital, fire_station, school, afad_center, news_building,
           scaffold_2, scaffold_4, construction_site, tower_crane]

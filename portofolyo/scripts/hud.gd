@@ -21,23 +21,24 @@ signal risk_toggled(on: bool)
 signal game_over  # nufus %20'nin altina dustu (GameManager dinleyebilir)
 signal _modal_done(result: int)
 
-const C_BG := Color(0.07, 0.09, 0.14, 0.9)
-const C_CARD := Color(0.12, 0.15, 0.22, 1.0)
-const C_LINE := Color(1, 1, 1, 0.09)
-const C_TEXT := Color(0.94, 0.96, 1.0)
-const C_MUTED := Color(0.63, 0.69, 0.8)
-const C_GOLD := Color(1.0, 0.8, 0.3)
-const C_GOOD := Color(0.45, 0.95, 0.55)
-const C_BAD := Color(1.0, 0.45, 0.35)
-const C_ACCENT := Color(1.0, 0.6, 0.2)
-const C_BLUE := Color(0.4, 0.68, 1.0)
-const C_POP := Color(0.75, 0.85, 1.0)
+## Renk paleti oyunun kendi dokusundan (KayKit citybits_texture.png): krem, ten, hardal, turuncu,
+## kiremit, sicak kahve, gok mavisi, petrol, cimen yesili. Arayuz haritayla ayni sicak, canli tonlarda.
+const C_BG := Color("#fbf3e6f5")  # krem panel
+const C_CARD := Color("#fffaf2")  # pencere / kart
+const C_LINE := Color("#d9b98f")  # ten rengi kenar
+const C_TINT := Color(0.47, 0.4, 0.34, 0.1)  # kahve tonlu hafif zemin (cip, cubuk arka plani)
+const C_TEXT := Color("#3b3330")  # koyu kahve yazi
+const C_MUTED := Color("#8a7666")
+const C_GOLD := Color("#c4851a")  # hardal (para)
+const C_GOOD := Color("#12935a")  # cimen yesili
+const C_BAD := Color("#d63f3f")
+const C_ACCENT := Color("#d76f34")  # turuncu
+const C_BLUE := Color("#2b8ac6")
+const C_POP := Color("#577893")  # arduvaz mavisi
 const KIND_COLORS := {"info": C_BLUE, "good": C_GOOD, "bad": C_BAD, "disaster": Color(1.0, 0.3, 0.25)}
 const KIND_ICONS := {"info": "star", "good": "check", "bad": "warning", "disaster": "warning"}
-const TAB_STYLE := {"aw": ["news", Color(0.4, 0.68, 1.0)], "infra": ["wave", Color(0.3, 0.8, 0.7)],
-	"build": ["shield", Color(1.0, 0.62, 0.25)], "units": ["hall", Color(1.0, 0.45, 0.4)]}
-const UNIT_ICONS := {"fire": ["fire", Color(1.0, 0.45, 0.3)], "medic": ["medic", Color(0.4, 0.75, 1.0)],
-	"rescue": ["rescue", Color(1.0, 0.7, 0.25)]}
+const UNIT_ICONS := {"fire": ["fire", Color("#df4043")], "medic": ["medic", Color("#2799d3")],
+	"rescue": ["rescue", Color("#e39a1f")]}
 const FORECAST_ICONS := {"forest_fire": "tree", "flood": "wave", "house_fire": "fire"}
 const RISK_TEXT := {"fire": "Yangın", "forest": "Orman yangını", "flood": "Sel", "quake": "Deprem"}
 
@@ -76,8 +77,7 @@ var _hint: PanelContainer
 var _hint_label: Label
 var _shop_btn: Button
 var _risk_btn: Button
-var _shop: Control
-var _shop_tab := "aw"
+var shop: Node  # shop.tscn ornegi (ilk acilista olusturulur)
 var _modal_root: Control
 var _world_toasts: Array = []  # [kontrol, dunya konumu, gecen sure, gecikme]
 var _actions_enabled := true
@@ -144,7 +144,7 @@ func _make_theme() -> void:
 	_theme.set_font("normal_font", "RichTextLabel", font)
 	_theme.set_color("default_color", "RichTextLabel", C_TEXT)
 	_theme.set_color("font_color", "Label", C_TEXT)
-	_theme.set_stylebox("panel", "TooltipPanel", sb(Color(0.05, 0.06, 0.1, 0.96), 8, 1, C_LINE, 10, 6))
+	_theme.set_stylebox("panel", "TooltipPanel", sb(C_CARD, 8, 1, C_LINE, 10, 6))
 	_theme.set_color("font_color", "TooltipLabel", C_TEXT)
 	_theme.set_font_size("font_size", "TooltipLabel", 14)
 
@@ -162,14 +162,14 @@ static func sb(color: Color, radius := 12, border := 0, border_color := Color.TR
 	s.anti_aliasing = true
 	if shadow > 0:
 		s.shadow_size = shadow
-		s.shadow_color = Color(0, 0, 0, 0.35)
+		s.shadow_color = Color(0.25, 0.16, 0.08, 0.28)
 		s.shadow_offset = Vector2(0, 3)
 	return s
 
 
 func _panel(parent: Node, color := C_BG, border_color := C_LINE, mh := 12, mv := -1, radius := 14) -> PanelContainer:
 	var p := PanelContainer.new()
-	p.add_theme_stylebox_override("panel", sb(color, radius, 1 if border_color.a > 0 else 0, border_color, mh, mv, 6))
+	p.add_theme_stylebox_override("panel", sb(color, radius, 2 if border_color.a > 0 else 0, border_color, mh, mv, 6))
 	parent.add_child(p)
 	return p
 
@@ -218,17 +218,17 @@ func _button(parent: Node, text: String, color := C_ACCENT, size := 16) -> Butto
 	b.add_theme_stylebox_override("normal", sb(color, 12, 0, Color.TRANSPARENT, 14, 8))
 	b.add_theme_stylebox_override("hover", sb(color.lightened(0.15), 12, 0, Color.TRANSPARENT, 14, 8))
 	b.add_theme_stylebox_override("pressed", sb(color.darkened(0.15), 12, 0, Color.TRANSPARENT, 14, 8))
-	b.add_theme_stylebox_override("disabled", sb(Color(0.25, 0.28, 0.34, 0.9), 12, 0, Color.TRANSPARENT, 14, 8))
+	b.add_theme_stylebox_override("disabled", sb(Color("#c9b8a6"), 12, 0, Color.TRANSPARENT, 14, 8))
 	for k in ["font_color", "font_hover_color", "font_pressed_color"]:
 		b.add_theme_color_override(k, Color.WHITE)
-	b.add_theme_color_override("font_disabled_color", Color(0.65, 0.68, 0.75))
+	b.add_theme_color_override("font_disabled_color", Color(0.95, 0.93, 0.9))
 	b.mouse_entered.connect(func(): _sfx("hover"))
 	parent.add_child(b)
 	return b
 
 
 ## Kodla cizilen ikon + yazi iceren cip.
-func _chip(parent: Node, icon: String, text: String, color: Color, size := 14, bg := Color(1, 1, 1, 0.07)) -> PanelContainer:
+func _chip(parent: Node, icon: String, text: String, color: Color, size := 14, bg := C_TINT) -> PanelContainer:
 	var p := PanelContainer.new()
 	p.add_theme_stylebox_override("panel", sb(bg, 10, 0, Color.TRANSPARENT, 8, 3))
 	parent.add_child(p)
@@ -263,19 +263,30 @@ func _style_day_ui() -> void:
 			c.theme = _theme
 	var clock: PanelContainer = ui.get_node_or_null("ClockPanel")
 	if clock:
-		clock.add_theme_stylebox_override("panel", sb(C_BG, 16, 1, C_LINE, 16, 6, 6))
+		# sag ust kose: sol ustteki gostergelerle ust uste binmesin
+		clock.add_theme_stylebox_override("panel", sb(C_BG, 16, 2, C_LINE, 14, 4, 6))
+		clock.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+		clock.offset_right = -14
+		clock.offset_left = -14 - 236
+		clock.offset_top = 14
+		clock.offset_bottom = 14 + 62
+		clock.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 		var dl: Label = clock.get_node("HBox/DayLabel")
 		dl.add_theme_font_override("font", bold)
-		dl.add_theme_font_size_override("font_size", 28)
+		dl.add_theme_font_size_override("font_size", 26)
+		dl.add_theme_color_override("font_color", C_TEXT)
+		dl.add_theme_constant_override("outline_size", 0)
+		var dial: Control = clock.get_node("HBox/Dial")
+		dial.custom_minimum_size = Vector2(88, 46)
 	var btn: Button = ui.get_node_or_null("EndDayButton")
 	if btn:
-		var col := Color(0.25, 0.62, 0.42)
+		var col := Color("#12935a")
 		btn.add_theme_font_override("font", bold)
 		btn.add_theme_font_size_override("font_size", 24)
 		btn.add_theme_stylebox_override("normal", sb(col, 16, 0, Color.TRANSPARENT, 16, 8, 6))
 		btn.add_theme_stylebox_override("hover", sb(col.lightened(0.12), 16, 0, Color.TRANSPARENT, 16, 8, 6))
 		btn.add_theme_stylebox_override("pressed", sb(col.darkened(0.15), 16, 0, Color.TRANSPARENT, 16, 8, 6))
-		btn.add_theme_stylebox_override("disabled", sb(Color(0.22, 0.25, 0.3, 0.9), 16, 0, Color.TRANSPARENT, 16, 8, 6))
+		btn.add_theme_stylebox_override("disabled", sb(Color("#c9b8a6"), 16, 0, Color.TRANSPARENT, 16, 8, 6))
 		btn.text = "Günü Bitir  ›"
 	var banner: Label = ui.get_node_or_null("DayBanner")
 	if banner:
@@ -305,7 +316,7 @@ func _build_stats() -> void:
 	_pop_bar = ProgressBar.new()
 	_pop_bar.custom_minimum_size = Vector2(96, 7)
 	_pop_bar.show_percentage = false
-	_pop_bar.add_theme_stylebox_override("background", sb(Color(1, 1, 1, 0.1), 4, 0, Color.TRANSPARENT, 0, 0))
+	_pop_bar.add_theme_stylebox_override("background", sb(C_TINT, 4, 0, Color.TRANSPARENT, 0, 0))
 	_pop_bar.add_theme_stylebox_override("fill", sb(C_POP, 4, 0, Color.TRANSPARENT, 0, 0))
 	pv.add_child(_pop_bar)
 	p.tooltip_text = "Nüfus: vergi geliri getirir\nHer sabah farkındalık × %d kişi taşınır\n%%%d'nin altına düşerse oyun biter" % [ARRIVALS_PER_AW, int(MIN_POP_RATIO)]
@@ -320,17 +331,9 @@ func _build_stats() -> void:
 	_aw_bar = ProgressBar.new()
 	_aw_bar.custom_minimum_size = Vector2(96, 7)
 	_aw_bar.show_percentage = false
-	_aw_bar.add_theme_stylebox_override("background", sb(Color(1, 1, 1, 0.1), 4, 0, Color.TRANSPARENT, 0, 0))
+	_aw_bar.add_theme_stylebox_override("background", sb(C_TINT, 4, 0, Color.TRANSPARENT, 0, 0))
 	v.add_child(_aw_bar)
 	p.mouse_filter = Control.MOUSE_FILTER_STOP
-	var help := _panel(_root, Color(0.05, 0.06, 0.1, 0.55), Color.TRANSPARENT, 12, 3, 10)
-	help.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_label(help, "Sol tık: seç  ·  Sağ tık / WASD: kaydır  ·  Tekerlek: yakınlaş  ·  Q/E: döndür  ·  R: risk  ·  ESC: menü", 13, Color(1, 1, 1, 0.7))
-	help.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-	help.offset_top = -34
-	help.offset_bottom = -10
-	help.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	help.grow_vertical = Control.GROW_DIRECTION_BEGIN
 
 
 func update_stats(g: Node) -> void:
@@ -358,8 +361,8 @@ func update_stats(g: Node) -> void:
 		int(g.evac_ratio(Vector3.INF) * 100), g.map_info.assembly_points.size(), river, "var" if g.kits > 0 else "yok"]
 	for unit in _units:
 		_units[unit].text = "%d/%d" % [g.units_free(unit), g.units_total(unit)]
-	if _shop and _shop.visible:
-		_fill_shop()
+	if shop_open():
+		shop.refresh()
 	_check_population(g, pop)
 
 
@@ -465,13 +468,15 @@ func _build_units() -> void:
 	_units_panel.offset_bottom = -14
 	_units_panel.offset_top = -64
 	_units_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	var h := _hbox(_units_panel, 14)
-	var cap := _label(h, "Ekipler", 13, C_MUTED)
+	var h := _hbox(_units_panel, 12)
+	var cap := _label(h, "EKİPLER", 12, C_MUTED, true)
 	cap.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	for unit in ["fire", "medic", "rescue"]:
-		var u := _hbox(h, 5)
-		_icon(u, UNIT_ICONS[unit][0], UNIT_ICONS[unit][1], 24)
+		var u := _hbox(h, 6)
+		var badge := _panel(u, UNIT_ICONS[unit][1], Color.TRANSPARENT, 5, 5, 12)
+		_icon(badge, UNIT_ICONS[unit][0], Color.WHITE, 20)
 		_units[unit] = _label(u, "", 18, C_TEXT, true)
+		_units[unit].size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		u.tooltip_text = "%s: boşta / toplam araç. Binasını geliştirince +1" % GameData.UNIT_NAMES[unit]
 		u.mouse_filter = Control.MOUSE_FILTER_STOP
 
@@ -483,11 +488,11 @@ func _build_right() -> void:
 	_right.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 	_right.offset_left = -344
 	_right.offset_right = -14
-	_right.offset_top = 14
+	_right.offset_top = 86  # saatin altinda
 	_right.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	_right.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_root.add_child(_right)
-	_forecast = _panel(_right, Color(0.2, 0.1, 0.05, 0.94), Color(1.0, 0.6, 0.2, 0.7), 14, 12)
+	_forecast = _panel(_right, C_CARD, C_ACCENT, 14, 12)
 	_forecast.visible = false
 	_toasts = _vbox(_right, 6)
 	_toasts.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -496,7 +501,7 @@ func _build_right() -> void:
 ## Kisa bildirim (en fazla 3, 4 sn).
 func toast(text: String, kind := "info") -> void:
 	var col: Color = KIND_COLORS.get(kind, C_TEXT)
-	var p := _panel(_toasts, Color(0.06, 0.08, 0.12, 0.9), Color(col.r, col.g, col.b, 0.35), 10, 7, 10)
+	var p := _panel(_toasts, C_CARD, Color(col.r, col.g, col.b, 0.35), 10, 7, 10)
 	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var h := _hbox(p, 8)
 	_icon(h, KIND_ICONS.get(kind, "star"), col, 18)
@@ -528,7 +533,7 @@ func show_forecast(type: String, title: String, text: String, actions: Array) ->
 	badge.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_icon(badge, FORECAST_ICONS.get(type, "warning"), Color.WHITE, 26)
 	var tv := _vbox(h, 0)
-	_label(tv, title.to_upper(), 12, Color(1.0, 0.75, 0.45), true)
+	_label(tv, title.to_upper(), 12, C_ACCENT, true)
 	var l := _label(tv, text, 15, C_TEXT)
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	l.custom_minimum_size.x = 250
@@ -546,7 +551,7 @@ func _on_precaution(id: String, b: Button) -> void:
 	_sfx("click")
 	var before: int = game.money if game else 0
 	precaution_pressed.emit(id)
-	if id != "sandbag" and game and game.money < before:
+	if game and game.money < before:
 		b.disabled = true
 		b.text = "Alındı ✓"
 
@@ -565,12 +570,12 @@ func _build_buttons() -> void:
 	row.offset_top = -158
 	row.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	row.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_shop_btn = _big_button(row, "shop", "Mağaza", Color(0.95, 0.55, 0.15))
+	_shop_btn = _big_button(row, "shop", "Mağaza", Color("#d76f34"))
 	_shop_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_shop_btn.pressed.connect(func():
 		_sfx("click")
 		open_shop())
-	_risk_btn = _big_button(row, "map", "Risk", Color(0.42, 0.36, 0.68))
+	_risk_btn = _big_button(row, "map", "Risk", Color("#577893"))
 	_risk_btn.custom_minimum_size.x = 96
 	_risk_btn.toggle_mode = true
 	_risk_btn.toggled.connect(func(on):
@@ -627,7 +632,7 @@ func _build_center() -> void:
 	_alert.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_alert.visible = false
 
-	_response = _panel(_root, Color(0.08, 0.1, 0.16, 0.92), Color(1, 0.45, 0.35, 0.8), 16, 8, 20)
+	_response = _panel(_root, C_CARD, Color(1, 0.45, 0.35, 0.8), 16, 8, 20)
 	_response.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
 	_response.offset_top = -86
 	_response.offset_bottom = -46
@@ -640,7 +645,7 @@ func _build_center() -> void:
 	_label(h, "İşaretlere tıkla, ekip gönder", 15, C_TEXT)
 	_response.visible = false
 
-	_hint = _panel(_root, Color(0.1, 0.12, 0.2, 0.94), Color(1, 0.85, 0.4, 0.6), 16, 8, 20)
+	_hint = _panel(_root, C_CARD, Color(1, 0.85, 0.4, 0.6), 16, 8, 20)
 	_hint.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
 	_hint.offset_top = -120
 	_hint.offset_bottom = -80
@@ -662,7 +667,7 @@ func show_alert(title: String, text: String, icon := "warning", color := Color(1
 	_icon(badge, icon, Color.WHITE, 30)
 	var v := _vbox(h, -2)
 	_label(v, title, 30, Color.WHITE, true)
-	_label(v, text, 16, Color(1, 0.92, 0.88))
+	_label(v, text, 16, Color(1, 1, 1, 0.92))
 	_alert.visible = true
 	_alert.reset_size()
 	_alert.pivot_offset = _alert.size / 2.0
@@ -816,31 +821,13 @@ void fragment() {
 		tw.tween_method(func(v: float): m.set_shader_parameter("strength", v), 0.75, 0.0, 0.35)
 
 
-## Gun sonu ozeti: gece animasyonu sirasinda gorunen, tiklama gerektirmeyen kart.
+## Gun ozeti: sabah, ekranin tam ortasinda; "Devam" ile kapanir (sonra gunun karar karti gelir).
 func show_day_summary(d: Dictionary) -> void:
-	hide_day_summary()
-	hide_building()
-	if _report and is_instance_valid(_report):
-		var old := _report
-		var t0 := old.create_tween()
-		t0.tween_property(old, "modulate:a", 0.0, 0.3)
-		t0.tween_callback(old.queue_free)
-	_summary = _panel(_root, Color(0.06, 0.08, 0.13, 0.94), Color(1, 1, 1, 0.12), 20, 16, 18)
-	_summary.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_summary.custom_minimum_size = Vector2(420, 0)
-	_summary.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	_summary.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_summary.grow_vertical = Control.GROW_DIRECTION_BOTH
-	_summary.offset_top = 40
-	_root.move_child(_summary, _modal_root.get_index())
-	var v := _vbox(_summary, 10)
-	var head := _hbox(v, 10)
-	var badge := _panel(head, Color(0.35, 0.4, 0.75), Color.TRANSPARENT, 6, 6, 12)
-	_icon(badge, "star", Color.WHITE, 22)
-	var tv := _vbox(head, -2)
-	_label(tv, "GÜN SONU", 11, C_MUTED, true)
-	_label(tv, "Gün %d Özeti" % d.day, 22, C_TEXT, true)
-	var rows := _vbox(v, 6)
+	await _modal("Gün %d Özeti" % d.day, "star", C_BLUE, 480, _fill_summary.bind(d), ["Devam"])
+
+
+func _fill_summary(v: VBoxContainer, _w: int, d: Dictionary) -> void:
+	var rows := _vbox(v, 8)
 	var dm: int = d.money1 - d.money0
 	_summary_row(rows, "coin", "Kasa", "%s  (%s%s)" % [GameManager.fmt_money(d.money1), "+" if dm >= 0 else "", GameManager.fmt_money(dm)],
 		C_GOLD if dm >= 0 else C_BAD)
@@ -855,25 +842,17 @@ func show_day_summary(d: Dictionary) -> void:
 		var txt := ", ".join(acts.slice(0, 3)) + (" +%d" % (acts.size() - 3) if acts.size() > 3 else "")
 		_summary_row(rows, "shop", "Yatırımlar", txt, C_BLUE)
 	else:
-		_summary_row(rows, "shop", "Yatırımlar", "Bugün yatırım yapılmadı", C_MUTED)
-	var foot := _panel(v, Color(1, 1, 1, 0.05), Color.TRANSPARENT, 12, 8, 10)
+		_summary_row(rows, "shop", "Yatırımlar", "Dün yatırım yapılmadı", C_MUTED)
+	var foot := _panel(v, C_TINT, Color.TRANSPARENT, 12, 8, 10)
 	var fh := _hbox(foot, 8)
 	_icon(fh, "coin", C_GOLD, 16)
-	_label(fh, "Yarın: %s%s" % ["+" if d.next >= 0 else "", GameManager.fmt_money(d.next)], 14, C_TEXT, true)
+	_label(fh, "Bu sabah kasaya: %s%s" % ["+" if d.next >= 0 else "", GameManager.fmt_money(d.next)], 14, C_TEXT, true)
 	if d.warning != "":
 		var sp := Control.new()
 		sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		fh.add_child(sp)
 		_icon(fh, "warning", C_ACCENT, 16)
 		_label(fh, d.warning, 14, C_ACCENT, true)
-	var card := _summary
-	card.modulate.a = 0.0
-	card.reset_size()
-	card.pivot_offset = card.size / 2.0
-	card.scale = Vector2(0.92, 0.92)
-	var tw := card.create_tween().set_parallel()
-	tw.tween_property(card, "modulate:a", 1.0, 0.4).set_delay(0.6)
-	tw.tween_property(card, "scale", Vector2.ONE, 0.45).set_delay(0.6).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 func _summary_row(parent: Node, icon: String, caption: String, value: String, color: Color) -> void:
@@ -887,19 +866,16 @@ func _summary_row(parent: Node, icon: String, caption: String, value: String, co
 
 
 func hide_day_summary() -> void:
-	if _summary and is_instance_valid(_summary):
-		var card := _summary
-		var tw := card.create_tween()
-		tw.tween_property(card, "modulate:a", 0.0, 0.3)
-		tw.tween_callback(card.queue_free)
-	_summary = null
+	pass
 
 
 ## Haritadaki bir noktaya bagli, yukari suzulen etiket (ornek: "AVM", "Güçlendiriliyor").
 func world_toast(pos: Vector3, text: String, color: Color, icon := "", delay := 0.0) -> void:
 	if pos == Vector3.INF:
 		return
-	var p := _panel(_markers, Color(0.06, 0.08, 0.12, 0.92), Color(color.r, color.g, color.b, 0.8), 10, 5, 12)
+	if color.get_luminance() > 0.55:  # acik renk krem zeminde okunmaz: koyulastir
+		color = color.darkened(0.42)
+	var p := _panel(_markers, C_CARD, Color(color.r, color.g, color.b, 0.8), 10, 5, 12)
 	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var h := _hbox(p, 6)
 	if icon != "":
@@ -938,154 +914,24 @@ func _process(delta: float) -> void:
 		p.modulate.a = clampf(t * 5.0, 0.0, 1.0) * clampf((life - t) * 2.0, 0.0, 1.0)
 
 
-# ------------------------------------------------------------------ magaza
+# ------------------------------------------------------------------ magaza (shop.tscn: ekip arkadaslarimizin arayuzu)
 func open_shop() -> void:
 	if not _actions_enabled or game == null:
 		return
-	if _shop == null:
-		_build_shop()
-	_shop.visible = true
-	_fill_shop()
-	var card: Control = _shop.get_child(1)
-	card.pivot_offset = card.size / 2.0
-	card.scale = Vector2(0.92, 0.92)
-	_shop.modulate.a = 0.0
-	var tw := create_tween().set_parallel()
-	tw.tween_property(_shop, "modulate:a", 1.0, 0.18)
-	tw.tween_property(card, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	if shop == null:
+		shop = (load("res://scenes/shop.tscn") as PackedScene).instantiate()
+		get_parent().add_child(shop)
+		await get_tree().process_frame
+	shop.open()
 
 
 func close_shop() -> void:
-	if _shop:
-		_shop.visible = false
+	if shop and is_instance_valid(shop):
+		shop.close()
 
 
-var _shop_grid: GridContainer
-var _shop_tabs := {}
-var _shop_money: Label
-var _shop_sub: Label
-
-
-func _build_shop() -> void:
-	_shop = Control.new()
-	_shop.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_shop.mouse_filter = Control.MOUSE_FILTER_STOP
-	_root.add_child(_shop)
-	_root.move_child(_shop, _modal_root.get_index())
-	var dim := ColorRect.new()
-	dim.color = Color(0, 0, 0, 0.45)
-	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_shop.add_child(dim)
-	_clickable(dim, close_shop)
-	dim.mouse_default_cursor_shape = Control.CURSOR_ARROW
-	var card := _panel(_shop, Color(0.08, 0.1, 0.15, 0.98), Color(1, 1, 1, 0.12), 20, 18, 20)
-	card.custom_minimum_size = Vector2(960, 0)
-	card.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	card.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	card.grow_vertical = Control.GROW_DIRECTION_BOTH
-	var v := _vbox(card, 14)
-	# baslik
-	var head := _hbox(v, 12)
-	var badge := _panel(head, C_ACCENT, Color.TRANSPARENT, 8, 8, 14)
-	_icon(badge, "shop", Color.WHITE, 30)
-	var tv := _vbox(head, -2)
-	_label(tv, "Belediye Mağazası", 26, C_TEXT, true)
-	_shop_sub = _label(tv, "", 14, C_MUTED)
-	var sp := Control.new()
-	sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	head.add_child(sp)
-	var mc := _panel(head, Color(1, 1, 1, 0.06), Color.TRANSPARENT, 12, 6, 12)
-	mc.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var mh := _hbox(mc, 6)
-	_icon(mh, "coin", C_GOLD, 22)
-	_shop_money = _label(mh, "", 18, C_GOLD, true)
-	var close := _button(head, "", Color(1, 1, 1, 0.08), 16)
-	close.custom_minimum_size = Vector2(40, 40)
-	close.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var ci := _icon(close, "close", C_TEXT, 18)
-	ci.position = Vector2(11, 11)
-	close.pressed.connect(func():
-		_sfx("click")
-		close_shop())
-	# sekmeler
-	var tabs := _hbox(v, 8)
-	for t in GameData.SHOP_TABS:
-		var id: String = t[0]
-		var b := _button(tabs, "", Color(1, 1, 1, 0.06), 15)
-		b.custom_minimum_size = Vector2(0, 44)
-		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var th := _hbox(b, 8)
-		th.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		th.alignment = BoxContainer.ALIGNMENT_CENTER
-		th.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_icon(th, TAB_STYLE[id][0], TAB_STYLE[id][1], 20)
-		var tl := _label(th, t[1], 15, C_TEXT, true)
-		tl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		b.pressed.connect(func():
-			_sfx("click")
-			_shop_tab = id
-			_fill_shop())
-		_shop_tabs[id] = b
-	# urunler
-	_shop_grid = GridContainer.new()
-	_shop_grid.columns = 4
-	_shop_grid.add_theme_constant_override("h_separation", 10)
-	_shop_grid.add_theme_constant_override("v_separation", 10)
-	v.add_child(_shop_grid)
-
-
-func _fill_shop() -> void:
-	if game == null or _shop_grid == null:
-		return
-	_shop_money.text = GameManager.fmt_money(game.money)
-	_shop_sub.text = "Belediye Sv %d · geliştirdikçe yeni yatırımlar açılır" % game.hall_level()
-	for id in _shop_tabs:
-		var b: Button = _shop_tabs[id]
-		var tc: Color = TAB_STYLE[id][1]
-		var active: bool = id == _shop_tab
-		var bg := Color(tc.r, tc.g, tc.b, 0.28) if active else Color(1, 1, 1, 0.05)
-		b.add_theme_stylebox_override("normal", sb(bg, 12, 2 if active else 0, tc, 14, 8))
-		b.add_theme_stylebox_override("hover", sb(Color(tc.r, tc.g, tc.b, 0.2), 12, 2 if active else 0, tc, 14, 8))
-	for c in _shop_grid.get_children():
-		c.queue_free()
-	var col: Color = TAB_STYLE[_shop_tab][1]
-	for item in game.shop_items(_shop_tab):
-		_shop_card(item, col)
-
-
-func _shop_card(item: Dictionary, col: Color) -> void:
-	var locked: bool = item.reason != ""
-	var afford: bool = game.money >= item.cost
-	var card := _panel(_shop_grid, C_CARD if not locked else Color(0.1, 0.12, 0.17), C_LINE, 12, 12, 14)
-	card.custom_minimum_size = Vector2(222, 128)
-	var v := _vbox(card, 6)
-	var h := _hbox(v, 10)
-	var badge := _panel(h, col if not locked else Color(0.3, 0.32, 0.38), Color.TRANSPARENT, 6, 6, 12)
-	_icon(badge, item.icon, Color.WHITE, 24)
-	var name_l := _label(h, item.name, 16, C_TEXT if not locked else C_MUTED, true)
-	name_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	name_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var d := _label(v, item.desc, 13, C_MUTED)
-	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	d.custom_minimum_size.x = 196
-	d.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	if locked:
-		var done: bool = item.reason in ["Yapıldı", "En üst seviye", "Hepsi sağlam"]
-		var lc := _chip(v, "check" if done else "lock", item.reason, C_GOOD if done else C_MUTED, 13)
-		lc.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-		return
-	var b := _button(v, GameManager.fmt_money(item.cost), C_GOLD.darkened(0.15) if afford else Color(0.35, 0.3, 0.25), 15)
-	if not afford:
-		b.tooltip_text = "Bütçe yetersiz"
-		b.add_theme_color_override("font_color", Color(1, 0.7, 0.6))
-	b.pressed.connect(func():
-		_sfx("click")
-		if not afford:
-			_sfx("error")
-			toast("Bütçe yetersiz: %s gerekli" % GameManager.fmt_money(item.cost), "bad")
-			return
-		action_pressed.emit(item.id)
-		close_shop())
+func shop_open() -> bool:
+	return shop != null and is_instance_valid(shop) and shop.is_open()
 
 
 # ------------------------------------------------------------------ sol: bina karti
@@ -1130,7 +976,7 @@ func show_building(b: Building, options: Array, g: Node) -> void:
 	for o in options:
 		_option_row(v, o)
 	if GameData.REINFORCE.has(b.model_name):
-		var tip := _label(v, "İpucu: Mağaza › Güçlendirme'de tüm mahalle %50 ucuz", 12, C_BLUE)
+		var tip := _label(v, "İpucu: Mağaza › Hazırlık › Deprem'de tüm mahalle %50 ucuz", 12, C_BLUE)
 		tip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		tip.custom_minimum_size.x = 270
 	_bpanel.modulate.a = 0.0
@@ -1184,7 +1030,7 @@ func show_report(r: Dictionary, modal := false) -> void:
 		holder = CenterContainer.new()
 		holder.set_anchors_preset(Control.PRESET_FULL_RECT)
 		dim.add_child(holder)
-	var card := _panel(holder, Color(0.07, 0.09, 0.14, 0.96), Color(accent.r, accent.g, accent.b, 0.7), 16, 14, 16)
+	var card := _panel(holder, C_CARD, Color(accent.r, accent.g, accent.b, 0.7), 16, 14, 16)
 	card.custom_minimum_size = Vector2(340 if not modal else 520, 0)
 	if not modal:
 		card.position = Vector2(14, 82)
@@ -1227,10 +1073,10 @@ func show_report(r: Dictionary, modal := false) -> void:
 	var tipbox := _panel(v, Color(0.3, 0.55, 1.0, 0.12), Color.TRANSPARENT, 10, 8, 10)
 	var th := _hbox(tipbox, 8)
 	_icon(th, "star", C_BLUE, 18)
-	var tip := _label(th, r.tip, 13, Color(0.8, 0.88, 1.0))
+	var tip := _label(th, r.tip, 13, C_BLUE.darkened(0.2))
 	tip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	tip.custom_minimum_size.x = card.custom_minimum_size.x - 70
-	var close := _button(v, "Devam" if modal else "Tamam", Color(0.25, 0.4, 0.62), 15)
+	var close := _button(v, "Devam" if modal else "Tamam", Color("#577893"), 15)
 	if modal:
 		close.pressed.connect(func():
 			_sfx("click")
@@ -1258,7 +1104,7 @@ func show_report(r: Dictionary, modal := false) -> void:
 
 
 func _stat(parent: Node, icon: String, value: String, caption: String, color: Color) -> void:
-	var p := _panel(parent, Color(1, 1, 1, 0.05), Color.TRANSPARENT, 10, 6, 10)
+	var p := _panel(parent, C_TINT, Color.TRANSPARENT, 10, 6, 10)
 	p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var v := _vbox(p, -2)
 	var h := _hbox(v, 5)
@@ -1294,7 +1140,7 @@ func _modal(title: String, icon: String, accent: Color, width: int, fill: Callab
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	dim.add_child(center)
-	var card := _panel(center, Color(0.08, 0.1, 0.15, 0.98), Color(accent.r, accent.g, accent.b, 0.6), 24, 20, 20)
+	var card := _panel(center, C_CARD, Color(accent.r, accent.g, accent.b, 0.6), 24, 20, 20)
 	card.custom_minimum_size = Vector2(width, 0)
 	var v := _vbox(card, 14)
 	var head := _hbox(v, 12)
@@ -1309,7 +1155,7 @@ func _modal(title: String, icon: String, accent: Color, width: int, fill: Callab
 		var row := _hbox(v, 10)
 		row.alignment = BoxContainer.ALIGNMENT_CENTER
 		for i in buttons.size():
-			var b := _button(row, buttons[i], accent if i == 0 else Color(0.25, 0.4, 0.6), 18)
+			var b := _button(row, buttons[i], accent if i == 0 else Color("#577893"), 18)
 			b.custom_minimum_size = Vector2(200, 48)
 			b.pressed.connect(func():
 				_sfx("click")
@@ -1364,7 +1210,7 @@ func show_event(ev: Dictionary, rel := 0) -> int:
 	var sp: Array = Characters.EVENT_SPEAKERS.get(ev.id, [])
 	var who: String = sp[0] if not sp.is_empty() else ""
 	var accent: Color = Characters.info(who).color if who != "" else Color(0.4, 0.68, 1.0)
-	var card := _panel(center, Color(0.08, 0.1, 0.15, 0.98), Color(accent.r, accent.g, accent.b, 0.5), 22, 18, 20)
+	var card := _panel(center, C_CARD, Color(accent.r, accent.g, accent.b, 0.5), 22, 18, 20)
 	var row := _hbox(card, 18)
 	var portrait: Portrait = null
 	var bubble_text: Label = null
@@ -1396,7 +1242,7 @@ func show_event(ev: Dictionary, rel := 0) -> int:
 		bubble_text = _label(bubble, "", 16, C_TEXT, true)
 		bubble_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		bubble_text.custom_minimum_size.x = 500
-	_text(v, ev.text, 540, 16, Color(0.8, 0.84, 0.92))
+	_text(v, ev.text, 540, 16, C_MUTED)
 	var choices := _vbox(v, 10)
 	for i in ev.choices.size():
 		_choice_card(choices, ev.choices[i], i)
@@ -1441,7 +1287,7 @@ func _fill_hearts(h: Control, rel: int) -> void:
 		var ic := UIIcon.new()
 		ic.kind = "heart"
 		var amount := clampi(full - i * 2, 0, 2)
-		ic.color = [Color(1, 1, 1, 0.15), Color(1.0, 0.55, 0.6, 0.6), Color(1.0, 0.35, 0.45)][amount]
+		ic.color = [Color(0.47, 0.4, 0.34, 0.22), Color(1.0, 0.55, 0.6, 0.7), Color(0.9, 0.3, 0.38)][amount]
 		ic.custom_minimum_size = Vector2(18, 18)
 		h.add_child(ic)
 
@@ -1457,14 +1303,14 @@ func _pop_hearts(h: Control, delta: int) -> void:
 
 
 func _choice_card(parent: Node, choice: Dictionary, index: int) -> void:
-	var normal := sb(Color(1, 1, 1, 0.05), 14, 1, C_LINE, 14, 10)
-	var hover := sb(Color(0.4, 0.68, 1.0, 0.16), 14, 2, Color(0.4, 0.68, 1.0, 0.9), 14, 10)
+	var normal := sb(C_TINT, 14, 1, C_LINE, 14, 10)
+	var hover := sb(Color(0.17, 0.54, 0.78, 0.14), 14, 2, C_BLUE, 14, 10)
 	var p := PanelContainer.new()
 	p.add_theme_stylebox_override("panel", normal)
 	parent.add_child(p)
 	var v := _vbox(p, 6)
 	var h := _hbox(v, 10)
-	var num := _panel(h, Color(1, 1, 1, 0.1), Color.TRANSPARENT, 8, 1, 8)
+	var num := _panel(h, C_TINT, Color.TRANSPARENT, 8, 1, 8)
 	num.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_label(num, str(index + 1), 14, C_MUTED, true)
 	var t := _label(h, choice.text, 17, C_TEXT, true)
@@ -1561,7 +1407,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	get_viewport().set_input_as_handled()
 	if _pause:
 		_close_pause()
-	elif _shop and _shop.visible:
+	elif shop_open():
 		close_shop()
 	elif _modal_root.get_child_count() == 0:
 		_open_pause()
@@ -1578,15 +1424,15 @@ func _open_pause() -> void:
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_pause.add_child(center)
-	var card := _panel(center, Color(0.07, 0.09, 0.14, 0.97), Color(1, 1, 1, 0.12), 26, 22, 20)
+	var card := _panel(center, C_CARD, C_TINT, 26, 22, 20)
 	card.custom_minimum_size = Vector2(340, 0)
 	var v := _vbox(card, 12)
 	var head := _hbox(v, 12)
-	var badge := _panel(head, Color(0.42, 0.36, 0.68), Color.TRANSPARENT, 8, 8, 14)
+	var badge := _panel(head, Color("#577893"), Color.TRANSPARENT, 8, 8, 14)
 	_icon(badge, "pause", Color.WHITE, 24)
 	_label(head, "Duraklatıldı", 26, C_TEXT, true)
-	for item in [["play", "Devam", C_ACCENT, _close_pause], ["gear", "Ayarlar", Color(0.25, 0.4, 0.62), _pause_settings],
-			["home", "Ana Menü", Color(0.25, 0.4, 0.62), _to_menu], ["exit", "Oyundan Çık", Color(0.55, 0.2, 0.2), func(): get_tree().quit()]]:
+	for item in [["play", "Devam", C_ACCENT, _close_pause], ["gear", "Ayarlar", Color("#577893"), _pause_settings],
+			["home", "Ana Menü", Color("#577893"), _to_menu], ["exit", "Oyundan Çık", Color("#bd5a46"), func(): get_tree().quit()]]:
 		var b := _button(v, "", item[2], 18)
 		b.custom_minimum_size = Vector2(0, 48)
 		var h := _hbox(b, 12)
@@ -1674,7 +1520,7 @@ func _bar(parent: Node, caption: String, value: int, max_value: int, color: Colo
 	var h := _hbox(parent, 10)
 	var l := _label(h, caption, 14, C_MUTED)
 	l.custom_minimum_size.x = 190
-	var bg := _panel(h, Color(1, 1, 1, 0.06), Color.TRANSPARENT, 0, 0, 8)
+	var bg := _panel(h, C_TINT, Color.TRANSPARENT, 0, 0, 8)
 	bg.custom_minimum_size = Vector2(width - 280, 22)
 	var fill := ColorRect.new()
 	fill.color = color
@@ -1691,7 +1537,7 @@ func _percent_bar(parent: Node, caption: String, percent: float, color: Color, w
 	var h := _hbox(parent, 10)
 	var l := _label(h, caption, 14, C_MUTED)
 	l.custom_minimum_size.x = 190
-	var bg := _panel(h, Color(1, 1, 1, 0.06), Color.TRANSPARENT, 0, 0, 8)
+	var bg := _panel(h, C_TINT, Color.TRANSPARENT, 0, 0, 8)
 	bg.custom_minimum_size = Vector2(width - 280, 22)
 	var fill := ColorRect.new()
 	fill.color = color

@@ -196,17 +196,17 @@ icon = ExtResource("3_shop_icon")
 expand_icon = true
 
 [node name="ShopPopup" type="Control" parent="UI" unique_id=2027793945]
-custom_minimum_size = Vector2(900, 520)
+custom_minimum_size = Vector2(940, 540)
 layout_mode = 3
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -450.0
-offset_top = -260.0
-offset_right = 450.0
-offset_bottom = 260.0
+offset_left = -470.0
+offset_top = -270.0
+offset_right = 470.0
+offset_bottom = 270.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -229,12 +229,25 @@ theme_override_styles/tab_hovered = SubResource("StyleBoxFlat_tab_hovered")
 theme_override_styles/tab_selected = SubResource("StyleBoxFlat_tab_selected")
 current_tab = 0
 
-[node name="Hazırlık" type="ScrollContainer" parent="UI/ShopPopup/ShopPanel/TabContainer" unique_id=938470568]
+[node name="Hazırlık" type="VBoxContainer" parent="UI/ShopPopup/ShopPanel/TabContainer" unique_id=938470568]
 layout_mode = 2
-horizontal_scroll_mode = 0
+theme_override_constants/separation = 8
 metadata/_tab_index = 0
 
-[node name="Content" type="VBoxContainer" parent="UI/ShopPopup/ShopPanel/TabContainer/Hazırlık" unique_id=1335857902]
+[node name="Selector" type="HBoxContainer" parent="UI/ShopPopup/ShopPanel/TabContainer/Hazırlık"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Hint" type="Label" parent="UI/ShopPopup/ShopPanel/TabContainer/Hazırlık"]
+layout_mode = 2
+text = "Yıkımı ve can kaybını azaltan yatırımlar"
+
+[node name="Scroll" type="ScrollContainer" parent="UI/ShopPopup/ShopPanel/TabContainer/Hazırlık"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Content" type="VBoxContainer" parent="UI/ShopPopup/ShopPanel/TabContainer/Hazırlık/Scroll" unique_id=1335857902]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 12

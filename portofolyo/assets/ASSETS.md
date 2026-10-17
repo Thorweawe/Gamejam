@@ -13,9 +13,9 @@ Bu dosya `tools/organize_assets.py` ile otomatik uretilir, elle duzenlemeyin.
 |---|---|---|
 | KayKit City Builder Bits 1.0 (Kay Lousberg) | CC0 | 41 |
 | KayKit Forest Nature Pack 1.0 (Kay Lousberg) | CC0 | 105 |
-| Yapay zeka ile uretildi (Claude, tools/asset_gen) | Proje ekibine ait | 151 |
+| Yapay zeka ile uretildi (Claude, tools/asset_gen) | Proje ekibine ait | 169 |
 
-**Toplam: 297 model**
+**Toplam: 315 model**
 
 ## Yazi tipi, ses ve arayuz
 
@@ -24,6 +24,8 @@ Bu dosya `tools/organize_assets.py` ile otomatik uretilir, elle duzenlemeyin.
 | `assets/fonts/Fredoka.ttf` | Fredoka (The Fredoka Project Authors), github.com/google/fonts | SIL OFL 1.1 (`assets/fonts/Fredoka_OFL.txt`) |
 | `assets/audio/*.wav` | Kodla uretildi: `tools/audio_gen.py` | Projeye ait |
 | Arayuz ikonlari | Kodla ciziliyor: `scripts/ui_icon.gd` | Projeye ait |
+| `assets/ui_icons/*.svg` (magaza ikonlari) | Kodla uretildi: `tools/ui_icons.py`, Tailwind CSS renk paleti | Projeye ait |
+| `assets/textures/*.png` (magaza ve harita isaret ikonlari) | Ekip arkadaslarimiz | Projeye ait |
 
 ## Godot notlari
 
@@ -100,9 +102,9 @@ Konut zinciri: gecekondu -> lv1 -> lv2 -> lv3, kacak kat, guclendirilmis, hasarl
 | `house_lv3_collapsed` | AI uretimi |
 | `house_lv3_damaged` | AI uretimi |
 
-## binalar/kamu (14)
+## binalar/kamu (18)
 
-Belediye (3 seviye), hastane, itfaiye, okul, AFAD, gazete/TV
+Belediye (3 seviye), hastane, itfaiye, okul, AFAD, gazete/TV, deprem/sel/yangin muzeleri
 
 | Model | Kaynak |
 |---|---|
@@ -115,11 +117,15 @@ Belediye (3 seviye), hastane, itfaiye, okul, AFAD, gazete/TV
 | `building_hospital` | AI uretimi |
 | `building_hospital_lv2` | AI uretimi |
 | `building_hospital_lv3` | AI uretimi |
+| `building_museum_deprem` | AI uretimi |
+| `building_museum_sel` | AI uretimi |
+| `building_museum_yangin` | AI uretimi |
 | `building_news` | AI uretimi |
 | `building_school` | AI uretimi |
 | `building_townhall_lv1` | AI uretimi |
 | `building_townhall_lv2` | AI uretimi |
 | `building_townhall_lv3` | AI uretimi |
+| `museum_lot` | AI uretimi |
 
 ## binalar/ticari (16)
 
@@ -155,7 +161,7 @@ Iskele, insaat alani, kule vinc (yukseltme sirasinda)
 | `scaffold_4floor` | AI uretimi |
 | `tower_crane` | AI uretimi |
 
-## binalar/hasar (44)
+## binalar/hasar (50)
 
 Kamu ve ticari binalarin hasarli (_damaged) ve yikik (_collapsed) halleri
 
@@ -195,6 +201,12 @@ Kamu ve ticari binalarin hasarli (_damaged) ve yikik (_collapsed) halleri
 | `building_hospital_lv2_damaged` | AI uretimi |
 | `building_hospital_lv3_collapsed` | AI uretimi |
 | `building_hospital_lv3_damaged` | AI uretimi |
+| `building_museum_deprem_collapsed` | AI uretimi |
+| `building_museum_deprem_damaged` | AI uretimi |
+| `building_museum_sel_collapsed` | AI uretimi |
+| `building_museum_sel_damaged` | AI uretimi |
+| `building_museum_yangin_collapsed` | AI uretimi |
+| `building_museum_yangin_damaged` | AI uretimi |
 | `building_news_collapsed` | AI uretimi |
 | `building_news_damaged` | AI uretimi |
 | `building_school_collapsed` | AI uretimi |
@@ -239,7 +251,7 @@ Reklam panolari, gazete bayii (farkindalik kampanyalari)
 | `newspaper_kiosk` | AI uretimi |
 | `newspaper_stack` | AI uretimi |
 
-## yol_zemin (24)
+## yol_zemin (29)
 
 Yollar, kaldirim, cim, su, dere, catlak/sel basmis karolar
 
@@ -254,6 +266,11 @@ Yollar, kaldirim, cim, su, dere, catlak/sel basmis karolar
 | `road_tsplit` | KayKit City Builder Bits 1.0 |
 | `flood_puddles_overlay` | AI uretimi |
 | `flood_water_overlay` | AI uretimi |
+| `path_corner` | AI uretimi |
+| `path_end` | AI uretimi |
+| `path_junction` | AI uretimi |
+| `path_straight` | AI uretimi |
+| `path_tsplit` | AI uretimi |
 | `river_wall` | AI uretimi |
 | `road_bridge` | AI uretimi |
 | `road_straight_cracked` | AI uretimi |
@@ -294,7 +311,7 @@ KayKit sokak objeleri (bank, lamba, cop kutusu...)
 | `lighthouse` | AI uretimi |
 | `pier` | AI uretimi |
 
-## canlilar (4)
+## canlilar (5)
 
 Hayvanlar: marti, kus, geyik, kopek (kanat/bacak ayri node -> animasyon)
 
@@ -303,9 +320,10 @@ Hayvanlar: marti, kus, geyik, kopek (kanat/bacak ayri node -> animasyon)
 | `bird_small` | AI uretimi |
 | `deer` | AI uretimi |
 | `dog` | AI uretimi |
+| `goat` | AI uretimi |
 | `seagull` | AI uretimi |
 
-## doga/dag (4)
+## doga/dag (6)
 
 Daglar ve tepeler
 
@@ -314,7 +332,9 @@ Daglar ve tepeler
 | `hill` | AI uretimi |
 | `mountain_large` | AI uretimi |
 | `mountain_medium` | AI uretimi |
+| `mountain_ridge` | AI uretimi |
 | `mountain_small` | AI uretimi |
+| `mountain_tall` | AI uretimi |
 
 ## doga/piknik (3)
 

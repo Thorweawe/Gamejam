@@ -34,7 +34,7 @@ from kitgen import load_raw  # noqa: E402
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 OUT = os.path.join(ROOT, "portofolyo", "scenes", "city_map.tscn")
 
-PLAN = [
+OLD_PLAN = [  # sehrin cekirdegi (koordinatlar oyunda sabit; build_plan bunu buyuk adaya yerlestirir)
     "~~~~~~R~~~~~~~~~~~~~~~~~~~~~~~~~~~",
     "~~RRRRmR.......~~~~~~......L~~~~~~",
     "~RRRMMmmTT.TTTT......TTTTTTT~~~~~~",
@@ -67,6 +67,112 @@ PLAN = [
     "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
 ]
 
+# Muze arsalari (eski plan satir, sutun) -> tur. Magazadan alininca buraya muze kurulur.
+MUSEUM_LOTS = {(18, 22): "deprem", (14, 26): "sel", (22, 26): "yangin"}
+OFF_C, OFF_R = 6, 6  # cekirdegin buyuk plandaki kaymasi
+W_NEW, H_NEW = 46, 42  # (W-1)/2 ve (H-1)/2 kaymayla birlikte eski dunya koordinatlarini korur
+
+
+def build_plan():
+    """Eski plani daha buyuk, dogal kiyili bir adanin ortasina yerlestirir:
+    batida genis dag silsilesi, kuzeyde buyuk orman, dogu/guneyde kumsal, kuzeydogu burnunda fener."""
+    rnd = random.Random(21)
+    grid = [["~"] * W_NEW for _ in range(H_NEW)]
+    cx, cy, rx, ry = 22.5, 20.5, 21.6, 19.6
+
+    def wobble(a):
+        return 1.0 + 0.07 * math.sin(a * 3 + 0.6) + 0.05 * math.sin(a * 5 + 2.1) + 0.035 * math.sin(a * 9 + 1.3)
+
+    def inside(c, r):
+        dx, dy = (c - cx) / rx, (r - cy) / ry
+        return math.hypot(dx, dy) < wobble(math.atan2(dy, dx))
+
+    old = {}
+    for r, row in enumerate(OLD_PLAN):
+        for c, ch in enumerate(row):
+            old[(c + OFF_C, r + OFF_R)] = "Y" if (r, c) in MUSEUM_LOTS else ch
+    river_r = 9 + OFF_R
+    for r in range(H_NEW):
+        for c in range(W_NEW):
+            if not inside(c, r):
+                continue
+            ch = old.get((c, r), "~")
+            in_city = 8 + OFF_C <= c <= 27 + OFF_C and 10 + OFF_R <= r <= 24 + OFF_R
+            if ch in "~LJU." or (ch == "R" and not in_city):  # sehirdeki R = guclendirilmis apartman
+                ch = None
+            grid[r][c] = ch if ch else "?"
+    def coast(c, r):
+        for dc, dr in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            cc, rr = c + dc, r + dr
+            if not (0 <= cc < W_NEW and 0 <= rr < H_NEW) or grid[rr][cc] == "~":
+                return True
+        return False
+    city_c0, city_c1 = 8 + OFF_C, 28 + OFF_C
+    # denize uzaklik (karo): kumsal sadece kiyida
+    dist = {}
+    frontier = [(c, r) for r in range(H_NEW) for c in range(W_NEW) if grid[r][c] == "~"]
+    for p in frontier:
+        dist[p] = 0
+    while frontier:
+        nxt = []
+        for c, r in frontier:
+            for dc, dr in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                q = (c + dc, r + dr)
+                if 0 <= q[0] < W_NEW and 0 <= q[1] < H_NEW and q not in dist:
+                    dist[q] = dist[(c, r)] + 1
+                    nxt.append(q)
+        frontier = nxt
+    for r in range(H_NEW):
+        for c in range(W_NEW):
+            if grid[r][c] != "?":
+                continue
+            west = c < city_c0
+            if r == river_r and c > city_c0:
+                grid[r][c] = "w"  # nehir denize kadar
+            elif coast(c, r):
+                grid[r][c] = "R" if (west or r < river_r - 1) else "."
+            elif west:
+                grid[r][c] = "m" if c >= city_c0 - 2 else "M"
+            elif r < river_r:
+                grid[r][c] = "Q" if rnd.random() < 0.035 else "T"
+            elif dist.get((c, r), 9) <= 2:
+                grid[r][c] = "."
+            else:
+                grid[r][c] = "T" if rnd.random() < 0.28 else "g"
+    # kiyiya bir sira daha kumsal (guney/dogu), kumsalda semsiyeler
+    for r in range(H_NEW):
+        for c in range(W_NEW):
+            if grid[r][c] == "." and rnd.random() < 0.12 and r > river_r + 4:
+                grid[r][c] = "U"
+    # fener: kuzeydogu burnu; iskele: dogu kiyisi
+    best = max(((c - r, c, r) for r in range(H_NEW) for c in range(W_NEW) if grid[r][c] == "R" and c > city_c1), default=None)
+    if best:
+        grid[best[2]][best[1]] = "L"
+    for r in range(22, 30):
+        for c in range(W_NEW - 2, 0, -1):
+            if grid[r][c] in ".U" and grid[r][c + 1] == "~":
+                grid[r][c] = "J"
+                break
+        else:
+            continue
+        break
+    # orman patikalari (d): koprudeki yolun devami kuzeye, iki kol doguya / batiya
+    road_c = 17 + OFF_C
+    top_r = next(r for r in range(H_NEW) if grid[r][road_c] != "~") + 2
+
+    def carve(cells):
+        for c, r in cells:
+            if grid[r][c] in "TQg":
+                grid[r][c] = "d"
+    carve([(road_c, r) for r in range(top_r, river_r - 1) if grid[r][road_c] != "="])
+    for row, c0, c1 in ((8, road_c - 8, road_c + 13), (11, road_c - 5, road_c)):
+        carve([(c, row) for c in range(c0, c1 + 1)])
+    carve([(road_c + 13, r) for r in range(8, river_r - 1)])  # dogu kolu nehre kadar iner
+    return ["".join(row) for row in grid]
+
+
+PLAN = build_plan()
+
 BUILDINGS = {
     "0": "house_lv0_gecekondu", "1": "house_lv1", "2": "house_lv2", "3": "house_lv3",
     "k": "house_lv1_kacak", "K": "house_lv2_kacak", "R": "house_lv2_reinforced",
@@ -74,7 +180,9 @@ BUILDINGS = {
     "s": "building_school", "a": "building_afad", "n": "building_news",
 }
 SHOPS = [f"building_{c}" for c in "ABCDEFGH"]
-ROADLIKE = "=B"
+ROADLIKE = "=Bd"
+PATH_TILES = [("path_straight", {"+z", "-z"}), ("path_corner", {"+x", "+z"}), ("path_tsplit", {"+x", "+z", "-z"}),
+              ("path_junction", {"+x", "-x", "+z", "-z"}), ("path_end", {"+z"})]
 
 # Arabalar, yayalar ve hayvanlar sahnede durmaz; oyun basinda scriptler olusturur.
 
@@ -196,15 +304,15 @@ void fragment() {
 }"""
 
 DISTRICTS = [  # (ad, plan sutun, plan satir) -- binalar en yakin mahalle merkezine baglanir
-    ("Dere Mahallesi", 17, 10),
-    ("Dağ Eteği", 8, 18),
-    ("Kuzey Mahallesi", 17, 13),
-    ("Merkez", 17, 18),
-    ("Sahil", 27, 17),
-    ("Güney Mahallesi", 17, 23),
+    ("Dere Mahallesi", 17 + OFF_C, 10 + OFF_R),
+    ("Dağ Eteği", 8 + OFF_C, 18 + OFF_R),
+    ("Kuzey Mahallesi", 17 + OFF_C, 13 + OFF_R),
+    ("Merkez", 17 + OFF_C, 18 + OFF_R),
+    ("Sahil", 27 + OFF_C, 17 + OFF_R),
+    ("Güney Mahallesi", 17 + OFF_C, 23 + OFF_R),
 ]
 GRASS = ["tile_grass", "tile_grass_b", "tile_grass_c"]
-LAND_CHARS = "".join(sorted(set("=BwgTQpPAbCMmR.UJL0123kKRcHhfsan")))
+LAND_CHARS = "".join(sorted(set("=BwgTQpPAbCMmR.UJL0123kKRcHhfsanYd")))
 
 
 def main():
@@ -239,7 +347,8 @@ def main():
         return v is not None and v != "~"
 
     info = {k: [] for k in ("forest_tiles", "picnic_spots", "assembly_points", "park_tiles", "plaza_tiles",
-                            "flood_tiles", "river_tiles", "beach_tiles", "mountain_tiles", "sea_points")}
+                            "flood_tiles", "river_tiles", "beach_tiles", "mountain_tiles", "sea_points", "museum_lots")}
+    museum_kinds = []
 
     # ---- kara maskesi (deniz shader'i: sig su + kiyi kopugu)
     from PIL import Image, ImageFilter
@@ -253,6 +362,34 @@ def main():
     tex_dir = os.path.join(ROOT, "portofolyo", "assets", "textures")
     os.makedirs(tex_dir, exist_ok=True)
     mask.save(os.path.join(tex_dir, "land_mask.png"))
+    # arazi maskesi (ground.gdshader): R orman, G dag, B patika. Bulanik oldugu icin karolar arasinda
+    # renk kare kare degismez; patika shader'da gurultuyle kivrilir (dalgali toprak yol).
+    from PIL import ImageDraw
+    tp, tpad = 16, 64  # land_mask ile ayni alan (8 px/karo, 32 kenar), iki kat cozunurluk
+    tsize = (W * tp + 2 * tpad, H * tp + 2 * tpad)
+    forest = Image.new("L", tsize, 0)
+    mount = Image.new("L", tsize, 0)
+    path = Image.new("L", tsize, 0)
+    pd = ImageDraw.Draw(path)
+    for r in range(H):
+        for c in range(W):
+            box = (tpad + c * tp, tpad + r * tp, tpad + (c + 1) * tp, tpad + (r + 1) * tp)
+            if PLAN[r][c] in "TQd":
+                forest.paste(255, box)
+            elif PLAN[r][c] in "M":
+                mount.paste(255, box)
+            elif PLAN[r][c] in "mR":
+                mount.paste(150, box)
+            if PLAN[r][c] == "d":
+                cx_, cy_ = tpad + c * tp + tp / 2, tpad + r * tp + tp / 2
+                for dc, dr in ((1, 0), (0, 1), (-1, 0), (0, -1)):
+                    if at(c + dc, r + dr) in ("d", "=", "B"):
+                        pd.line((cx_, cy_, cx_ + dc * tp, cy_ + dr * tp), fill=255, width=6)
+                pd.ellipse((cx_ - 3, cy_ - 3, cx_ + 3, cy_ + 3), fill=255)
+    forest = forest.filter(ImageFilter.GaussianBlur(12))
+    mount = mount.filter(ImageFilter.GaussianBlur(10))
+    path = path.filter(ImageFilter.GaussianBlur(1.6))
+    Image.merge("RGB", (forest, mount, path)).save(os.path.join(tex_dir, "terrain_mask.png"))
     x0, z0 = pos(0, 0)
     tile_px = 2.0 / px  # dunya birimi / piksel
     map_min = (x0 - 1.0 - pad * tile_px, z0 - 1.0 - pad * tile_px)
@@ -336,6 +473,13 @@ def main():
             if ch == "~":
                 if not near(c, r, LAND_CHARS, 2):
                     info["sea_points"].append((x, z))
+            elif ch == "d":  # toprak patika (Roads altinda: trafik agi bunu da gorur, sivil araclar girmez)
+                open_sides = {d for d, (dc, dr) in SIDES.items() if at(c + dc, r + dr) in ROADLIKE}
+                ground(f"forest_{n}", "tile_grass", x, z)
+                s.node(f"path_{n}", "Node3D", parent="Roads", props={"transform": xform(x, 0, z)})
+                info["forest_tiles"].append((x, z))
+                if rnd.random() < 0.5:
+                    nature(f"tree_{n}", "Tree", x + rnd.choice((-0.75, 0.75)), z + rnd.uniform(-0.6, 0.6), rnd.uniform(1.0, 1.5))
             elif ch in ROADLIKE:
                 open_sides = {d for d, (dc, dr) in SIDES.items() if at(c + dc, r + dr) in ROADLIKE}
                 if ch == "B":
@@ -387,10 +531,24 @@ def main():
                 info["mountain_tiles"].append((x, z))
                 if ch == "M":
                     inner = sum(1 for dc, dr in SIDES.values() if at(c + dc, r + dr) == "M")
-                    big = inner == 4 and (c + r) % 3 == 0
-                    kind = "mountain_large" if big else rnd.choice(["mountain_medium", "mountain_medium", "mountain_small"])
-                    prop(f"peak_{n}", f"doga/dag/{kind}", x + rnd.uniform(-0.4, 0.4), 0.05, z + rnd.uniform(-0.4, 0.4),
-                         yaw=rnd.uniform(0, 360), scale=rnd.uniform(0.85, 1.15), parent="Nature")
+                    # her karoya zirve koyma: yuksek zirveler seyrek, aralarda yesil tepe + agac + kaya (dogal silsile)
+                    roll = rnd.random()
+                    if inner == 4 and roll < 0.42:
+                        kind = rnd.choice(["mountain_tall", "mountain_large", "mountain_ridge"])
+                    elif roll < 0.62:
+                        kind = rnd.choice(["mountain_medium", "mountain_small", "mountain_ridge"])
+                    else:
+                        kind = ""
+                    if kind:
+                        prop(f"peak_{n}", f"doga/dag/{kind}", x + rnd.uniform(-0.4, 0.4), 0.05, z + rnd.uniform(-0.4, 0.4),
+                             yaw=rnd.uniform(0, 360), scale=rnd.uniform(0.8, 1.2), parent="Nature")
+                    else:
+                        prop(f"hill_{n}", "doga/dag/hill", x, 0.05, z, yaw=rnd.uniform(0, 360), scale=rnd.uniform(0.9, 1.4),
+                             parent="Nature")
+                        for i in range(rnd.randint(1, 3)):
+                            nature(f"tree_{n}_{i}", "Tree", x + rnd.uniform(-0.8, 0.8), z + rnd.uniform(-0.8, 0.8), rnd.uniform(0.8, 1.3))
+                    if rnd.random() < 0.45:
+                        nature(f"rock_{n}", "Rock", x + rnd.uniform(-0.8, 0.8), z + rnd.uniform(-0.8, 0.8), rnd.uniform(0.35, 0.75))
                 else:
                     if rnd.random() < 0.5:
                         prop(f"hill_{n}", "doga/dag/hill", x, 0.05, z, yaw=rnd.uniform(0, 360), scale=rnd.uniform(0.7, 1.0),
@@ -433,6 +591,11 @@ def main():
             elif ch == "P":
                 ground(f"plaza_{n}", "tile_plaza", x, z)
                 info["plaza_tiles"].append((x, z))
+            elif ch == "Y":  # muze arsasi
+                kind = MUSEUM_LOTS[(r - OFF_R, c - OFF_C)]
+                info["museum_lots"].append((x, z))
+                museum_kinds.append(kind)
+                prop(f"museum_lot_{kind}", "binalar/kamu/museum_lot", x, 0, z, yaw=YAW[facing(c, r)])
             elif ch == "C":
                 prop(f"construction_{n}", "binalar/insaat/building_construction", x, 0, z, yaw=YAW[facing(c, r)])
                 prop(f"crane_{n}", "binalar/insaat/tower_crane", x - 0.7, 0.1, z - 0.7, yaw=90, scale=0.9)
@@ -466,6 +629,7 @@ def main():
     s.node("MapInfo", "Node", props={
         "script": 'ExtResource("5_r")', **{k: packed(v) for k, v in info.items()},
         "district_names": "PackedStringArray(" + ", ".join(f'"{d[0]}"' for d in districts) + ")",
+        "museum_kinds": "PackedStringArray(" + ", ".join(f'"{k}"' for k in museum_kinds) + ")",
         "district_centers": packed([d[1] for d in districts])})
     s.write(OUT)
     print(OUT, len(s.nodes), "node,", len(s.ext), "kaynak,", {k: len(v) for k, v in info.items()})

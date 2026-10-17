@@ -27,7 +27,7 @@ var totals := {"casualties": 0, "saved": 0, "collapsed": 0, "damaged": 0, "burne
 	"evacuated": 0, "baseline": 0.0, "prevented": 0}
 var busy := false
 var game_over := false
-var place_mode := ""  # "", "sandbag", "news", "drill"
+var place_mode := ""  # "", "sandbag", "news", "drill", "reinforce_district"
 var forecast := {}  # aktif uyari: {type, day, chance}
 var risk_view := false
 
@@ -41,7 +41,17 @@ var _later: Array[Dictionary] = []
 var _selected: Building
 var _district_labels: Array[Label3D] = []
 var _today := {}
+var _pending_summary := {}
 var rel := {}  # karakter -> iliski puani (-3..+3); kart sunan karakterler bunu hatirlar
+var bought := {}  # magaza urunu -> kac kez alindi
+# magaza gelistirmelerinin oyundaki etkileri
+var gas_valves := false  # deprem sonrasi yangin azalir
+var flood_barriers := false  # sel basan evler daha az hasar gorur
+var hydrants := false  # yangin daha hizli soner
+var extinguishers := false  # ev yangini daha yavas buyur
+var fire_plane := false  # orman yangini yari hizda yayilir
+var museums := {}  # acilan muzeler (deprem / sel / yangin): halk ogrendigini daha yavas unutur
+var volunteers := false  # enkaz kurtarma hizlanir
 var _barked := {}  # bir kez soylenen replikler  # gunun ozeti icin: gun basindaki degerler ve yapilan yatirimlar
 
 @onready var city: Node3D = $"../CityMap"
@@ -53,6 +63,7 @@ var _barked := {}  # bir kez soylenen replikler  # gunun ozeti icin: gun basinda
 
 
 func _ready() -> void:
+	add_to_group("game")  # magaza (shop.gd) oyunu bu grupla bulur
 	disasters.game = self
 	hud.game = self
 	for i in map_info.district_names.size():
@@ -61,7 +72,7 @@ func _ready() -> void:
 	day_cycle.day_ending.connect(func(_d):
 		_select(null)
 		audio.play("day")
-		hud.show_day_summary(_day_summary()))
+		_pending_summary = _day_summary())  # sabah, gun baslarken ortada gosterilir
 	hud.action_pressed.connect(do_action)
 	hud.building_action.connect(do_building_action)
 	hud.precaution_pressed.connect(do_precaution)
@@ -167,7 +178,7 @@ func evac_ratio(p: Vector3) -> float:
 	var assembly_bonus: float = (map_info.assembly_points.size() - 4) * 0.03
 	var aw := district_awareness(p)
 	return clampf(0.2 + aw / 100.0 * 0.55 + mini(kits, 2) * 0.06 + mini(drills, 3) * 0.03 + assembly_bonus
-		+ (0.12 if early_warning else 0.0), 0.05, 0.95)
+		+ (0.12 if early_warning else 0.0) + (0.05 if museums.has("deprem") else 0.0), 0.05, 0.95)
 
 
 func _update_awareness() -> void:
@@ -200,6 +211,11 @@ func _start_day(d: int) -> void:
 	day = d
 	_set_busy(true)
 	place_mode = ""
+	if not _pending_summary.is_empty():
+		await get_tree().create_timer(2.0).timeout  # "GUN X" yazisi kaybolsun
+		var summary := _pending_summary
+		_pending_summary = {}
+		await hud.show_day_summary(summary)  # once gun ozeti, kapaninca karar karti
 	if d > 1:
 		var repairs := 0
 		for b in city.buildings():
@@ -208,7 +224,7 @@ func _start_day(d: int) -> void:
 		money += delta
 		hud.money_delta(delta, "Günlük bütçe")
 		for i in district_aw.size():
-			district_aw[i] = maxf(0.0, district_aw[i] - 1.5)  # halk zamanla unutur
+			district_aw[i] = maxf(0.0, district_aw[i] - maxf(0.6, 1.5 - museums.size() * 0.3))  # halk zamanla unutur
 		city.traffic.end_evacuation()
 		city.traffic.set_picnic(true, d)
 	_update_awareness()
@@ -237,11 +253,23 @@ func _start_day(d: int) -> void:
 		return
 	var type: String = _planned.get(d, "")
 	if type != "" and _prevent.has(d) and _prevent[d].has(type) and randf() < _prevent[d][type]:
-		hud.show_alert("ÖNLENDİ!", "Aldığın önlem bugünkü %si engelledi." % _type_name(type), "shield", Color(0.35, 0.85, 0.5))
 		totals.prevented += 1
 		_last_disaster_day = d  # onlenen afet de sayaci sifirlar
 		totals.baseline += 6.0
+		await get_tree().create_timer(0.6).timeout
+		await _build_tension(type)  # tehlike yine gelir (gokyuzu kararir, ruzgar)...
+		var av: Dictionary = await disasters.averted(type)  # ...ama onlem sayesinde zarar vermez
+		_calm_down()
+		hud.show_alert("AFET ÖNLENDİ!", av.text, "shield", Color(0.25, 0.75, 0.4))
 		audio.play("success")
+		for i in mini(av.held.size(), 8):
+			var b: Building = av.held[i]
+			b.set_overlay(Color(0.3, 1.0, 0.45, 0.55))
+			hud.world_toast(b.global_position + Vector3.UP * 1.3, "Korundu!", Color(0.35, 0.95, 0.5), "shield", 0.3 + i * 0.12)
+		await get_tree().create_timer(3.0).timeout
+		for b in av.held:
+			if is_instance_valid(b):
+				b.set_overlay(null)
 		type = ""
 	if type != "":
 		await get_tree().create_timer(0.6).timeout
@@ -462,7 +490,7 @@ func do_precaution(id: String) -> void:
 		return
 	var when: int = forecast.day
 	for a in f.actions:
-		if a.id == id and id != "sandbag":
+		if a.id == id:
 			_log_action(a.name)
 	match id:
 		"picnic_ban":
@@ -482,10 +510,12 @@ func do_precaution(id: String) -> void:
 			hud.world_toast(_risk_area("flood"), "Kıyı boşaltıldı", Color(0.45, 0.95, 0.55), "people")
 			city.camera_rig.focus(_risk_area("flood"), 30.0, 1.0)
 		"sandbag":
-			place_mode = "sandbag"
-			hud.show_place_hint("Dere kenarına tıkla: kum torbası (%s)  ·  Sağ tık: bitir" % fmt_money(cost))
-			city.camera_rig.focus(_risk_area("flood"), 30.0, 1.0)
-			return
+			# dere kenarindaki evlerin onune otomatik kum torbasi dizilir (kamera izler)
+			money -= cost
+			var placed := disasters.place_sandbags_auto()
+			city.camera_rig.focus(_risk_area("flood"), 32.0, 1.0)
+			hud.world_toast(_risk_area("flood"), "%d noktaya kum torbası dizildi" % placed, Color(0.45, 0.95, 0.55), "shield", 0.8)
+			audio.play("build")
 	hud.money_delta(-cost)
 	audio.play("coins")
 	stats_changed.emit()
@@ -646,11 +676,7 @@ func _log_action(text: String) -> void:
 
 
 func _item_name(id: String) -> String:
-	for tab in GameData.SHOP_TABS:
-		for item in shop_items(tab[0]):
-			if item.id == id:
-				return item.name if not id.begins_with("reinforce:") else item.name + " güçlendirme"
-	return id
+	return shop_name(id)
 
 
 ## Bir replik oyun boyunca bir kez soylensin (ilk deprem, ilk uyari...).
@@ -703,56 +729,114 @@ func grade() -> Array:
 	return [letter, int(score)]
 
 
-# ------------------------------------------------------------------ magaza (belediye yatirimlari)
-func action_def(id: String) -> Dictionary:
-	for a in GameData.ACTIONS:
-		if a.id == id:
-			return a
-	return {}
+# ------------------------------------------------------------------ magaza (shop.tscn)
+## Urunler GameData.SHOP_ITEMS'ta; Kamu Binalari sekmesi "up:<anahtar>" urunleridir.
+const LEVEL_NAMES := {"belediye": "Belediye", "itfaiye": "İtfaiye", "hastane": "Hastane", "afad": "AFAD"}
+const LEVEL_KEYS := {"belediye": "hall", "itfaiye": "fire", "hastane": "medic", "afad": "rescue"}
 
 
-## Magaza sekmesindeki urunler: {id, name, desc, icon, cost, reason ("" = alinabilir)}
-func shop_items(tab: String) -> Array:
-	var out := []
-	for a in GameData.ACTIONS:
-		if a.tab == tab:
-			out.append({"id": a.id, "name": a.name, "desc": a.desc, "icon": a.icon, "cost": a.cost,
-				"reason": action_block_reason(a.id)})
-	if tab == "build":
-		var hall_ok := hall_level() >= GameData.REINFORCE_HALL
-		for d in map_info.district_names.size():
-			var list := _district_reinforce_list(d)
-			var item := {"id": "reinforce:%d" % d, "name": map_info.district_names[d], "icon": "shield",
-				"cost": _district_reinforce_cost(list), "desc": "%d bina güçlendirilir · %%50 indirimli paket" % list.size(),
-				"reason": "" if hall_ok else "Belediye Sv %d" % GameData.REINFORCE_HALL}
-			if list.is_empty():
-				item.reason = "Hepsi sağlam"
-				item.desc = "Güçlendirilecek bina kalmadı"
-			out.append(item)
-		var kacak := _kacak_list()
-		out.append({"id": "kacak_all", "name": "Kaçak Kat Operasyonu", "icon": "warning", "cost": _kacak_cost(kacak),
-			"desc": "Şehirdeki %d kaçak kat yıkılır, binalar güvenli olur" % kacak.size(),
-			"reason": "" if not kacak.is_empty() else "Kaçak kat yok"})
-	elif tab == "units":
-		for key in ["hall", "fire", "medic", "rescue"]:
-			var b := _service_building(key)
-			if b == null:
-				continue
-			var nm: String = "Belediye" if key == "hall" else GameData.UNIT_NAMES[key]
-			var lvl := hall_level() if key == "hall" else service_level(key)
-			var item := {"id": "up:" + key, "name": "%s Sv %d" % [nm, lvl + 1], "icon": {"hall": "hall", "fire": "fire", "medic": "medic", "rescue": "rescue"}[key],
-				"cost": 0, "desc": "Yeni yatırımlar açılır" if key == "hall" else "+1 araç, daha hızlı müdahale", "reason": ""}
-			if not GameData.UPGRADES.has(b.model_name):
-				item.name = "%s Sv %d" % [nm, lvl]
-				item.reason = "En üst seviye"
-			else:
-				var up: Array = GameData.UPGRADES[b.model_name]
-				item.cost = up[1]
-				if b.is_closed():
-					item.reason = "İnşaatta"
-				elif hall_level() < up[2]:
-					item.reason = "Belediye Sv %d" % up[2]
-			out.append(item)
+## Magaza kilitleri icin bina seviyeleri.
+func building_levels() -> Dictionary:
+	return {"belediye": hall_level(), "itfaiye": service_level("fire"), "hastane": service_level("medic"), "afad": service_level("rescue")}
+
+
+func shop_name(id: String) -> String:
+	if id.begins_with("up:"):
+		return building_offer(id.get_slice(":", 1)).name
+	if id == "river" and flood_protection >= 1:
+		return "Taşkın Seti"
+	return GameData.shop_item(id).get("name", id)
+
+
+func shop_desc(id: String) -> String:
+	if id == "river" and flood_protection >= 1:
+		return "Kıyılara kalıcı set çekilir: sel neredeyse hiç zarar veremez."
+	if id == "kacak_all":
+		return "Şehirdeki %d kaçak kat yıkılır; depremde ilk çöken binalar güvenli hâle gelir." % _kacak_list().size()
+	return GameData.shop_item(id).get("desc", "")
+
+
+func shop_cost(id: String) -> int:
+	if id.begins_with("up:"):
+		return building_offer(id.get_slice(":", 1)).cost
+	match id:
+		"reinforce_district":
+			var costs := []
+			for d in map_info.district_names.size():
+				var c := _district_reinforce_cost(_district_reinforce_list(d))
+				if c > 0:
+					costs.append(c)
+			if costs.is_empty():
+				return 0
+			var sum := 0
+			for c in costs:
+				sum += c
+			return int(sum / costs.size() / 100) * 100  # ortalama mahalle (gercek fiyat tiklanan mahalleye gore)
+		"kacak_all":
+			return _kacak_cost(_kacak_list())
+		"river":
+			return 8000 if flood_protection == 0 else 7000
+	return int(GameData.shop_item(id).get("cost", 0))
+
+
+## "" = alinabilir; aksi halde neden alinamadigi ("Alındı", "Gerekli: Belediye Sv.2"...)
+func shop_reason(id: String) -> String:
+	if id.begins_with("up:"):
+		return building_offer(id.get_slice(":", 1)).reason
+	var it := GameData.shop_item(id)
+	if it.is_empty():
+		return "?"
+	var req: Dictionary = it.get("req", {})
+	if id == "river" and flood_protection >= 1:
+		req = {"belediye": 3}
+	var lv := building_levels()
+	var miss := []
+	for k in req:
+		if int(lv[k]) < int(req[k]):
+			miss.append("%s Sv.%d" % [LEVEL_NAMES[k], req[k]])
+	if not miss.is_empty():
+		return "Gerekli: " + ", ".join(miss)
+	var n := int(bought.get(id, 0))
+	if (it.get("once", false) and n >= 1) or (it.has("max") and n >= int(it.max)):
+		return "Alındı"
+	match id:
+		"reinforce_district":
+			if shop_cost(id) == 0:
+				return "Bütün evler güçlü"
+		"kacak_all":
+			if _kacak_list().is_empty():
+				return "Kaçak kat kalmadı"
+		"renewal":
+			if not city.buildings().any(func(b): return b.model_name == "house_lv0_gecekondu"):
+				return "Gecekondu kalmadı"
+		"assembly":
+			if not Array(map_info.park_tiles).any(func(p): return not map_info.assembly_points.has(p)):
+				return "Uygun park yok"
+	return ""
+
+
+## Kamu binasi gelistirmesi: {name, desc, cost, reason, level, is_max}
+func building_offer(key: String) -> Dictionary:
+	var unit: String = LEVEL_KEYS.get(key, key)
+	var b := _service_building(unit)
+	var lvl := hall_level() if unit == "hall" else service_level(unit)
+	var names := {"hall": "Belediye Binası", "fire": "İtfaiye İstasyonu", "medic": "Devlet Hastanesi", "rescue": "AFAD Merkezi"}
+	var desc := {"hall": "Yeni geliştirmelerin kilidi açılır.", "fire": "+1 itfaiye aracı, yangınlara daha hızlı müdahale.",
+		"medic": "+1 ambulans, yaralılar daha hızlı tedavi edilir.", "rescue": "+1 AFAD ekibi, enkaz altından daha hızlı kurtarma."}
+	var out := {"name": "%s (Seviye %d)" % [names[unit], mini(lvl + 1, 3)], "desc": desc[unit], "cost": 0, "reason": "",
+		"level": lvl, "is_max": false}
+	if b == null or not GameData.UPGRADES.has(b.model_name):
+		out.name = "%s (Seviye %d)" % [names[unit], lvl]
+		out.desc = "En üst seviyeye ulaşıldı."
+		out.is_max = true
+		out.reason = "Maks"
+		return out
+	var up: Array = GameData.UPGRADES[b.model_name]
+	out.cost = up[1]
+	if b.is_closed():
+		out.reason = "İnşaatta, yarın hazır"
+	elif hall_level() < up[2]:
+		out.reason = "Gerekli: Belediye Sv.%d" % up[2]
 	return out
 
 
@@ -767,7 +851,8 @@ func _service_building(key: String) -> Building:
 func _district_reinforce_list(d: int) -> Array:
 	var out := []
 	for b in city.buildings():
-		if GameData.REINFORCE.has(b.model_name) and b.state == Building.State.NORMAL and not b.is_closed() 				and map_info.district_of(b.position) == d:
+		if GameData.REINFORCE.has(b.model_name) and b.state == Building.State.NORMAL and not b.is_closed() \
+				and map_info.district_of(b.position) == d:
 			out.append(b)
 	return out
 
@@ -790,82 +875,32 @@ func _kacak_cost(list: Array) -> int:
 	return int(sum * 0.8 / 100.0) * 100
 
 
-func action_cost(id: String) -> int:
-	for tab in GameData.SHOP_TABS:
-		for item in shop_items(tab[0]):
-			if item.id == id:
-				return item.cost
-	return action_def(id).get("cost", 0)
-
-
-## "" = yapilabilir, aksi halde neden yapilamadigi.
-func action_block_reason(id: String) -> String:
-	var a := action_def(id)
-	if a.is_empty():
-		for tab in GameData.SHOP_TABS:
-			for item in shop_items(tab[0]):
-				if item.id == id:
-					return item.reason
-		return "?"
-	if hall_level() < a.get("hall", 1):
-		return "Belediye Sv %d" % a.hall
-	match id:
-		"river":
-			if flood_protection >= 1:
-				return "Yapıldı"
-		"levee":
-			if flood_protection >= 2:
-				return "Yapıldı"
-			if flood_protection < 1:
-				return "Önce dere ıslahı"
-		"forest":
-			if forest_measures >= 2:
-				return "Yapıldı"
-		"warning":
-			if early_warning:
-				return "Yapıldı"
-		"renewal":
-			if not city.buildings().any(func(b): return b.model_name == "house_lv0_gecekondu"):
-				return "Gecekondu kalmadı"
-		"assembly":
-			if not Array(map_info.park_tiles).any(func(p): return not map_info.assembly_points.has(p)):
-				return "Uygun park yok"
-	return ""
-
-
-## Magazadan satin al. Doner: basarili mi (HUD magazayi kapatip sonucu gosterir).
+## Magazadan satin al (shop.gd cagirir). Doner: basarili mi.
 func do_action(id: String) -> bool:
 	if busy or game_over:
+		notify.emit("Şu an yatırım yapılamaz", "bad")
 		return false
-	var reason := action_block_reason(id)
+	var reason := shop_reason(id)
 	if reason != "":
 		notify.emit(reason, "bad")
 		return false
-	var cost := action_cost(id)
+	var cost := shop_cost(id)
 	if money < cost:
 		notify.emit("Bütçe yetersiz: %s gerekli" % fmt_money(cost), "bad")
 		return false
-	if action_def(id).get("target", false):
+	if GameData.shop_item(id).get("target", false):
 		place_mode = id
-		hud.show_place_hint("%s: haritada bir mahalleye tıkla  ·  Sağ tık: iptal" % action_def(id).name)
-		set_risk_view(true)  # mahalle farkindaliklari gorunsun
+		hud.show_place_hint("%s: haritada bir mahalleye tıkla  ·  Sağ tık: iptal" % shop_name(id))
+		set_risk_view(true)  # mahalle farkindaliklari ve riskli binalar gorunsun
 		return true
-	_log_action(_item_name(id))
+	_log_action(shop_name(id))
 	money -= cost
 	hud.money_delta(-cost)
 	audio.play("coins")
+	bought[id] = int(bought.get(id, 0)) + 1
 	var good := Color(0.45, 0.95, 0.55)
 	var center := Vector3(0, 0, 4)
-	if id.begins_with("reinforce:"):
-		var d := int(id.get_slice(":", 1))
-		var list := _district_reinforce_list(d)
-		for b in list:
-			b.start_upgrade(b.model_name + "_reinforced", 1)
-		add_awareness(3, d)
-		_mark(list, "Güçlendiriliyor", good, "shield", Vector3.INF)
-		city.camera_rig.focus(MapInfo.to3(map_info.district_centers[d]), 32.0, 1.0)
-		audio.play("build")
-	elif id == "kacak_all":
+	if id == "kacak_all":
 		var list := _kacak_list()
 		for b in list:
 			b.upgrade_to(b.model_name.replace("_kacak", ""))
@@ -874,45 +909,25 @@ func do_action(id: String) -> bool:
 		if not list.is_empty():
 			city.camera_rig.focus(list[0].global_position, 34.0, 1.0)
 		audio.play("build")
+		bought.erase(id)  # yeni kacak kat cikarsa tekrar alinabilsin
 	elif id.begins_with("up:"):
 		var key := id.get_slice(":", 1)
-		var b := _service_building(key)
+		var b := _service_building(LEVEL_KEYS.get(key, key))
 		var hall_before := hall_level()
 		b.start_upgrade(GameData.UPGRADES[b.model_name][0], 1)
 		city.camera_rig.focus(b.global_position, 26.0, 1.0)
-		hud.world_toast(b.global_position + Vector3.UP * 1.5, "Yarın hazır" if key != "hall" else "Belediye gelişiyor", good, "star")
+		hud.world_toast(b.global_position + Vector3.UP * 1.5, "Yarın hazır" if key != "belediye" else "Belediye gelişiyor", good, "star")
 		audio.play("build")
 		if hall_level() > hall_before:
-			notify.emit("Belediye Sv %d: yeni yatırımlar açıldı" % hall_level(), "good")
+			notify.emit("Belediye Sv %d: yeni geliştirmeler açıldı" % hall_level(), "good")
 	else:
 		match id:
-			"tv":
-				add_awareness(7)
-				hud.stat_delta("aw", 7)
-				hud.world_toast(center, "TV kampanyası yayında", good, "tv")
-			"kits":
-				kits += 1
-				add_awareness(3)
-				hud.world_toast(center, "Deprem çantaları dağıtıldı", good, "kit")
-			"forest":
-				forest_measures += 1
-				risk.forest = maxf(0.3, risk.forest * 0.6)
-				var at := _risk_area("forest")
-				city.camera_rig.focus(at, 30.0, 1.0)
-				hud.world_toast(at, "Orman yangını riski azaldı", good, "tree")
-			"river":
-				flood_protection = 1
-				disasters.build_river_walls(1)
-				city.camera_rig.focus(_risk_area("flood"), 34.0, 1.0)
-				hud.world_toast(_risk_area("flood"), "Dere ıslah edildi", good, "wave")
-			"levee":
-				flood_protection = 2
-				disasters.build_river_walls(2)
-				city.camera_rig.focus(_risk_area("flood"), 34.0, 1.0)
-				hud.world_toast(_risk_area("flood"), "Taşkın seti kuruldu", good, "wave")
-			"warning":
-				early_warning = true
-				hud.world_toast(center, "Erken uyarı ağı kuruldu", good, "siren")
+			"gas_valves":
+				gas_valves = true
+				risk.fire = maxf(0.3, risk.fire * 0.8)
+				hud.world_toast(center, "Gaz vanaları takıldı", good, "fire")
+			"assembly":
+				disasters.add_assembly_point()
 			"renewal":
 				var list: Array = city.buildings().filter(func(b): return b.model_name == "house_lv0_gecekondu" and b.state == Building.State.NORMAL)
 				for b in list:
@@ -921,31 +936,131 @@ func do_action(id: String) -> bool:
 				_mark(list, "Dönüşüm", good, "house", Vector3.INF)
 				if not list.is_empty():
 					city.camera_rig.focus(list[0].global_position, 32.0, 1.0)
-			"assembly":
-				disasters.add_assembly_point()
+			"warning":
+				early_warning = true
+				hud.world_toast(center, "Erken uyarı ağı kuruldu", good, "siren")
+			"drain_clean", "storm_drains":
+				risk.flood = maxf(0.3, risk.flood * (0.8 if id == "drain_clean" else 0.75))
+				city.camera_rig.focus(_risk_area("flood"), 32.0, 1.0)
+				hud.world_toast(_risk_area("flood"), "Sel riski azaldı", good, "wave")
+			"flood_barriers":
+				flood_barriers = true
+				hud.world_toast(_risk_area("flood"), "Kıyıya su bariyerleri", good, "shield")
+			"river":
+				flood_protection += 1
+				disasters.build_river_walls(flood_protection)
+				city.camera_rig.focus(_risk_area("flood"), 34.0, 1.0)
+				hud.world_toast(_risk_area("flood"), "Dere ıslah edildi" if flood_protection == 1 else "Taşkın seti kuruldu", good, "wave")
+			"forest":
+				forest_measures += 1
+				risk.forest = maxf(0.3, risk.forest * 0.6)
+				var at := _risk_area("forest")
+				city.camera_rig.focus(at, 30.0, 1.0)
+				hud.world_toast(at, "Orman yangını riski azaldı", good, "tree")
+			"wiring":
+				risk.fire = maxf(0.3, risk.fire * 0.75)
+				hud.world_toast(center, "Tesisatlar yenilendi", good, "fire")
+			"hydrants":
+				hydrants = true
+				disasters.place_hydrants()
+				hud.world_toast(center, "Yangın muslukları kuruldu", good, "fire")
+			"extinguishers":
+				extinguishers = true
+				risk.fire = maxf(0.3, risk.fire * 0.9)
+				hud.world_toast(center, "Evlere yangın tüpü dağıtıldı", good, "fire")
+			"plane":
+				fire_plane = true
+				hud.world_toast(_risk_area("forest"), "Yangın uçağı hazır", good, "tree")
+			"booklet":
+				add_awareness(4)
+				hud.stat_delta("aw", 4)
+				hud.world_toast(center, "Kitapçıklar okullarda", good, "news")
+			"kits":
+				kits += 1
+				add_awareness(3)
+				hud.world_toast(center, "Deprem çantaları dağıtıldı", good, "kit")
+			"tv":
+				add_awareness(7)
+				hud.stat_delta("aw", 7)
+				hud.world_toast(center, "TV kampanyası yayında", good, "tv")
+			"museum_deprem", "museum_sel", "museum_yangin":
+				var kind := id.get_slice("_", 1)
+				museums[kind] = true
+				add_awareness(6)
+				hud.stat_delta("aw", 6)
+				if kind == "sel":
+					risk.flood = maxf(0.3, risk.flood * 0.85)
+				elif kind == "yangin":
+					risk.fire = maxf(0.3, risk.fire * 0.85)
+					risk.forest = maxf(0.3, risk.forest * 0.9)
+				var at: Vector3 = disasters.build_museum(kind)
+				if at != Vector3.INF:
+					city.camera_rig.focus(at, 26.0, 1.0)
+					hud.world_toast(at + Vector3.UP * 2.0, {"deprem": "Deprem Müzesi", "sel": "Sel Müzesi", "yangin": "Yangın Müzesi"}[kind] + " açıldı", good, "hall", 0.6)
+				audio.play("build")
+			"volunteers":
+				volunteers = true
+				drills += 1
+				add_awareness(3)
+				hud.world_toast(center, "Gönüllü ekipler hazır", good, "people")
+	_show_purchase(id)
 	stats_changed.emit()
 	return true
 
 
+## Satin alinan her gelistirme ekranda gorunsun: yesil bant (ne alindi + ne ise yarar).
+## Haritada yeri olmayan (sehir geneli) gelistirmelerde kamera sehrin ortasina kayar.
+const CITY_WIDE := ["gas_valves", "warning", "wiring", "hydrants", "extinguishers", "booklet", "kits", "tv", "volunteers"]
+
+
+func _show_purchase(id: String) -> void:
+	var text: String = shop_desc(id) if not id.begins_with("up:") else building_offer(id.get_slice(":", 1)).desc
+	var title := shop_name(id)
+	if id.begins_with("up:"):
+		title = title.split(" (")[0] + " geliştiriliyor · yarın hazır"
+	hud.show_alert(title, text, "check", Color(0.24, 0.7, 0.42))
+	if id in CITY_WIDE:
+		city.camera_rig.focus(Vector3(0, 0, 4), 42.0, 1.0)
+
+
+## Haritada mahalleye tiklanan urunler: gazete, tatbikat, mahalle guclendirme.
 func _apply_targeted(id: String, p: Vector3) -> void:
-	var cost := action_cost(id)
+	var d := map_info.district_of(p)
+	var at := MapInfo.to3(map_info.district_centers[d], 1.5)
+	var good := Color(0.45, 0.95, 0.55)
+	var cost := shop_cost(id)
+	var list := []
+	if id == "reinforce_district":
+		list = _district_reinforce_list(d)
+		cost = _district_reinforce_cost(list)
+		if list.is_empty():
+			notify.emit("%s: güçlendirilecek ev yok" % map_info.district_names[d], "bad")
+			return
 	if money < cost:
-		notify.emit("Bütçe yetersiz", "bad")
+		notify.emit("Bütçe yetersiz: %s gerekli" % fmt_money(cost), "bad")
 		return
-	_log_action(action_def(id).name)
+	_log_action(shop_name(id))
 	money -= cost
 	hud.money_delta(-cost)
 	audio.play("coins")
-	var d := map_info.district_of(p)
-	var at := MapInfo.to3(map_info.district_centers[d], 1.5)
-	if id == "news":
-		add_awareness(12, d)
-		hud.world_toast(at, "Farkındalık +12", Color(0.45, 0.95, 0.55), "news")
-	else:
-		drills += 1
-		add_awareness(15, d)
-		city.traffic.drill(MapInfo.to3(map_info.district_centers[d]))
-		hud.world_toast(at, "Tatbikat! Farkındalık +15", Color(0.45, 0.95, 0.55), "drill")
+	bought[id] = int(bought.get(id, 0)) + 1
+	match id:
+		"news":
+			add_awareness(12, d)
+			hud.world_toast(at, "Farkındalık +12", good, "news")
+		"drill":
+			drills += 1
+			add_awareness(15, d)
+			city.traffic.drill(MapInfo.to3(map_info.district_centers[d]))
+			hud.world_toast(at, "Tatbikat! Farkındalık +15", good, "drill")
+		"reinforce_district":
+			for b in list:
+				b.start_upgrade(b.model_name + "_reinforced", 1)
+			add_awareness(3, d)
+			_mark(list, "Güçlendiriliyor", good, "shield", Vector3.INF)
+			city.camera_rig.focus(MapInfo.to3(map_info.district_centers[d]), 32.0, 1.0)
+			audio.play("build")
+	hud.show_alert(shop_name(id), map_info.district_names[d] + " · " + shop_desc(id).trim_prefix("Bir mahalleye tıkla: "), "check", Color(0.24, 0.7, 0.42))
 	stats_changed.emit()
 
 
@@ -978,7 +1093,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				else:
 					notify.emit("Kum torbası sadece dere kenarına", "bad")
 				return
-			"news", "drill":
+			"news", "drill", "reinforce_district":
 				_apply_targeted(place_mode, p)
 				_end_place_mode()
 				return
