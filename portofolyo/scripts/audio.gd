@@ -16,23 +16,30 @@ var _music: Array[AudioStreamPlayer] = []
 var _music_mode := ""
 var _rain: AudioStreamPlayer
 var _siren: AudioStreamPlayer
+var _wind: AudioStreamPlayer
 
 
 func _ready() -> void:
 	add_to_group("audio")
+	Settings.apply()  # ses yollari (Music / SFX / Ambience) ve kayitli ses seviyeleri
 	for i in 10:
 		var p := AudioStreamPlayer.new()
+		p.bus = "SFX"
 		add_child(p)
 		_pool.append(p)
 	for i in 2:
 		var m := AudioStreamPlayer.new()
 		m.volume_db = -80.0
+		m.bus = "Music"
 		add_child(m)
 		_music.append(m)
-	_ambient("waves_loop", ambience_db)
-	_ambient("birds_loop", ambience_db - 4.0)
+	# dalgalar arkadan yumusakca: sessizden baslayip yavasca duyulur hale gelir
+	var waves := _ambient("waves_loop", -60.0)
+	create_tween().tween_property(waves, "volume_db", ambience_db - 3.0, 6.0).set_trans(Tween.TRANS_SINE)
+	_ambient("birds_loop", ambience_db - 6.0)
 	_rain = _ambient("rain_loop", -80.0)
 	_siren = _ambient("siren_loop", -80.0)
+	_wind = _ambient("wind_loop", -80.0)
 
 
 func _stream(sound: String, loop := false) -> AudioStream:
@@ -52,13 +59,14 @@ func _ambient(sound: String, db: float) -> AudioStreamPlayer:
 	var p := AudioStreamPlayer.new()
 	p.stream = _stream(sound, true)
 	p.volume_db = db
+	p.bus = "Ambience"
 	add_child(p)
 	p.play()
 	return p
 
 
-## Tek seferlik efekt.
-func play(sound: String) -> void:
+## Tek seferlik efekt. pitch > 0 ise o perdeden calar (ornek: seri arttikca yukselen ses).
+func play(sound: String, pitch := 0.0) -> void:
 	var s := _stream(sound)
 	if s == null:
 		return
@@ -67,6 +75,8 @@ func play(sound: String) -> void:
 			p.stream = s
 			p.volume_db = sfx_db + VOLUMES.get(sound, 0.0)
 			p.pitch_scale = randf_range(0.95, 1.05) if sound in ["click", "hover", "build", "collapse"] else 1.0
+			if pitch > 0.0:
+				p.pitch_scale = pitch
 			p.play()
 			return
 
@@ -86,6 +96,11 @@ func set_music(mode: String) -> void:
 	tw.tween_property(outgoing, "volume_db", -60.0, 1.5)
 	tw.chain().tween_callback(outgoing.stop)
 	_fade(_siren, ambience_db - 2.0 if mode == "tense" else -80.0)
+
+
+## Afet oncesi ruzgar ugultusu.
+func set_wind(on: bool) -> void:
+	_fade(_wind, ambience_db + 6.0 if on else -80.0)
 
 
 func set_rain(on: bool) -> void:

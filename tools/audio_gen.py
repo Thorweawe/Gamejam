@@ -195,10 +195,7 @@ def sfx():
 # ------------------------------------------------------------------ ortam donguleri
 def ambience():
     save("rain_loop", loopable(lowpass_fast(noise(6.3), 4000) * 0.8 + noise(6.3) * 0.15), 0.5)
-    sec = 10.3
-    w = lowpass_fast(noise(sec, "pink"), 900)
-    swell = 0.35 + 0.65 * (0.5 - 0.5 * np.cos(2 * np.pi * t(sec) / 5.0)) ** 2
-    save("waves_loop", loopable(w * swell), 0.5)
+    waves()
     b = np.zeros(int(SR * 10.3))
     for i in range(16):
         s = rng.uniform(0.2, 9.5)
@@ -215,6 +212,50 @@ def ambience():
     x = t(4.3)
     f = np.where((x * 2).astype(int) % 2 == 0, 700, 940)
     save("siren_loop", loopable(tone(f, 4.3, harmonics=(1, 0.3)) * 0.8), 0.35)
+
+
+def waves():
+    """Uzaktan gelen yumusak dalgalar: derin, yavas kabaran su + kiyida hafif kopuk hisirtisi.
+    Iki dalga ritmi (8.25 sn ve 5.5 sn) 16.5 sn'de tam dongu yapar -> tekrar hissi az."""
+    sec = 16.5
+    x = t(sec)
+    w1 = (0.5 - 0.5 * np.cos(2 * np.pi * x / 8.25)) ** 2
+    w2 = (0.5 - 0.5 * np.cos(2 * np.pi * (x + 2.0) / 5.5)) ** 2
+    body = lowpass_fast(lowpass_fast(noise(sec, "brown"), 300), 300) * (0.25 + 0.55 * w1 + 0.2 * w2)
+    crest1 = (0.5 - 0.5 * np.cos(2 * np.pi * (x - 1.4) / 8.25)) ** 6
+    crest2 = (0.5 - 0.5 * np.cos(2 * np.pi * (x + 0.6) / 5.5)) ** 6
+    foam = lowpass_fast(lowpass_fast(noise(sec), 1800), 1800) * (crest1 + 0.45 * crest2) * 0.35
+    save("waves_loop", loopable(body + foam, 1.0), 0.32)
+
+
+def start_game():
+    """Menuden oyuna gecis: yukselen ruzgar 'vinn'i + yukari cikan marimba arpeji + yumusak akor."""
+    sec = 2.6
+    n = int(SR * sec)
+    x = t(sec)
+    # vinn: suzgeci acilan gurultu, ortada tepe yapar
+    whoosh = np.zeros(n)
+    sweep = noise(sec)
+    for i, cut in enumerate([300, 700, 1500, 3000]):
+        whoosh += lowpass_fast(sweep, cut) * np.exp(-((x - 0.45 - i * 0.12) / 0.35) ** 2) * 0.35
+    out = whoosh * 0.6
+    notes = [hz("C", 4), hz("E", 4), hz("G", 4), hz("C", 5), hz("E", 5)]
+    for i, f in enumerate(notes):
+        place(out, marimba(f, 0.9) * (0.5 + i * 0.08), 0.25 + i * 0.11)
+    chord = pad([hz("C", 4), hz("G", 4), hz("E", 5)], 1.8) * 0.35
+    place(out, chord * env(len(chord), 0.15, 0.9), 0.8)
+    save("start_game", out * env(n, 0.01, 0.4), 0.7)
+
+
+def wind():
+    """Afet oncesi ruzgar: alcak ugultu + yavas esintiler + hafif islik."""
+    sec = 8.3
+    x = t(sec)
+    gust = 0.45 + 0.55 * (0.5 - 0.5 * np.cos(2 * np.pi * x / 4.15)) ** 1.5
+    low = lowpass_fast(noise(sec, "brown"), 500) * 0.9
+    hiss = lowpass_fast(noise(sec, "pink"), 2200) * 0.35
+    whistle = np.sin(2 * np.pi * np.cumsum(620 + 140 * np.sin(2 * np.pi * x / 2.6)) / SR) * 0.04
+    save("wind_loop", loopable((low + hiss * gust + whistle * gust) * gust), 0.5)
 
 
 # ------------------------------------------------------------------ muzik
@@ -267,7 +308,14 @@ def music_tense():
 
 
 if __name__ == "__main__":
+    import sys
+    if len(sys.argv) > 1:  # sadece istenenler: python audio_gen.py wind
+        for name in sys.argv[1:]:
+            globals()[name]()
+        sys.exit(0)
     sfx()
+    start_game()
+    wind()
     ambience()
     music_calm()
     music_tense()

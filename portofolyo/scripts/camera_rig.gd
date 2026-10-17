@@ -59,6 +59,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 ## Deprem vb. icin kamera sarsintisi (saniye).
 func shake(duration: float = 1.5) -> void:
+	if not bool(Settings.get_value("shake")):
+		return  # ayarlardan kapatilabilir
 	_shake = maxf(_shake, duration)
 
 

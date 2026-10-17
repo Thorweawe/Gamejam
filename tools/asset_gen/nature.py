@@ -79,29 +79,28 @@ def tile_grass_burnt():
 
 # ---------------------------------------------------------------- kopru, dere islahi
 def road_bridge():
-    """Yol Z boyunca, nehir X boyunca akar (tile_river_straight 90 derece donuk haliyle uyumlu)."""
+    """Yol Z boyunca, nehir X boyunca akar. Tabliye karonun tamamini kaplar ve KayKit yoluyla
+    ayni olculerde (asfalt 0.07, kaldirim 0.1, kaldirim x>0.92) -> komsu yol karolariyla bitisik."""
     m = Model("road_bridge")
     w = 0.45
-    block(m, -1, 1, 0, 0.04, -w, w, "tan", (0.3, 0.9))
-    block(m, -1, 1, 0.04, 0.06, -w, w, "blue", (0.05, 0.35))
-    for sz in (1, -1):
-        z0, z1 = sorted((sz * w, sz * 1.0))
-        block(m, -1, 1, 0, T - 0.025, z0, z1, "brown", (0.2, 0.9))
-        block(m, -1, 1, T - 0.025, T, z0, z1, "green", (0.15, 0.5))
-    # ayaklar
-    for x in (-0.55, 0.55):
-        for z in (-0.25, 0.25):
-            m.add(cbox(x, 0.04, z, 0.1, 0.08, 0.1), "lightgrey", grad=(0.2, 0.8))
-    # tabliye (asfalt KayKit yollariyla ayni yukseklikte: 0.07)
-    block(m, -0.75, 0.75, 0.03, 0.066, -1, 1, "lightgrey", (0.2, 0.7))
-    block(m, -0.6, 0.6, 0.066, 0.07, -1, 1, "darkgrey", (0.3, 0.6))
+    block(m, -1, 1, 0, 0.03, -w, w, "tan", (0.3, 0.9))
+    block(m, -1, 1, 0.03, 0.05, -w, w, "blue", (0.05, 0.35))
+    # ayaklar (sudan gorunur)
+    for x in (-0.6, 0.0, 0.6):
+        for z in (-0.3, 0.3):
+            m.add(cbox(x, 0.03, z, 0.14, 0.06, 0.14), "lightgrey", grad=(0.2, 0.8))
+    # tabliye
+    block(m, -1.0, 1.0, 0.05, 0.068, -1, 1, "lightgrey", (0.2, 0.7))
+    block(m, -0.92, 0.92, 0.068, 0.07, -1, 1, "darkgrey", (0.3, 0.6))
     for i in range(5):
         m.add(cbox(0, 0.072, -0.8 + i * 0.4, 0.03, 0.004, 0.2), "sun", grad=(0.0, 0.3))
     for sx in (1, -1):
-        block(m, sx * 0.67 - 0.07, sx * 0.67 + 0.07, 0.066, 0.1, -1, 1, "lightgrey", (0.1, 0.5))
-        block(m, sx * 0.735 - 0.012, sx * 0.735 + 0.012, 0.1, 0.22, -1, 1, "white", (0.0, 0.4))
-        for i in range(6):
-            m.add(cbox(sx * 0.735, 0.15, -0.9 + i * 0.36, 0.03, 0.1, 0.03), "lightgrey", grad=(0.1, 0.5))
+        block(m, sx * 0.96 - 0.04, sx * 0.96 + 0.04, 0.068, 0.1, -1, 1, "lightgrey", (0.1, 0.5))  # kaldirim
+        block(m, sx * 0.985 - 0.012, sx * 0.985 + 0.012, 0.1, 0.2, -w - 0.1, w + 0.1, "white", (0.0, 0.4))  # korkuluk
+        for z in (-w - 0.1, -0.2, 0.2, w + 0.1):
+            m.add(cbox(sx * 0.985, 0.16, z, 0.03, 0.12, 0.03), "lightgrey", grad=(0.1, 0.5))
+        # tabliye kenari: suya bakan beton yuz
+        block(m, sx * 1.0 - 0.02, sx * 1.0, 0.0, 0.068, -w, w, "lightgrey", (0.1, 0.8))
     return m
 
 

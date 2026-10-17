@@ -8,6 +8,7 @@ extends Node
 ## baseline: ayni afet hic hazirliksiz bir sehirde olsaydi tahmini can kaybi (oyun sonu karsilastirmasi).
 
 signal response_changed(active: bool)
+signal incident_spawned(inc: Incident)  # HUD ekrandaki isareti olusturur
 
 const M := "res://assets/models/"
 const BASE_EVAC := 0.29  # hic hazirliksiz sehrin tahliye orani
@@ -30,6 +31,7 @@ var _sandbags := {}  # Vector2i -> Node3D
 var _grill_smoke: Array[Node3D] = []
 var _rain: GPUParticles3D
 var _flood_mat: StandardMaterial3D
+var _used_spots := {}  # olay kartlariyla doldurulan yerler
 
 
 func _ready() -> void:
@@ -58,7 +60,7 @@ static func tile_key(p: Vector3) -> Vector2i:
 
 func _report(type: String, title: String, cause: String) -> Dictionary:
 	return {"type": type, "title": title, "cause": cause, "collapsed": 0, "damaged": 0, "casualties": 0,
-		"saved": 0, "evacuated": 0, "burned": 0, "flooded": 0, "baseline": 0.0,
+		"saved": 0, "evacuated": 0, "burned": 0, "flooded": 0, "baseline": 0.0, "held": [], "roads": 0,
 		"tip": GameData.TIPS.get(type, GameData.TIPS["quake"]).pick_random()}
 
 
@@ -79,6 +81,7 @@ func spawn_incident(kind: String, pos: Vector3, people: int, seconds: float, bui
 	inc.building = building
 	inc.position = Vector3(pos.x, 0.1, pos.z)
 	effects.add_child(inc)
+	incident_spawned.emit(inc)
 	return inc
 
 
@@ -95,22 +98,6 @@ func work_time(unit: String) -> float:
 ## Enkaz altindakilerin dayanma suresi: farkindalik (dogru pozisyon), deprem cantasi (su, duduk).
 func rescue_time() -> float:
 	return 32.0 + game.awareness * 0.15 + mini(game.kits, 2) * 5.0
-
-
-func incident_at(screen_pos: Vector2) -> Incident:
-	var cam: Camera3D = camera_rig.camera
-	var best: Incident = null
-	var best_d := 60.0
-	for inc in get_tree().get_nodes_in_group("incidents"):
-		if inc.state != Incident.State.WAITING:
-			continue
-		for h in [0.3, 1.4, 2.9]:
-			var sp := cam.unproject_position(inc.global_position + Vector3.UP * h)
-			var d := sp.distance_to(screen_pos)
-			if d < best_d:
-				best_d = d
-				best = inc
-	return best
 
 
 ## Mudahale asamasi: tum isaretler cozulene kadar bekle.
@@ -139,7 +126,7 @@ func _track(inc: Incident, r: Dictionary) -> void:
 
 
 ## Yakin binalardaki yardim cagrilarini tek isarette topla (ekran okunur kalsin).
-func _spawn_clustered(kind: String, items: Array, ratio: float, seconds: float, r: Dictionary) -> void:
+func _spawn_clustered(kind: String, items: Array, ratio: float, seconds: float, r: Dictionary, cap := 5) -> void:
 	var clusters: Array = []  # [konum, kisi, bina]
 	for item in items:
 		var b: Node3D = item[0]
@@ -148,12 +135,25 @@ func _spawn_clustered(kind: String, items: Array, ratio: float, seconds: float, 
 			continue
 		var merged := false
 		for c in clusters:
-			if c[0].distance_to(b.global_position) < 3.2:
+			if c[0].distance_to(b.global_position) < 4.2:
 				c[1] += people
 				merged = true
 				break
 		if not merged:
 			clusters.append([b.global_position, people, b])
+	# ekran okunur kalsin: en fazla 'cap' isaret; en az kisili kume en yakin kumeye katilir
+	while clusters.size() > cap:
+		var small := 0
+		for i in clusters.size():
+			if clusters[i][1] < clusters[small][1]:
+				small = i
+		var c0: Array = clusters[small]
+		clusters.remove_at(small)
+		var near := 0
+		for i in clusters.size():
+			if clusters[i][0].distance_to(c0[0]) < clusters[near][0].distance_to(c0[0]):
+				near = i
+		clusters[near][1] += c0[1]
 	for c in clusters:
 		_track(spawn_incident(kind, c[0] + (Vector3(0.5, 0, 0.5) if kind == "injured" else Vector3.ZERO), c[1], seconds, c[2]), r)
 
@@ -170,14 +170,15 @@ func earthquake(magnitude: float) -> Dictionary:
 	r.evacuated = traffic.evacuate(game.evac_ratio(Vector3.INF))
 	var collapsed: Array = []
 	var damaged: Array = []
-	var collapse_k := 0.45 if magnitude > 1.3 else 0.3
+	var collapse_k := 0.45 if magnitude > 1.3 else 0.25
 	for b in city.buildings():
 		if b.state == Building.State.COLLAPSED:
 			continue
 		# hazirlik (guclendirme, gelistirme, kacak kat yikma) sayesinde onlenen yikimlar
 		var init: String = b.get_meta("initial_model", b.model_name)
 		var saved_risk := GameData.quake_risk(init) - GameData.quake_risk(b.model_name)
-		if saved_risk > 0.0:
+		var prepared := saved_risk > 0.0
+		if prepared:
 			r.baseline += saved_risk * magnitude * collapse_k * GameData.info(init).pop * 0.5 * (1.0 - BASE_EVAC) * 0.7
 		var risk: float = GameData.quake_risk(b.model_name) * magnitude * game.risk.quake
 		var roll := randf()
@@ -188,13 +189,102 @@ func earthquake(magnitude: float) -> Dictionary:
 		elif roll < risk and b.state == Building.State.NORMAL:
 			damaged.append([b, b.population()])
 			get_tree().create_timer(delay).timeout.connect(b.damage)
+		if prepared and roll >= risk * collapse_k:
+			# hazirliksiz halinde yikilacakti ama ayakta kaldi -> "Hazirlik ise yaradi" aninda parlar
+			if roll < GameData.quake_risk(init) * magnitude * game.risk.quake * collapse_k:
+				r.held.push_front(b)
+			elif r.held.size() < 6 and randf() < 0.35:
+				r.held.append(b)
 	r.collapsed = collapsed.size()
 	r.damaged = damaged.size()
 	await _wait(2.6)
-	_spawn_clustered("rubble", collapsed, 0.5, rescue_time(), r)
-	_spawn_clustered("injured", damaged.filter(func(_d): return randf() < 0.45), 0.12, 30.0 + game.service_level("medic") * 3.0, r)
+	var blocks := 0
+	for c in collapsed:
+		if blocks < 4 and randf() < 0.55 and block_road_near(c[0]):
+			blocks += 1
+	r.roads = blocks
+	_spawn_clustered("rubble", collapsed, 0.5, rescue_time(), r, 3 + game.units_total("rescue"))
+	_spawn_clustered("injured", damaged.filter(func(_d): return randf() < 0.45), 0.12, 30.0 + game.service_level("medic") * 3.0, r, 3)
+	if magnitude > 1.3 or randf() < 0.7:
+		_aftershock(r, magnitude)
 	await respond(r)
 	return r
+
+
+## Artci deprem: mudahale surerken gelir, hasarli binalarin bazilari coker, yeni isaretler cikar.
+func _aftershock(r: Dictionary, magnitude: float) -> void:
+	await _wait(randf_range(9.0, 13.0))
+	if not responding:
+		return
+	camera_rig.shake(1.6)
+	traffic.panic(2.5)
+	game.audio.play("quake")
+	game.hud.show_alert("ARTÇI DEPREM!", "Hasarlı binalar risk altında", "warning", Color(1.0, 0.5, 0.2))
+	game.hud.flash(Color(1.0, 0.45, 0.2))
+	var fallen: Array = []
+	for b in city.buildings():
+		if b.state == Building.State.DAMAGED and not b.is_busy() and randf() < 0.3 * magnitude:
+			fallen.append([b, b.population()])
+			get_tree().create_timer(randf_range(0.1, 1.0)).timeout.connect(b.collapse)
+	r.collapsed += fallen.size()
+	r.damaged = maxi(0, r.damaged - fallen.size())
+	await _wait(1.4)
+	if fallen.size() > 0:
+		block_road_near(fallen[0][0])
+	_spawn_clustered("rubble", fallen, 0.4, rescue_time() * 0.8, r, 2)
+
+
+# ------------------------------------------------------------------ enkazla kapanan yollar
+var _road_blocks := {}  # Vector2i -> Node3D (enkaz + bariyer)
+
+
+## Yikilan binanin enkazi yanindaki yolu kapatir; bina onarilinca yol acilir.
+func block_road_near(b: Building) -> bool:
+	if not is_instance_valid(b):
+		return false
+	var k: Vector2i = traffic.nearest_road(b.position, true)
+	if Vector2(k.x - b.position.x, k.y - b.position.z).length() > 2.3 or _road_blocks.has(k):
+		return false
+	traffic.set_blocked(k, true)
+	var root := Node3D.new()
+	root.position = Vector3(k.x, 0.1, k.y)
+	effects.add_child(root)
+	var to_b := Vector3(b.position.x - k.x, 0, b.position.z - k.y).normalized() * 0.35
+	for item in [["afet/rubble_large", to_b, 1.0], ["afet/rubble_small", -to_b + Vector3(0.3, 0, 0.2), 1.1],
+			["afet/road_barrier", Vector3(-0.6, 0, -0.6), 1.0], ["afet/traffic_cone", Vector3(0.7, 0, -0.5), 1.0]]:
+		var n: Node3D = (load(M + item[0] + ".gltf") as PackedScene).instantiate()
+		n.position = item[1]
+		n.rotation.y = randf() * TAU
+		n.scale = Vector3.ONE * 0.01
+		root.add_child(n)
+		n.create_tween().tween_property(n, "scale", Vector3.ONE * float(item[2]), 0.4).set_trans(Tween.TRANS_BACK)
+	_road_blocks[k] = root
+	game.hud.world_toast(root.position + Vector3.UP * 0.8, "Yol kapandı", Color(1.0, 0.6, 0.3), "rubble")
+	var keys: Array = b.get_meta("road_blocks", [])
+	keys.append(k)
+	if not b.has_meta("road_blocks"):
+		b.state_changed.connect(_on_blocker_state.bind(b))
+	b.set_meta("road_blocks", keys)
+	return true
+
+
+func _on_blocker_state(st: int, b: Building) -> void:
+	if st != Building.State.NORMAL:
+		return
+	for k in b.get_meta("road_blocks", []):
+		unblock_road(k)
+	b.set_meta("road_blocks", [])
+
+
+func unblock_road(k: Vector2i) -> void:
+	if not _road_blocks.has(k):
+		return
+	traffic.set_blocked(k, false)
+	var root: Node3D = _road_blocks[k]
+	_road_blocks.erase(k)
+	var tw := root.create_tween()
+	tw.tween_property(root, "scale", Vector3(1, 0.01, 1), 0.5)
+	tw.tween_callback(root.queue_free)
 
 
 # ------------------------------------------------------------------ ev yangini
@@ -395,6 +485,7 @@ func flood(severity: float, focus := true) -> Dictionary:
 	r.evacuated = traffic.evacuate(game.evac_ratio(Vector3.INF))
 	var level: float = 0.05 + 0.16 * severity * game.risk.flood * (1.0 - protection * 0.4)
 	var waters: Array[Node3D] = []
+	var stranded: Array = []  # [bina, nufus]
 	var tiles := PackedVector2Array(map_info.river_tiles)
 	if protection < 2:
 		for p in map_info.flood_tiles:
@@ -420,7 +511,10 @@ func flood(severity: float, focus := true) -> Dictionary:
 			var init: String = b.get_meta("initial_model", b.model_name)
 			r.baseline += GameData.info(init).pop * 0.4 * 0.5 * (1.0 - BASE_EVAC) * 0.5
 			if protection >= 2 or _sandbags.has(tile_key(b.position)):
+				r.held.append(b)
 				continue
+		if protection == 1 and randf() < 0.45:
+			r.held.append(b)  # dere islahi suyu yavaslatti
 		var weak := 1.6 if ("gecekondu" in b.model_name or "kacak" in b.model_name) else 1.0
 		var k: float = severity * game.risk.flood * weak * (1.0 - protection * 0.45)
 		var pop: int = b.population()
@@ -435,9 +529,8 @@ func flood(severity: float, focus := true) -> Dictionary:
 			continue
 		if river_evacuated:
 			continue  # uyari sonrasi kiyi bosaltildi: kimse mahsur kalmadi
-		var people := int(round(pop * 0.4 * (1.0 - game.evac_ratio(b.position))))
-		if people > 0:
-			_track(spawn_incident("stranded", b.global_position, people, 24.0, b), r)
+		stranded.append([b, pop])
+	_spawn_clustered("stranded", stranded, 0.4, 24.0, r, 5)  # yakin binalar tek isarette
 	await respond(r)
 	_set_rain(false)
 	for w in waters:
@@ -541,8 +634,9 @@ func finale() -> Dictionary:
 	game.notify.emit("Ardından gelen sağanak nehri taşırdı!", "disaster")
 	parts.append(await flood(1.35))
 	for p in parts:
-		for k in ["collapsed", "damaged", "casualties", "saved", "burned", "flooded", "baseline"]:
+		for k in ["collapsed", "damaged", "casualties", "saved", "burned", "flooded", "baseline", "roads"]:
 			total[k] += p.get(k, 0)
+		total.held.append_array(p.get("held", []))
 		total.evacuated = maxi(total.evacuated, p.evacuated)
 	total.tip = "Afetler çoğu zaman zincirleme gelir: depremi yangın, yangını sel izleyebilir. Hazırlık her şeydir."
 	return total
@@ -589,4 +683,187 @@ func add_assembly_point() -> bool:
 
 func remove_assembly_point() -> void:
 	if map_info.assembly_points.size() > 1:
-		map_info.assembly_points.remove_at(map_info.assembly_points.size() - 1)
+		_remove_assembly_at(map_info.assembly_points[map_info.assembly_points.size() - 1])
+
+
+## Toplanma alanini kaldir: tabela ve zemin isareti kaybolur.
+func _remove_assembly_at(p: Vector2) -> void:
+	var i := map_info.assembly_points.find(p)
+	if i < 0 or map_info.assembly_points.size() <= 1:
+		return
+	map_info.assembly_points.remove_at(i)
+	for parent in [city.get_node("Props"), effects]:
+		for n in parent.get_children():
+			if n is Node3D and Vector2(n.position.x, n.position.z).distance_to(p) < 1.6 and \
+					(String(n.name).begins_with("assembly") or String(n.name).contains("assembly") or n.scene_file_path.contains("assembly")):
+				_shrink(n)
+
+
+# ------------------------------------------------------------------ olay kartlarinin haritadaki sonuclari
+## Olay kartindaki "build" etkisi: haritada gercekten bir sey insa eder. Doner: odak noktasi (yoksa INF).
+##   forest/park/beach: alani temizleyip bina kurar (Building -> depremde yikilabilir, nufus getirir)
+##   plaza: otopark (park etmis arabalar), camp: cadirlar, festival: cadir + mangal + kalabalik
+func build_feature(fx: Dictionary) -> Vector3:
+	var where: String = fx.get("where", "")
+	var spot := _feature_spot(where)
+	if spot == Vector2.INF:
+		return Vector3.INF
+	_used_spots[spot] = true
+	var c := Vector3(spot.x, 0.0, spot.y)
+	match where:
+		"forest", "park", "beach":
+			_clear_area(c, 1.5)
+			if where == "park":
+				_remove_assembly_at(spot)
+			var b := Building.new()
+			b.model_name = fx.get("model", "building_G")
+			b.set_meta("initial_model", b.model_name)
+			b.position = c
+			b.rotation.y = _face_road(c)
+			city.get_node("Buildings").add_child(b)
+			b.scale = Vector3(1, 0.01, 1)
+			b.create_tween().tween_property(b, "scale:y", 1.0, 0.9).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			_dust(c)
+		"plaza":
+			_clear_area(c, 1.1)
+			var cars := ["car_sedan", "car_hatchback", "car_taxi", "car_stationwagon"]
+			var i := 0
+			for row in [-0.5, 0.5]:
+				for col in [-0.6, 0.0, 0.6]:
+					var car := _place("araclar/" + cars.pick_random(), c + Vector3(col, 0.1, row), PI / 2.0 if row < 0 else -PI / 2.0)
+					car.scale = Vector3.ONE * 0.01
+					var tw := car.create_tween()
+					tw.tween_interval(i * 0.12)
+					tw.tween_property(car, "scale", Vector3.ONE, 0.35).set_trans(Tween.TRANS_BACK)
+					i += 1
+			for x in [-0.95, 0.95]:
+				_place("afet/traffic_cone", c + Vector3(x, 0.1, 0.0), 0.0)
+		"camp":
+			_clear_area(c, 1.6, true)
+			var festival: bool = fx.get("model", "") == "festival"
+			var n := 4 if festival else 3
+			for i in n:
+				var a := TAU * i / n + randf() * 0.4
+				var pos := c + Vector3(cos(a), 0.1, sin(a)) * 1.1
+				var tent := _place("afet/tent_disaster", pos, randf() * TAU)
+				tent.scale = Vector3.ONE * 0.01
+				tent.create_tween().tween_property(tent, "scale", Vector3.ONE * 1.1, 0.5).set_trans(Tween.TRANS_BACK)
+			if festival:
+				for i in 3:
+					var gp := c + Vector3(randf_range(-0.8, 0.8), 0.1, randf_range(-0.8, 0.8))
+					var g := _place("doga/piknik/bbq_grill", gp, randf() * TAU)
+					g.name = "grill_fest_%d" % i
+					var smoke: Node3D = (load(M + "afet/smoke_column.gltf") as PackedScene).instantiate()
+					smoke.position = gp + Vector3(0, 0.1, 0)
+					smoke.scale = Vector3.ONE * 0.3
+					effects.add_child(smoke)
+			traffic.add_picnickers(c, 6 if festival else 3)
+	return c
+
+
+func _feature_spot(where: String) -> Vector2:
+	var options: Array[Vector2] = []
+	match where:
+		"forest":
+			var river_z := _river_z()
+			var best_z := -INF
+			for p in map_info.forest_tiles:
+				if p.y >= river_z or _burned.has(tile_key(MapInfo.to3(p))) or map_info.picnic_spots.has(p):
+					continue
+				best_z = maxf(best_z, p.y)
+			for p in map_info.forest_tiles:
+				if is_equal_approx(p.y, best_z) and not map_info.picnic_spots.has(p):
+					options.append(p)
+		"park":
+			for p in map_info.assembly_points:
+				if map_info.park_tiles.has(p):
+					options.append(p)
+			if options.is_empty() or map_info.assembly_points.size() <= 1:
+				options.assign(Array(map_info.park_tiles))
+		"beach":
+			var best := INF
+			for p in map_info.beach_tiles:
+				var rk: Vector2i = traffic.nearest_road(MapInfo.to3(p))
+				var d := Vector2(rk).distance_to(p)
+				if d < best - 0.1:
+					best = d
+					options.clear()
+				if d <= best + 0.1:
+					options.append(p)
+		"plaza":
+			for p in map_info.plaza_tiles:
+				if p.distance_to(Vector2(-3, 7)) > 2.5:
+					options.append(p)
+		"camp":
+			for p in map_info.picnic_spots:
+				if not _burned.has(tile_key(MapInfo.to3(p))):
+					options.append(p)
+	options.assign(options.filter(func(p): return not _used_spots.has(p)))
+	if options.is_empty():
+		return Vector2.INF
+	# sehrin ortasina en yakin olanlar one ciksin (oyuncu gorsun)
+	options.sort_custom(func(a, b): return a.length() < b.length())
+	return options[randi() % mini(3, options.size())]
+
+
+func _face_road(c: Vector3) -> float:
+	var rk: Vector2i = traffic.nearest_road(c)
+	var d := Vector2(rk.x - c.x, rk.y - c.z)
+	if d.length() < 0.1:
+		return 0.0
+	return snappedf(atan2(d.x, d.y), PI / 2.0)
+
+
+func _place(path: String, pos: Vector3, yaw: float) -> Node3D:
+	var n: Node3D = (load(M + path + ".gltf") as PackedScene).instantiate()
+	n.position = pos
+	n.rotation.y = yaw
+	effects.add_child(n)
+	return n
+
+
+## Alandaki agac, bank, semsiye vb. kucultup gizle.
+func _clear_area(c: Vector3, r: float, trees_only := false) -> void:
+	var parents: Array = [city.get_node("Nature")] if trees_only else [city.get_node("Nature"), city.get_node("Props")]
+	for parent in parents:
+		for n in parent.get_children():
+			if n is Node3D and n.visible and Vector2(n.position.x - c.x, n.position.z - c.z).length() < r:
+				_shrink(n)
+
+
+func _shrink(n: Node3D) -> void:
+	var tw := n.create_tween()
+	tw.tween_property(n, "scale", n.scale * 0.01, 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	tw.tween_callback(func(): n.visible = false)
+
+
+func _dust(c: Vector3) -> void:
+	var p := GPUParticles3D.new()
+	var m := ParticleProcessMaterial.new()
+	m.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	m.emission_box_extents = Vector3(1.0, 0.1, 1.0)
+	m.direction = Vector3(0, 1, 0)
+	m.spread = 70.0
+	m.initial_velocity_min = 0.5
+	m.initial_velocity_max = 1.5
+	m.gravity = Vector3(0, -0.5, 0)
+	m.scale_min = 0.6
+	m.scale_max = 1.4
+	p.process_material = m
+	var mesh := SphereMesh.new()
+	mesh.radius = 0.12
+	mesh.height = 0.24
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.85, 0.8, 0.72, 0.6)
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mesh.material = mat
+	p.draw_pass_1 = mesh
+	p.amount = 40
+	p.lifetime = 1.4
+	p.one_shot = true
+	p.explosiveness = 0.8
+	p.position = c + Vector3(0, 0.2, 0)
+	effects.add_child(p)
+	p.emitting = true
+	get_tree().create_timer(2.0).timeout.connect(p.queue_free)

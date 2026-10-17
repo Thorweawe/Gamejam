@@ -23,6 +23,7 @@ var junctions := {}  # Vector2i -> sahibi Agent (kavsaktaki arac)
 var cars: Array[Agent] = []
 var people: Array[Agent] = []
 var picnickers: Array[Agent] = []
+var blocked := {}  # Vector2i -> true: enkazla kapanan yol karolari (araclar etrafindan dolasir)
 var _plaza: Array[Vector3] = []
 
 @onready var map_info: MapInfo = get_node_or_null(map_info_path)
@@ -105,27 +106,45 @@ static func _key(p: Vector3) -> Vector2i:
 	return Vector2i(roundi(p.x), roundi(p.z))
 
 
-func neighbors(k: Vector2i) -> Array[Vector2i]:
+func neighbors(k: Vector2i, avoid_blocked := true) -> Array[Vector2i]:
 	var out: Array[Vector2i] = []
 	for d in DIRS:
-		if road.has(k + d * 2):
+		var n := k + d * 2
+		if road.has(n) and not (avoid_blocked and blocked.has(n)):
 			out.append(d)
 	return out
+
+
+## Enkaz yolu kapatti / acildi.
+func set_blocked(k: Vector2i, on: bool) -> void:
+	if on:
+		blocked[k] = true
+	else:
+		blocked.erase(k)
 
 
 ## Karodan cikis yonu: rota varsa onu izler, yoksa geri donus haric rastgele.
 func next_dir(a: Agent) -> Vector2i:
 	if not a.route.is_empty():
 		var d: Vector2i = a.route.pop_front()
-		if road.has(a.tile + d * 2):
+		var n := a.tile + d * 2
+		if road.has(n) and (a.emergency or not blocked.has(n)):
 			return d
 		a.route.clear()
 	var options := neighbors(a.tile).filter(func(d): return d != -a.dir)
 	return options.pick_random() if not options.is_empty() else -a.dir
 
 
-## Yol agi uzerinde en kisa rota (yon listesi). Ulasilamazsa bos.
+## Yol agi uzerinde en kisa rota (yon listesi). Kapali yollardan kacinir; baska yol yoksa
+## enkazin arasindan gecer (acil durum araclari icin). Ulasilamazsa bos.
 func find_route(from: Vector2i, to: Vector2i) -> Array[Vector2i]:
+	var dirs := _bfs(from, to, true)
+	if dirs.is_empty() and from != to:
+		dirs = _bfs(from, to, false)
+	return dirs
+
+
+func _bfs(from: Vector2i, to: Vector2i, avoid: bool) -> Array[Vector2i]:
 	var dirs: Array[Vector2i] = []
 	if from == to or not road.has(from) or not road.has(to):
 		return dirs
@@ -135,8 +154,10 @@ func find_route(from: Vector2i, to: Vector2i) -> Array[Vector2i]:
 		var cur: Vector2i = queue.pop_front()
 		if cur == to:
 			break
-		for d in neighbors(cur):
+		for d in neighbors(cur, false):
 			var n := cur + d * 2
+			if avoid and blocked.has(n) and n != to:
+				continue
 			if not prev.has(n):
 				prev[n] = cur
 				queue.append(n)
@@ -150,10 +171,12 @@ func find_route(from: Vector2i, to: Vector2i) -> Array[Vector2i]:
 	return dirs
 
 
-func nearest_road(p: Vector3) -> Vector2i:
+func nearest_road(p: Vector3, skip_blocked := false) -> Vector2i:
 	var best := Vector2i.ZERO
 	var best_d := INF
 	for k in road:
+		if skip_blocked and blocked.has(k):
+			continue
 		var d := Vector2(k.x - p.x, k.y - p.z).length_squared()
 		if d < best_d:
 			best_d = d
@@ -244,7 +267,7 @@ func dispatch(model: String, station_model: String, target: Vector3) -> Agent:
 	a.speed = 2.4
 	a.setup(self, a.get_meta("model"), start, a.dir)
 	a.set_meta("station", start)
-	a.respond(nearest_road(target))
+	a.respond(nearest_road(target, true))
 	cars.append(a)
 	return a
 
@@ -286,6 +309,21 @@ func drill(center: Vector3, radius := 9.0) -> void:
 		var t3 := MapInfo.to3(target, 0.1) + Vector3(randf_range(-0.7, 0.7), 0, randf_range(-0.7, 0.7))
 		a.evacuate(nearest_road(t3), t3)
 		n += 1
+
+
+## Olay karti (kamp / festival): bir noktaya yeni piknikciler ekle.
+func add_picnickers(center: Vector3, n: int) -> void:
+	var start := nearest_road(center)
+	for i in n:
+		var a := _spawn(Agent.Kind.PICNIC, "insanlar/" + PEOPLE.pick_random(), start)
+		a.wander_center = Vector3(center.x, 0.1, center.z)
+		a.wander_radius = 1.0
+		a.speed = randf_range(0.2, 0.32)
+		a.height = 0.1
+		a.night_threshold = randf_range(0.15, 0.6)
+		people.append(a)
+		picnickers.append(a)
+		a.setup(self, a.get_meta("model"), a.tile, a.dir)
 
 
 ## Piknik yasagi: piknikciler o gun ormana gelmez.

@@ -17,6 +17,14 @@ Bu dosya `tools/organize_assets.py` ile otomatik uretilir, elle duzenlemeyin.
 
 **Toplam: 297 model**
 
+## Yazi tipi, ses ve arayuz
+
+| Varlik | Kaynak | Lisans |
+|---|---|---|
+| `assets/fonts/Fredoka.ttf` | Fredoka (The Fredoka Project Authors), github.com/google/fonts | SIL OFL 1.1 (`assets/fonts/Fredoka_OFL.txt`) |
+| `assets/audio/*.wav` | Kodla uretildi: `tools/audio_gen.py` | Projeye ait |
+| Arayuz ikonlari | Kodla ciziliyor: `scripts/ui_icon.gd` | Projeye ait |
+
 ## Godot notlari
 
 - `.gltf` dosyalarini sahneye surukleyin; Godot 4 otomatik import eder. Tum sehir modelleri tek doku (`citybits_texture.png`) kullanir, ayni stilde gorunur.

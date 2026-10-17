@@ -53,12 +53,20 @@ func _ready() -> void:
 	_build()
 
 
+static var _path_cache := {}  # model adi -> yol (ayni aramayi 120 bina tekrar tekrar yapmasin)
+
+
 static func find_model(name: String) -> String:
+	if _path_cache.has(name):
+		return _path_cache[name]
+	var found := ""
 	for dir in MODEL_DIRS:
 		var path := "res://assets/models/%s/%s.gltf" % [dir, name]
 		if ResourceLoader.exists(path):
-			return path
-	return ""
+			found = path
+			break
+	_path_cache[name] = found
+	return found
 
 
 func is_busy() -> bool:
@@ -152,18 +160,30 @@ func _model_path(s: State) -> String:
 	return path
 
 
+## Sadece gereken model yuklenir; hasarli / yikik hali ilk ihtiyac aninda (acilis hizli olsun).
 func _build() -> void:
 	for child in _visual.get_children():
 		_visual.remove_child(child)
 		child.queue_free()
 	_models.clear()
-	for s in SUFFIX:
-		var path := _model_path(s)
-		if path != "":
-			var model := (load(path) as PackedScene).instantiate() as Node3D
-			_visual.add_child(model)
-			_models[s] = model
+	_paths.clear()
 	_apply_visibility()
+
+
+var _paths := {}  # durum -> model yolu ("" = bu durumun ozel modeli yok)
+
+
+func _ensure_model(s: State) -> bool:
+	if _models.has(s):
+		return true
+	if not _paths.has(s):
+		_paths[s] = _model_path(s)
+	if _paths[s] == "":
+		return false
+	var model := (load(_paths[s]) as PackedScene).instantiate() as Node3D
+	_visual.add_child(model)
+	_models[s] = model
+	return true
 
 
 func _apply_visibility() -> void:
@@ -173,8 +193,9 @@ func _apply_visibility() -> void:
 		if on:  # gece ise yeni parlakligi hemen uygula
 			_window_light.light_energy = WINDOW_LIGHT[state]
 	var shown: int = state
-	while shown > State.NORMAL and not _models.has(shown):
+	while shown > State.NORMAL and not _ensure_model(shown):
 		shown -= 1
+	_ensure_model(shown)
 	for s in _models:
 		_models[s].visible = s == shown
 

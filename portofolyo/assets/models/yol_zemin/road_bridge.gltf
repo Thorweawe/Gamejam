@@ -69,10 +69,10 @@
     {
       "bufferView": 0,
       "componentType": 5126,
-      "count": 792,
+      "count": 696,
       "type": "VEC3",
       "min": [
-        -1.0,
+        -1.0199999809265137,
         0.0,
         -1.0
       ],
@@ -85,19 +85,19 @@
     {
       "bufferView": 1,
       "componentType": 5126,
-      "count": 792,
+      "count": 696,
       "type": "VEC2"
     },
     {
       "bufferView": 2,
       "componentType": 5126,
-      "count": 792,
+      "count": 696,
       "type": "VEC3"
     },
     {
       "bufferView": 3,
       "componentType": 5123,
-      "count": 1188,
+      "count": 1044,
       "type": "SCALAR"
     }
   ],
@@ -105,31 +105,31 @@
     {
       "buffer": 0,
       "byteOffset": 0,
-      "byteLength": 9504,
+      "byteLength": 8352,
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteOffset": 9504,
-      "byteLength": 6336,
+      "byteOffset": 8352,
+      "byteLength": 5568,
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteOffset": 15840,
-      "byteLength": 9504,
+      "byteOffset": 13920,
+      "byteLength": 8352,
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteOffset": 25344,
-      "byteLength": 2376,
+      "byteOffset": 22272,
+      "byteLength": 2088,
       "target": 34963
     }
   ],
   "buffers": [
     {
-      "byteLength": 27720,
+      "byteLength": 24360,
       "uri": "road_bridge.bin"
     }
   ]

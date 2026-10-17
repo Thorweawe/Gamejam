@@ -29,6 +29,10 @@ var locked := false:
 		if is_node_ready():
 			end_day_button.disabled = locked or transitioning
 var _lights_k := -1.0
+## Afet oncesi gokyuzu kararmasi (0 = normal, 1 = firtina). gloom_tint: bulut rengi.
+var gloom := 0.0
+var gloom_tint := Color(0.32, 0.34, 0.4)
+var _gloom_tw: Tween
 
 @onready var city: Node3D = get_node(city_path)
 @onready var sun: DirectionalLight3D = city.get_node("Sun")
@@ -112,12 +116,17 @@ func apply_time(h: float) -> void:
 
 	var top := Color(0.02, 0.03, 0.09).lerp(Color(0.36, 0.6, 0.86), day_k).lerp(Color(0.32, 0.3, 0.55), dusk_k * 0.6)
 	var horizon := Color(0.07, 0.09, 0.2).lerp(Color(0.72, 0.85, 0.95), day_k).lerp(Color(1.0, 0.55, 0.35), dusk_k * 0.7)
+	if gloom > 0.0:
+		top = top.lerp(gloom_tint.darkened(0.35), gloom * 0.8)
+		horizon = horizon.lerp(gloom_tint, gloom * 0.75)
+		sun.light_energy *= 1.0 - gloom * 0.7
+		sun.light_color = sun.light_color.lerp(gloom_tint.lightened(0.5), gloom * 0.5)
 	sky.sky_top_color = top
 	sky.sky_horizon_color = horizon
 	sky.ground_horizon_color = horizon
 	sky.ground_bottom_color = top.darkened(0.4)
-	env.ambient_light_energy = lerpf(0.3, 0.9, day_k)
-	sea_material.set_shader_parameter("light", lerpf(0.3, 1.0, day_k))
+	env.ambient_light_energy = lerpf(0.3, 0.9, day_k) * (1.0 - gloom * 0.45)
+	sea_material.set_shader_parameter("light", lerpf(0.3, 1.0, day_k) * (1.0 - gloom * 0.35))
 	if traffic:
 		traffic.set_night(1.0 - day_k)  # gece sokaklar sakinlesir
 
@@ -125,6 +134,21 @@ func apply_time(h: float) -> void:
 	day_label.text = "Gün %d/%d" % [day, GameData.TOTAL_DAYS]
 	dial.hour = h
 	dial.sky_color = top
+
+
+## Gokyuzunu yavasca karart / ac (afet oncesi gerilim).
+func set_gloom(target: float, tint := Color(0.32, 0.34, 0.4), sec := 1.6) -> void:
+	if target > 0.0:
+		gloom_tint = tint
+	if _gloom_tw:
+		_gloom_tw.kill()
+	_gloom_tw = create_tween()
+	_gloom_tw.tween_method(_set_gloom_value, gloom, target, sec).set_trans(Tween.TRANS_SINE)
+
+
+func _set_gloom_value(v: float) -> void:
+	gloom = v
+	apply_time(hour)
 
 
 func _set_night_lights(k: float) -> void:
