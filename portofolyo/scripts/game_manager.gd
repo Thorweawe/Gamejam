@@ -53,6 +53,8 @@ var fire_plane := false  # orman yangini yari hizda yayilir
 var museums := {}  # acilan muzeler (deprem / sel / yangin): halk ogrendigini daha yavas unutur
 var volunteers := false  # enkaz kurtarma hizlanir
 var _barked := {}  # bir kez soylenen replikler  # gunun ozeti icin: gun basindaki degerler ve yapilan yatirimlar
+var bubbles: Bubbles  # tiklanabilir baloncuklar
+var _seen_types := {}  # yasanan (ya da onlenen) afet turleri
 
 @onready var city: Node3D = $"../CityMap"
 @onready var day_cycle: DayCycle = $"../DayCycle"
@@ -86,6 +88,12 @@ func _ready() -> void:
 			audio.play("error"))
 	disasters.incident_spawned.connect(func(inc): hud.add_incident(inc))
 	stats_changed.connect(func(): hud.update_stats(self))
+	# tiklanabilir baloncuklar: muzeler + oyun sirasinda rastgele (bkz. bubbles.gd)
+	bubbles = preload("res://scripts/bubbles.gd").new()
+	bubbles.name = "Bubbles"
+	bubbles.game = self
+	bubbles.camera = city.camera_rig.camera
+	city.add_child(bubbles)
 	await get_tree().process_frame
 	_update_awareness()
 	hud.update_stats(self)
@@ -198,6 +206,21 @@ func _update_awareness() -> void:
 	_update_district_labels()
 
 
+## Kasaya para ekle / cikar. Kasa eksiye dusmez: odenemeyen kisim (maas, bakim, borc) halkin
+## belediyeye guvenini sarsar -> her 500 TL acik icin -1 farkindalik (en az 1). Doner: gercek degisim.
+func change_money(v: int, reason := "") -> int:
+	var before := money
+	money = maxi(0, money + v)
+	var unpaid := -(before + v) if before + v < 0 else 0
+	if unpaid > 0:
+		var hit := maxf(1.0, round(unpaid / 500.0))
+		add_awareness(-hit)
+		hud.stat_delta("aw", -hit)
+		notify.emit("Kasa boş! %s ödenemedi (%s açık), halk tepkili: farkındalık -%d" % [
+			reason if reason != "" else "Giderler", fmt_money(unpaid), int(hit)], "bad")
+	return money - before
+
+
 func add_awareness(v: float, district := -1) -> void:
 	for i in district_aw.size():
 		if district < 0 or i == district:
@@ -221,8 +244,7 @@ func _start_day(d: int) -> void:
 		for b in city.buildings():
 			repairs += b.tick_day()
 		var delta := daily_income() - upkeep() - repairs
-		money += delta
-		hud.money_delta(delta, "Günlük bütçe")
+		hud.money_delta(change_money(delta, "Günlük giderler"), "Günlük bütçe")
 		for i in district_aw.size():
 			district_aw[i] = maxf(0.0, district_aw[i] - maxf(0.6, 1.5 - museums.size() * 0.3))  # halk zamanla unutur
 		city.traffic.end_evacuation()
@@ -256,6 +278,7 @@ func _start_day(d: int) -> void:
 	var type: String = _planned.get(d, "")
 	if type != "" and _prevent.has(d) and _prevent[d].has(type) and randf() < _prevent[d][type]:
 		totals.prevented += 1
+		_seen_types[type] = true
 		_last_disaster_day = d  # onlenen afet de sayaci sifirlar
 		totals.baseline += 6.0
 		await get_tree().create_timer(0.6).timeout
@@ -279,7 +302,9 @@ func _start_day(d: int) -> void:
 		await run_disaster(type)
 	elif d >= 3 and _days_since_disaster(d) >= 3 and randf() < 0.35 * human_factor():
 		await get_tree().create_timer(0.8).timeout
-		await run_disaster("house_fire", true)  # kucuk olay: sayaci sifirlamaz
+		# kucuk olay: sayaci sifirlamaz. Ev yangini ya da piknikten cikan orman yangini
+		var minor := "forest_fire" if randf() < 0.35 * risk.forest else "house_fire"
+		await run_disaster(minor, true)
 	_plan_ahead(d)
 	_set_busy(false)
 
@@ -310,8 +335,7 @@ func apply_effects(fx: Dictionary, _source := "") -> void:
 		var v = fx[k]
 		match k:
 			"money":
-				money += int(v)
-				hud.money_delta(int(v))
+				hud.money_delta(change_money(int(v), _source))
 			"awareness":
 				add_awareness(float(v))
 				hud.stat_delta("aw", float(v))
@@ -439,6 +463,11 @@ func _roll_disaster(d: int) -> String:
 	}
 	if weights.has(_last_type):
 		weights[_last_type] *= 0.35
+	# her afet turu oyunda en az bir kez gelsin: henuz yasanmamis turler (orman yangini...) one cikar
+	if day >= 3:
+		for k in weights:
+			if not _seen_types.has(k):
+				weights[k] *= 3.0
 	var total := 0.0
 	for k in weights:
 		total += weights[k]
@@ -561,6 +590,7 @@ func _type_name(type: String) -> String:
 ## minor: kucuk olay (tek ev yangini); afet sayacini sifirlamaz.
 func run_disaster(type: String, minor := false) -> void:
 	_select(null)
+	_seen_types[type] = true
 	hud.flash({"quake": Color(1.0, 0.15, 0.1), "house_fire": Color(1.0, 0.45, 0.15), "forest_fire": Color(1.0, 0.5, 0.15),
 		"flood": Color(0.25, 0.5, 1.0)}.get(type, Color.RED), 2 if type == "quake" else 1)
 	if type == "quake":
@@ -614,6 +644,7 @@ func _record(r: Dictionary) -> void:
 	for k in ["casualties", "saved", "collapsed", "damaged", "burned", "evacuated"]:
 		totals[k] += int(r.get(k, 0))
 	totals.baseline += float(r.get("baseline", 0.0))
+	hud.lose_residents(int(r.get("casualties", 0)))  # olenlerin yakinlari sehri terk eder (kalici)
 	add_awareness(2.0)  # afet sonrasi halk biraz bilinclenir
 	audio.play("success" if r.saved >= r.casualties else "fail")
 
@@ -721,8 +752,10 @@ func _finale() -> void:
 
 ## Sehrin guvenlik notu (oyun sonu).
 func grade() -> Array:
-	var score := clampf(100.0 - totals.casualties * 0.35 - totals.collapsed * 0.4 + totals.saved * 0.1
-		+ awareness * 0.25 + flood_protection * 3, 0.0, 100.0)
+	# nufus: baslangic %40; sehir buyuduyse puan artar, insanlar gittiyse duser
+	var pop_ratio: float = hud.pop_ratio(hud.city_pop(self))
+	var score := clampf(95.0 - totals.casualties * 0.5 - totals.collapsed * 0.5 + totals.saved * 0.08
+		+ awareness * 0.2 + flood_protection * 3 + (pop_ratio - 40.0) * 0.6, 0.0, 100.0)
 	var letter := "F"
 	for g in [[85, "A"], [70, "B"], [55, "C"], [40, "D"]]:
 		if score >= g[0]:
@@ -755,6 +788,8 @@ func shop_desc(id: String) -> String:
 		return "Kıyılara kalıcı set çekilir: sel neredeyse hiç zarar veremez."
 	if id == "kacak_all":
 		return "Şehirdeki %d kaçak kat yıkılır; depremde ilk çöken binalar güvenli hâle gelir." % _kacak_list().size()
+	if id == "reinforce_district":
+		return GameData.shop_item(id).get("desc", "") + " Fiyat mahalledeki ev sayısına göre değişir; seçerken her mahallenin fiyatı haritada yazar."
 	return GameData.shop_item(id).get("desc", "")
 
 
@@ -763,17 +798,10 @@ func shop_cost(id: String) -> int:
 		return building_offer(id.get_slice(":", 1)).cost
 	match id:
 		"reinforce_district":
-			var costs := []
-			for d in map_info.district_names.size():
-				var c := _district_reinforce_cost(_district_reinforce_list(d))
-				if c > 0:
-					costs.append(c)
-			if costs.is_empty():
-				return 0
-			var sum := 0
-			for c in costs:
-				sum += c
-			return int(sum / costs.size() / 100) * 100  # ortalama mahalle (gercek fiyat tiklanan mahalleye gore)
+			# fiyat mahalleye gore degisir: magazada en ucuz mahalle (alinabilir mi kontrolu buna gore),
+			# satir "X - Y" araligini gosterir, secerken her mahallenin ustunde kendi fiyati yazar
+			var costs := _district_costs()
+			return 0 if costs.is_empty() else costs.min()
 		"kacak_all":
 			return _kacak_cost(_kacak_list())
 		"river":
@@ -857,6 +885,25 @@ func _district_reinforce_list(d: int) -> Array:
 				and map_info.district_of(b.position) == d:
 			out.append(b)
 	return out
+
+
+## Guclendirilecek evi olan mahallelerin paket fiyatlari.
+func _district_costs() -> Array:
+	var costs := []
+	for d in map_info.district_names.size():
+		var c := _district_reinforce_cost(_district_reinforce_list(d))
+		if c > 0:
+			costs.append(c)
+	return costs
+
+
+## Magaza satirindaki fiyat yazisi (TL'siz); "" = normal fiyat (shop_cost).
+func shop_price_text(id: String) -> String:
+	if id == "reinforce_district":
+		var costs := _district_costs()
+		if costs.size() > 1 and costs.min() != costs.max():
+			return "%s–%s" % [fmt_money(costs.min()).trim_suffix(" TL"), fmt_money(costs.max()).trim_suffix(" TL")]
+	return ""
 
 
 func _district_reinforce_cost(list: Array) -> int:
@@ -998,6 +1045,7 @@ func do_action(id: String) -> bool:
 				var at: Vector3 = disasters.build_museum(kind)
 				if at != Vector3.INF:
 					city.camera_rig.focus(at, 26.0, 1.0)
+					bubbles.add_museum(at, kind)  # tiklaninca patlar: ek farkindalik
 					hud.world_toast(at + Vector3.UP * 2.0, {"deprem": "Deprem Müzesi", "sel": "Sel Müzesi", "yangin": "Yangın Müzesi"}[kind] + " açıldı", good, "hall", 0.6)
 				audio.play("build")
 			"volunteers":
@@ -1073,6 +1121,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			_end_place_mode()
 			return
 		if event.button_index != MOUSE_BUTTON_LEFT:
+			return
+		if bubbles and bubbles.try_pop(event.position):
+			get_viewport().set_input_as_handled()
 			return
 		if disasters.responding:
 			return  # isaretlere HUD'daki IncidentMarker uzerinden tiklanir
@@ -1269,8 +1320,19 @@ func _update_district_labels() -> void:
 			_district_labels.append(l)
 	for i in _district_labels.size():
 		var aw := district_aw[i]
-		_district_labels[i].text = "%s\nFarkındalık %%%d" % [map_info.district_names[i], int(aw)]
-		_district_labels[i].modulate = Color(1, 0.45, 0.4).lerp(Color(0.5, 1, 0.55), aw / 100.0)
+		var text := "%s\nFarkındalık %%%d" % [map_info.district_names[i], int(aw)]
+		var col := Color(1, 0.45, 0.4).lerp(Color(0.5, 1, 0.55), aw / 100.0)
+		if place_mode == "reinforce_district":
+			# hedef secerken mahallenin gercek paket fiyati (magazadaki aralikla ayni hesap)
+			var cost := _district_reinforce_cost(_district_reinforce_list(i))
+			if cost <= 0:
+				text += "\nGüçlendirilecek ev yok"
+				col = Color(0.75, 0.75, 0.75)
+			else:
+				text += "\nGüçlendirme: %s" % fmt_money(cost)
+				col = Color(1.0, 0.85, 0.35) if money >= cost else Color(1.0, 0.4, 0.35)
+		_district_labels[i].text = text
+		_district_labels[i].modulate = col
 
 
 static func fmt_money(v: int) -> String:

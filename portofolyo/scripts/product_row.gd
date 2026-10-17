@@ -115,7 +115,8 @@ func _update_ui_state() -> void:
 			action_text = str(product_data["button_text"])
 		
 		# Buton içine eylem adı, fiyat ve altın 1 lira ikonu yerleştiriyoruz
-		buy_button.text = "%s  %s " % [action_text, GameManager.fmt_money(price).trim_suffix(" TL")]
+		var price_str: String = str(product_data.get("price_text", GameManager.fmt_money(price).trim_suffix(" TL")))
+		buy_button.text = "%s  %s " % [action_text, price_str]
 		buy_button.icon = COIN_TEXTURE
 		# para yetmiyorsa fiyat kirmizi
 		var col := Color(0.23, 0.04, 0.04) if is_affordable else Color(0.62, 0.08, 0.06)

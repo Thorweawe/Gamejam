@@ -51,87 +51,137 @@ func _ready() -> void:
 		_window_light.add_to_group("night_lights")
 		add_child(_window_light)
 	_build()
-	if not Engine.is_editor_hint():
-		_add_pin()
 
 
 static var _path_cache := {}  # model adi -> yol (ayni aramayi 120 bina tekrar tekrar yapmasin)
 
 
-# ------------------------------------------------------------------ haritada belirgin isaret (servis binalari, muzeler)
-## model oneki -> [ikon, renk]. Isaret her uzakliktan ayni boyutta gorunur ve hafifce suzulur.
-const PINS := {
-	"building_firestation": ["res://assets/textures/itfaiye_3_aracli.png", Color(0.93, 0.33, 0.25)],
+# ------------------------------------------------------------------ kamu binasi cati tabelasi
+## Kamu binalarinin catisinda binanin turunu gosteren tabela: renkli cerceveli ikon levhasi, direk ve
+## direk dibinde renkli taban. Levha kameraya doner (egik kamerada ve Q/E ile donunce de okunur) ama binanin parcasidir:
+## derinlik testi acik, bina yukselince / gelisince catiyla birlikte yer degistirir.
+## Muzelerin isareti baloncuktur (bubbles.gd): ilk acildiginda cikar, tiklaninca patlar.
+## model oneki -> [ikon, renk]
+const ROOF_SIGNS := {
+	"building_townhall": ["res://assets/textures/belediye_1_saat_kulesi.png", Color(0.48, 0.38, 0.86)],
 	"building_hospital": ["res://assets/textures/hastane_2_arti.png", Color(0.2, 0.62, 0.92)],
+	"building_firestation": ["res://assets/textures/itfaiye_3_aracli.png", Color(0.93, 0.33, 0.25)],
 	"building_afad": ["res://assets/textures/afad_1_merkez.png", Color(0.97, 0.6, 0.15)],
-	"building_museum_deprem": ["res://assets/textures/deprem_muze_1_klasik.png", Color(0.85, 0.55, 0.2)],
-	"building_museum_sel": ["res://assets/textures/sel_muze_1_klasik.png", Color(0.25, 0.55, 0.9)],
-	"building_museum_yangin": ["res://assets/textures/yangin_muze_1_klasik.png", Color(0.9, 0.3, 0.25)],
+	"building_school": ["res://assets/textures/kitap_2_acik.png", Color(0.98, 0.76, 0.18)],
+	"building_news": ["res://assets/textures/televizyon_1_retro.png", Color(0.16, 0.66, 0.62)],
 }
-static var _pin_bg := {}  # renk -> doku (bir kez cizilir)
-var _pin: Node3D
+const SIGN_SIZE := 0.95  # levha kenari (dunya birimi; bina 2x2)
+static var _sign_tex := {}  # onek -> levha dokusu (bir kez cizilir)
+static var _sign_mats := {}  # renk -> direk / taban malzemesi
+var _sign: Node3D
 
 
-func _add_pin() -> void:
-	var key := ""
-	for k in PINS:
+func _sign_key() -> String:
+	for k in ROOF_SIGNS:
 		if model_name.begins_with(k):
-			key = k
-	if key == "" or _pin:
+			return k
+	return ""
+
+
+## Tabelayi kur / guncel catiya tasi (model degisince: gelistirme, hasar, onarim).
+func _update_sign() -> void:
+	if Engine.is_editor_hint():
 		return
-	_pin = Node3D.new()
-	_pin.position = Vector3(0, top_height() + 0.9, 0)
-	add_child(_pin)
-	var bg := Sprite3D.new()
-	bg.texture = _pin_texture(PINS[key][1])
-	bg.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	bg.fixed_size = true
-	bg.pixel_size = 0.00045
-	bg.no_depth_test = true
-	bg.render_priority = 2
-	bg.offset = Vector2(0, 40)
-	_pin.add_child(bg)
-	var icon := Sprite3D.new()
-	icon.texture = load(PINS[key][0])
-	icon.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	icon.fixed_size = true
-	icon.pixel_size = 0.00045 * 0.82
-	icon.no_depth_test = true
-	icon.render_priority = 3
-	icon.offset = Vector2(0, 40 / 0.82 + 3)
-	_pin.add_child(icon)
-	var tw := _pin.create_tween().set_loops().set_trans(Tween.TRANS_SINE)
-	tw.tween_property(_pin, "position:y", _pin.position.y + 0.15, 1.2)
-	tw.tween_property(_pin, "position:y", _pin.position.y, 1.2)
+	var key := _sign_key()
+	if key == "":
+		if _sign:
+			_sign.queue_free()
+			_sign = null
+		return
+	if _sign == null:
+		_sign = _make_sign(key)
+		_visual.add_child(_sign)  # bina sallaninca / cokerken / gelisirken tabela da onunla hareket eder
+	_sign.visible = state != State.COLLAPSED
+	_sign.position = Vector3(0.0, top_height() - 0.04, 0.0)
 
 
-## Yuvarlak rozet + alt ucta igne: renkli kenarli beyaz daire (ikon net okunsun).
-static func _pin_texture(col: Color) -> Texture2D:
-	var key := col.to_html()
-	if _pin_bg.has(key):
-		return _pin_bg[key]
-	var size := 112
-	var img := Image.create(size, size + 22, false, Image.FORMAT_RGBA8)
+func _make_sign(key: String) -> Node3D:
+	var col: Color = ROOF_SIGNS[key][1]
+	var root := Node3D.new()
+	root.name = "RoofSign"
+	if not _sign_mats.has(key):
+		var metal := StandardMaterial3D.new()
+		metal.albedo_color = Color(0.32, 0.34, 0.38)
+		var base := StandardMaterial3D.new()
+		base.albedo_color = col
+		_sign_mats[key] = [metal, base]
+	# taban: catiya oturan renkli yassi kaide (turun rengi yukaridan da secilsin)
+	var base_mi := MeshInstance3D.new()
+	var base_mesh := CylinderMesh.new()
+	base_mesh.top_radius = 0.2
+	base_mesh.bottom_radius = 0.24
+	base_mesh.height = 0.08
+	base_mesh.radial_segments = 12
+	base_mesh.rings = 1
+	base_mi.mesh = base_mesh
+	base_mi.material_override = _sign_mats[key][1]
+	base_mi.position.y = 0.04
+	root.add_child(base_mi)
+	var post := MeshInstance3D.new()
+	var post_mesh := CylinderMesh.new()
+	post_mesh.top_radius = 0.025
+	post_mesh.bottom_radius = 0.03
+	post_mesh.height = 0.32
+	post_mesh.radial_segments = 6
+	post_mesh.rings = 1
+	post.mesh = post_mesh
+	post.material_override = _sign_mats[key][0]
+	post.position.y = 0.24
+	post.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(post)
+	var board := Sprite3D.new()
+	board.texture = _sign_texture(key)
+	board.pixel_size = SIGN_SIZE / 128.0
+	board.billboard = BaseMaterial3D.BILLBOARD_ENABLED  # kus bakisi kamerada da tam okunur
+	board.shaded = false  # isikli tabela: gece de okunur
+	board.alpha_cut = SpriteBase3D.ALPHA_CUT_OPAQUE_PREPASS
+	board.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+	board.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	board.position.y = 0.36 + SIGN_SIZE * 0.5
+	root.add_child(board)
+	return root
+
+
+## Levha: turun renginde kalin cerceve, krem ic, ortada ikon (yumusak kenarli, mipmapli).
+static func _sign_texture(key: String) -> Texture2D:
+	if _sign_tex.has(key):
+		return _sign_tex[key]
+	var col: Color = ROOF_SIGNS[key][1]
+	var size := 128
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0, 0, 0, 0))
-	var c := Vector2(size / 2.0, size / 2.0)
-	for y in img.get_height():
+	var half := size * 0.5
+	var radius := 26.0
+	var inner := Color(1.0, 0.98, 0.94)
+	for y in size:
 		for x in size:
-			var p := Vector2(x + 0.5, y + 0.5)
-			var d := p.distance_to(c)
-			# igne: asagi bakan ucgen
-			var tip := y > size * 0.7 and absf(x + 0.5 - c.x) < (size + 20 - y) * 0.45
-			var a := clampf(size * 0.5 - d, 0.0, 1.0)
-			if tip:
-				a = 1.0
+			# yuvarlatilmis kare uzaklik alani (kenarlarda 1 piksellik yumusatma)
+			var q := Vector2(absf(x + 0.5 - half), absf(y + 0.5 - half)) - Vector2(half - 2.0 - radius, half - 2.0 - radius)
+			var d := Vector2(maxf(q.x, 0.0), maxf(q.y, 0.0)).length() + minf(maxf(q.x, q.y), 0.0) - radius
+			var a := clampf(0.5 - d, 0.0, 1.0)
 			if a <= 0.0:
 				continue
-			var col2 := col  # renkli kenar + igne, beyaz ic
-			if d < size * 0.5 - 9 and not (tip and d > size * 0.5 - 9):
-				col2 = Color(1.0, 0.99, 0.96)
-			col2.a = a
-			img.set_pixel(x, y, col2)
+			var c := col.lerp(inner, clampf(-d - 11.0, 0.0, 1.0))  # 12 px renkli cerceve
+			if d > -3.0:
+				c = col.darkened(0.25)  # dis kenar cizgisi
+			c.a = a
+			img.set_pixel(x, y, c)
+	var icon_tex := load(ROOF_SIGNS[key][0]) as Texture2D
+	if icon_tex:
+		var icon := icon_tex.get_image()
+		if icon.is_compressed():
+			icon.decompress()
+		icon.convert(Image.FORMAT_RGBA8)
+		icon.resize(84, 84, Image.INTERPOLATE_LANCZOS)
+		img.blend_rect(icon, Rect2i(0, 0, 84, 84), Vector2i(22, 22))
+	img.generate_mipmaps()
 	var tex := ImageTexture.create_from_image(img)
-	_pin_bg[key] = tex
+	_sign_tex[key] = tex
 	return tex
 
 
@@ -221,6 +271,7 @@ func _finish() -> void:
 	_visual.rotation = Vector3.ZERO
 	_visual.scale = Vector3.ONE
 	_busy = false
+	_update_sign()
 	if state != State.NORMAL:
 		repair_days = maxi(repair_days, GameData.REPAIR_DAYS[state])
 	else:
@@ -246,7 +297,9 @@ func _build() -> void:
 		child.queue_free()
 	_models.clear()
 	_paths.clear()
+	_sign = null  # tabela _visual'in cocuguydu, yukarida silindi
 	_apply_visibility()
+	_update_sign()
 
 
 var _paths := {}  # durum -> model yolu ("" = bu durumun ozel modeli yok)
@@ -473,36 +526,46 @@ func top_height() -> float:
 	return top
 
 
-## Yangin efekti ac / kapat (alev + duman modelleri).
+## Yangin efekti ac / kapat: catidan ve pencerelerden cikan parcacikli alevler, kivilcim, duman
+## sutunu, titreyen isik (fire_fx.gd) + oyunun tarzindaki alev modelleri. Sondurulunce alev
+## kesilir, duman beyaz buhara doner.
 func set_on_fire(on: bool, big := true) -> void:
 	on_fire = on
 	for n in _fire_nodes:
-		n.queue_free()
+		FireFX.extinguish(n)
 	_fire_nodes.clear()
 	if not on:
 		return
 	var h := top_height()
 	var fire_path := "res://assets/models/afet/%s.gltf" % ("fire_large" if big else "fire_small")
-	for p in [Vector3(0.0, h - 0.05, 0.0), Vector3(0.35, h * 0.5, 0.55), Vector3(-0.4, 0.12, 0.6)]:
+	for p in [Vector3(0.0, h - 0.05, 0.0), Vector3(-0.4, 0.12, 0.6)]:
 		var f: Node3D = (load(fire_path) as PackedScene).instantiate()
 		f.position = p
-		f.scale = Vector3.ONE * randf_range(0.9, 1.3)
+		f.scale = Vector3.ONE * randf_range(0.8, 1.1)
 		add_child(f)
 		_fire_nodes.append(f)
-		var tw := f.create_tween().set_loops()
-		tw.tween_property(f, "scale:y", f.scale.y * 1.3, randf_range(0.18, 0.3))
-		tw.tween_property(f, "scale:y", f.scale.y * 0.85, randf_range(0.18, 0.3))
-	var smoke: Node3D = (load("res://assets/models/afet/smoke_column.gltf") as PackedScene).instantiate()
-	smoke.position = Vector3(0.1, h, 0.0)
-	add_child(smoke)
-	_fire_nodes.append(smoke)
-	var light := OmniLight3D.new()
-	light.position = Vector3(0, h * 0.6, 0.6)
-	light.light_color = Color(1.0, 0.5, 0.15)
-	light.light_energy = 2.5
-	light.omni_range = 2.5
-	add_child(light)
-	_fire_nodes.append(light)
+		_flicker(f)
+	# catida genis alev + duman, on cephede pencereden tasan kucuk alev
+	var roof := FireFX.make(Vector3(0.55, 0.08, 0.55), 1.15 if big else 0.85)
+	roof.position = Vector3(0.0, h - 0.15, 0.0)
+	add_child(roof)
+	_fire_nodes.append(roof)
+	var window := FireFX.make(Vector3(0.35, 0.15, 0.08), 0.7)
+	window.light_energy = 0.0  # catidaki isik yeter (isik sayisi = GPU maliyeti)
+	window.position = Vector3(0.25, h * 0.45, 0.85)
+	add_child(window)
+	_fire_nodes.append(window)
+
+
+## Alev modeli: tek eksende pompalamak yerine dalgalanan, hafif donen, faz kaydirmali titresim.
+static func _flicker(f: Node3D) -> void:
+	var s := f.scale
+	var tw := f.create_tween().set_loops().set_trans(Tween.TRANS_SINE)
+	for i in 3:
+		var k := randf_range(0.82, 1.3)
+		var t := randf_range(0.12, 0.24)
+		tw.tween_property(f, "scale", Vector3(s.x * (2.0 - k) * 0.5 + s.x * 0.5, s.y * k, s.z * (2.0 - k) * 0.5 + s.z * 0.5), t)
+		tw.parallel().tween_property(f, "rotation:y", f.rotation.y + randf_range(-0.25, 0.25), t)
 
 
 ## Secim halkasi (oyuncu binaya tikladiginda).

@@ -96,24 +96,16 @@ func _city_on_fire() -> void:
 	var forest: Array = Array(map_info.forest_tiles)
 	forest.sort_custom(func(a, b): return a.y > b.y)
 	for p in forest.slice(0, 18).filter(func(_p): return randf() < 0.35):
-		for i in 3:
+		for i in 2:
 			var f: Node3D = (load(M + "afet/fire_small.gltf") as PackedScene).instantiate()
 			f.position = Vector3(p.x + randf_range(-0.6, 0.6), 0.1, p.y + randf_range(-0.6, 0.6))
-			f.scale = Vector3.ONE * randf_range(1.4, 2.2)
+			f.scale = Vector3.ONE * randf_range(1.4, 2.0)
+			f.rotation.y = randf() * TAU
 			effects.add_child(f)
-			var tw := f.create_tween().set_loops()
-			tw.tween_property(f, "scale:y", f.scale.y * 1.35, randf_range(0.15, 0.3))
-			tw.tween_property(f, "scale:y", f.scale.y * 0.8, randf_range(0.15, 0.3))
-		var smoke: Node3D = (load(M + "afet/smoke_column.gltf") as PackedScene).instantiate()
-		smoke.position = Vector3(p.x, 0.3, p.y)
-		smoke.scale = Vector3.ONE * 1.3
-		effects.add_child(smoke)
-		var light := OmniLight3D.new()
-		light.position = Vector3(p.x, 0.6, p.y)
-		light.light_color = Color(1.0, 0.5, 0.15)
-		light.light_energy = 2.0
-		light.omni_range = 3.0
-		effects.add_child(light)
+			Building._flicker(f)
+		var fx := FireFX.make(Vector3(0.85, 0.25, 0.85), 1.35)  # alev, kivilcim, duman, isik
+		fx.position = Vector3(p.x, 0.15, p.y)
+		effects.add_child(fx)
 	_embers(effects)
 	# itfaiye ve ambulanslar yanan binalara gider
 	await get_tree().create_timer(1.5).timeout
@@ -129,13 +121,8 @@ func _big_fire(parent: Node3D, at: Vector3) -> void:
 		f.position = at + Vector3(randf_range(-0.4, 0.4), 0, randf_range(-0.4, 0.4))
 		f.scale = Vector3.ONE * randf_range(1.8, 2.4)
 		parent.add_child(f)
-		var tw := f.create_tween().set_loops()
-		tw.tween_property(f, "scale:y", f.scale.y * 1.3, randf_range(0.2, 0.32))
-		tw.tween_property(f, "scale:y", f.scale.y * 0.85, randf_range(0.2, 0.32))
-	var smoke: Node3D = (load(M + "afet/smoke_column.gltf") as PackedScene).instantiate()
-	smoke.position = at + Vector3(0, 0.4, 0)
-	smoke.scale = Vector3.ONE * 2.0
-	parent.add_child(smoke)
+		Building._flicker(f)
+	# duman sutunu binanin kendi yangin efektinden (Building.set_on_fire -> FireFX) gelir
 	var light := OmniLight3D.new()
 	light.position = at + Vector3(0, 0.6, 0)
 	light.light_color = Color(1.0, 0.45, 0.12)

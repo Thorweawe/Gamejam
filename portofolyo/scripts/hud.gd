@@ -47,6 +47,10 @@ const START_POP_RATIO := 40.0    # oyun %40 nufusla baslar (4.000)
 const MIN_POP_RATIO := 20.0      # bunun alti = oyun biter
 const ARRIVALS_PER_AW := 4       # her yeni gun, farkindaligin her yuzdesi icin gelen kisi (%100 = 400)
 const MONEY_PER_AW := 20         # farkindalik 1 puan artinca kasaya +20 TL, azalinca -20 TL
+const EMIGRATION_AW := 25        # farkindalik bunun altindaysa her sabah aileler sehri terk eder
+const EMIGRATION_PER_AW := 10    # esigin altindaki her puan icin giden kisi (%15 -> 100, %0 -> 250)
+const DEATH_FLIGHT := 4.0        # afette olen her kisi icin sehri kalici terk eden (oyun nufusu olcegiyle)
+var _warned_exodus := false
 
 var game: Node  # GameManager (game_manager.gd _ready'de atar)
 var font: Font
@@ -319,7 +323,8 @@ func _build_stats() -> void:
 	_pop_bar.add_theme_stylebox_override("background", sb(C_TINT, 4, 0, Color.TRANSPARENT, 0, 0))
 	_pop_bar.add_theme_stylebox_override("fill", sb(C_POP, 4, 0, Color.TRANSPARENT, 0, 0))
 	pv.add_child(_pop_bar)
-	p.tooltip_text = "Nüfus: vergi geliri getirir\nHer sabah farkındalık × %d kişi taşınır\n%%%d'nin altına düşerse oyun biter" % [ARRIVALS_PER_AW, int(MIN_POP_RATIO)]
+	p.tooltip_text = "Nüfus: vergi geliri getirir\nHer sabah farkındalık × %d kişi taşınır\nFarkındalık %%%d altındaysa aileler şehri terk eder\nAfette ölenlerin yakınları da şehirden gider\n%%%d'nin altına düşerse oyun biter" % [
+		ARRIVALS_PER_AW, EMIGRATION_AW, int(MIN_POP_RATIO)]
 	p.mouse_filter = Control.MOUSE_FILTER_STOP
 	# farkindalik
 	p = _panel(row, C_BG, C_LINE, 12, 6)
@@ -416,14 +421,30 @@ func _awareness_economy(g: Node) -> void:
 	elif aw != _last_aw:
 		var gain := (aw - _last_aw) * MONEY_PER_AW
 		_last_aw = aw
-		g.money += gain
-		money_delta(gain)
+		var before: int = g.money
+		g.money = maxi(0, g.money + gain)  # kasa eksiye dusmez
+		money_delta(g.money - before)
 	if g.day != _arrival_day and _pop_scale > 0.0:
 		_arrival_day = g.day
 		var n := aw * ARRIVALS_PER_AW
-		if n > 0:
-			_migrants += n
-			_float_from(_pop_chip, "+%d kişi" % n, C_POP)
+		# guvensiz sehirden goc: farkindalik EMIGRATION_AW altindaysa aileler sehri terk eder
+		var leave := maxi(0, EMIGRATION_AW - aw) * EMIGRATION_PER_AW if g.day > 1 else 0
+		_migrants += n - leave
+		if n - leave != 0:
+			_float_from(_pop_chip, "%+d kişi" % (n - leave), C_POP if n >= leave else C_BAD)
+		if leave > n and not _warned_exodus:
+			_warned_exodus = true
+			toast("Halk kendini güvende hissetmiyor: farkındalık %%%d altındayken aileler şehri terk ediyor!" % EMIGRATION_AW, "bad")
+
+
+## Afette olen her kisi icin ailesi ve korkan komsulari da sehri terk eder (kalici nufus kaybi;
+## yikilan binalar onarilir ama giden insan geri gelmez).
+func lose_residents(casualties: int) -> void:
+	if casualties <= 0 or _pop_scale <= 0.0:
+		return
+	var n := int(round(casualties * _pop_scale * DEATH_FLIGHT))
+	_migrants -= n
+	_float_from(_pop_chip, "-%d kişi" % n, C_BAD)
 
 
 ## Nufus orani: 0-100 (10.000 nufus = %100)
@@ -775,8 +796,11 @@ func target_rect(name: String) -> Rect2:
 		"clock":
 			c = get_node_or_null("../UI/ClockPanel")
 		"forecast_area":
+			# uyari paneli saatin altinda (_build_right: offset_top 86); panel gizliyken de o alani goster
+			if _forecast and _forecast.is_visible_in_tree():
+				return _forecast.get_global_rect()
 			var vp := _root.size
-			return Rect2(vp.x - 344, 14, 330, 120)
+			return Rect2(vp.x - 344, 86, 330, 130)
 	if c == null or not c.is_visible_in_tree():
 		return Rect2()
 	return c.get_global_rect()
@@ -1244,8 +1268,14 @@ func show_event(ev: Dictionary, rel := 0) -> int:
 		bubble_text.custom_minimum_size.x = 500
 	_text(v, ev.text, 540, 16, C_MUTED)
 	var choices := _vbox(v, 10)
+	# parasi yetmeyen secenek kilitli (kasa eksiye dusmesin); hepsi yetmiyorsa en ucuzu acik kalir
+	var costs := []
+	for c in ev.choices:
+		costs.append(maxi(0, -int(c.effects.get("money", 0))))
+	var money: int = game.money if game else 0
+	var cheapest := costs.find(costs.min())
 	for i in ev.choices.size():
-		_choice_card(choices, ev.choices[i], i)
+		_choice_card(choices, ev.choices[i], i, costs[i] > money and i != cheapest)
 	_pop_in(card, dim)
 	if portrait:
 		portrait.figure.gesture("wave" if rel >= 0 else "angry")
@@ -1303,7 +1333,7 @@ func _pop_hearts(h: Control, delta: int) -> void:
 	tw.tween_property(h, "scale", Vector2.ONE, 0.2)
 
 
-func _choice_card(parent: Node, choice: Dictionary, index: int) -> void:
+func _choice_card(parent: Node, choice: Dictionary, index: int, locked := false) -> void:
 	var normal := sb(C_TINT, 14, 1, C_LINE, 14, 10)
 	var hover := sb(Color(0.17, 0.54, 0.78, 0.14), 14, 2, C_BLUE, 14, 10)
 	var p := PanelContainer.new()
@@ -1325,6 +1355,11 @@ func _choice_card(parent: Node, choice: Dictionary, index: int) -> void:
 		_chip(flow, c[0], c[1], c[2], 13, Color(c[2].r, c[2].g, c[2].b, 0.12))
 	for c in p.find_children("*", "Control", true, false):
 		c.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if locked:
+		_chip(flow, "lock", "Bütçe yetersiz", C_BAD, 13, Color(C_BAD.r, C_BAD.g, C_BAD.b, 0.12))
+		p.modulate = Color(1, 1, 1, 0.55)
+		p.tooltip_text = "Kasada bu seçenek için yeterli para yok"
+		return
 	_clickable(p, func():
 		_sfx("click")
 		_modal_done.emit(index))

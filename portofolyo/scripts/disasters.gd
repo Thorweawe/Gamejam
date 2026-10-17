@@ -353,6 +353,7 @@ func _ignite(b: Building, r: Dictionary, seconds: float) -> void:
 	_track(inc, r)
 	if b.population() > 0 and randf() < 0.6:
 		_track(spawn_incident("injured", b.global_position + Vector3(0.6, 0, 0.6), maxi(1, people / 2), 30.0, b), r)
+	_spread_while_burning(b, inc, r)
 	inc.resolved.connect(func(_i, saved, _lost):
 		b.set_on_fire(false)
 		traffic.release_onlookers(b.global_position)
@@ -364,13 +365,63 @@ func _ignite(b: Building, r: Dictionary, seconds: float) -> void:
 		b.collapse()
 		r.collapsed += 1
 		life.mourners(b)
-		# sondurulemeyen yangin komsuya sicrar
+		# sondurulemeyen yangin komsulara sicrar (her komsu icin ayri zar, en fazla iki bina)
+		var spread := 0
 		for o in city.buildings():
-			if o != b and o.state != Building.State.COLLAPSED and not o.on_fire and o.position.distance_to(b.position) < 2.3:
-				if randf() < 0.55 * game.risk.fire:
+			if spread >= 2:
+				break
+			if o != b and o.state != Building.State.COLLAPSED and not o.on_fire and o.position.distance_to(b.position) < 2.9:
+				if randf() < clampf(0.6 * game.risk.fire, 0.2, 0.9):
+					spread += 1
 					game.notify.emit("Yangın söndürülemedi ve yan binaya sıçradı!", "disaster")
-					_ignite(o, r, 12.0)
-				break)
+					_ignite(o, r, 12.0))
+
+
+## Itfaiye calismaya baslayana kadar yangin komsu binalara sicrayabilir (bitisik nizam, ruzgar).
+## Ilk birkac saniye guvenli; sonra her saniye sans. Hizli mudahale, yangin musluklari, mahalle
+## farkindaligi ve yangin tupleri yayilmayi yavaslatir; riskli kararlar (risk.fire) hizlandirir.
+const FIRE_SPREAD_GRACE := 4.0
+const FIRE_SPREAD_MAX := 6  # bir yangin olayinda ayni anda en fazla yanan bina
+
+
+func _spread_while_burning(b: Building, inc: Incident, r: Dictionary) -> void:
+	var t := 0.0
+	var ref: WeakRef = weakref(inc)
+	while true:
+		await _wait(1.0)
+		var i: Incident = ref.get_ref()
+		if i == null or i.state == Incident.State.DONE or not is_instance_valid(b) or not b.on_fire:
+			return
+		if i.state == Incident.State.WORKING:
+			continue  # su sikiliyor: sicramaz
+		t += 1.0
+		if t < FIRE_SPREAD_GRACE:
+			continue
+		var p: float = 0.07 * game.risk.fire * (0.6 if game.hydrants else 1.0) * (0.8 if game.extinguishers else 1.0)
+		p *= 1.0 - game.district_awareness(b.position) / 100.0 * 0.5
+		if randf() >= p:
+			continue
+		var burning := 0
+		for o in city.buildings():
+			if o.on_fire:
+				burning += 1
+		if burning >= FIRE_SPREAD_MAX:
+			return
+		var target: Building = null
+		var best := INF
+		for o in city.buildings():
+			if o == b or o.on_fire or o.state == Building.State.COLLAPSED or o.closed_days > 0:
+				continue
+			var d: float = o.position.distance_to(b.position)
+			if d < 2.9 and d < best:
+				best = d
+				target = o
+		if target == null:
+			return
+		game.notify.emit("Yangın yan binaya sıçradı: %s alevler içinde! Hemen itfaiye gönder" % target.display_name(), "disaster")
+		get_tree().call_group("audio", "play", "alert_soft")
+		_ignite(target, r, 14.0)
+		t = 0.0  # bir sonraki sicrama icin yeniden bekle
 
 
 # ------------------------------------------------------------------ orman yangini
@@ -410,7 +461,7 @@ func forest_fire(start: Vector2i, focus := true) -> Dictionary:
 		burning[k] = inc
 		inc.resolved.connect(func(_i, saved, _lost):
 			for f in props[k]:
-				f.queue_free()
+				FireFX.extinguish(f)
 			props.erase(k)
 			burning.erase(k)
 			if saved == 0:
@@ -446,27 +497,20 @@ func forest_fire(start: Vector2i, focus := true) -> Dictionary:
 
 func _spawn_tile_fire(k: Vector2i) -> Array:
 	var out := []
-	for i in 3:
+	for i in 2:
 		var f: Node3D = (load(M + "afet/fire_small.gltf") as PackedScene).instantiate()
 		f.position = Vector3(k.x + randf_range(-0.6, 0.6), 0.1, k.y + randf_range(-0.6, 0.6))
-		f.scale = Vector3.ONE * randf_range(1.4, 2.2)
+		f.scale = Vector3.ONE * randf_range(1.3, 1.9)
+		f.rotation.y = randf() * TAU
 		effects.add_child(f)
-		var tw := f.create_tween().set_loops()
-		tw.tween_property(f, "scale:y", f.scale.y * 1.35, randf_range(0.15, 0.3))
-		tw.tween_property(f, "scale:y", f.scale.y * 0.8, randf_range(0.15, 0.3))
+		Building._flicker(f)
 		out.append(f)
-	var smoke: Node3D = (load(M + "afet/smoke_column.gltf") as PackedScene).instantiate()
-	smoke.position = Vector3(k.x, 0.3, k.y)
-	smoke.scale = Vector3.ONE * 1.3
-	effects.add_child(smoke)
-	out.append(smoke)
-	var light := OmniLight3D.new()
-	light.position = Vector3(k.x, 0.6, k.y)
-	light.light_color = Color(1.0, 0.5, 0.15)
-	light.light_energy = 2.0
-	light.omni_range = 3.0
-	effects.add_child(light)
-	out.append(light)
+	# agaclarin arasinda karo boyu alev, kivilcim, kalin duman (fire_fx.gd)
+	var fx := FireFX.make(Vector3(0.85, 0.25, 0.85), 1.35)
+	fx.light_energy = 2.2
+	fx.position = Vector3(k.x, 0.15, k.y)
+	effects.add_child(fx)
+	out.append(fx)
 	return out
 
 

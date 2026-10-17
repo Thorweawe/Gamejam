@@ -6768,10 +6768,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0.1, -5)
 [node name="assembly_sign_17_18" parent="Props" instance=ExtResource("63_r")]
 transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, -10.15, 0.1, -4.15)
 
-[node name="house_lv1_18_18" type="Node3D" parent="Buildings"]
+[node name="building_afad_18_18" type="Node3D" parent="Buildings"]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -9, 0, -5)
 script = ExtResource("3_r")
-model_name = "house_lv1"
+model_name = "building_afad"
 
 [node name="road_19_18" parent="Roads" instance=ExtResource("44_r")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0, -5)
@@ -6779,10 +6779,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0, -5)
 [node name="grass_20_18" parent="Ground" instance=ExtResource("23_r")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, -5)
 
-[node name="building_school_21_18" type="Node3D" parent="Buildings"]
+[node name="house_lv2_21_18" type="Node3D" parent="Buildings"]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -3, 0, -5)
 script = ExtResource("3_r")
-model_name = "building_school"
+model_name = "house_lv2"
 
 [node name="grass_22_18" parent="Ground" instance=ExtResource("48_r")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, -5)
@@ -6795,10 +6795,10 @@ transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 3, 0, -5)
 script = ExtResource("3_r")
 model_name = "building_A"
 
-[node name="building_news_25_18" type="Node3D" parent="Buildings"]
+[node name="house_lv1_25_18" type="Node3D" parent="Buildings"]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 5, 0, -5)
 script = ExtResource("3_r")
-model_name = "building_news"
+model_name = "house_lv1"
 
 [node name="building_B_26_18" type="Node3D" parent="Buildings"]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 7, 0, -5)
@@ -7128,10 +7128,10 @@ transform = Transform3D(-0.0501712, 0, -0.40218, 0, 0.405298, 0, 0.40218, 0, -0.
 [node name="bench_29_19" parent="Props" instance=ExtResource("66_r")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.7, 0.1, -2.55)
 
-[node name="house_lv3_30_19" type="Node3D" parent="Buildings"]
+[node name="building_hospital_30_19" type="Node3D" parent="Buildings"]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 15, 0, -3)
 script = ExtResource("3_r")
-model_name = "house_lv3"
+model_name = "building_hospital"
 
 [node name="road_31_19" parent="Roads" instance=ExtResource("44_r")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 0, -3)
@@ -7961,10 +7961,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 3)
 [node name="road_23_22" parent="Roads" instance=ExtResource("73_r")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 3)
 
-[node name="building_hospital_24_22" type="Node3D" parent="Buildings"]
+[node name="house_lv3_24_22" type="Node3D" parent="Buildings"]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 3, 0, 3)
 script = ExtResource("3_r")
-model_name = "building_hospital"
+model_name = "house_lv3"
 
 [node name="grass_25_22" parent="Ground" instance=ExtResource("23_r")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 3)
@@ -7972,10 +7972,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 3)
 [node name="bush_25_22" parent="Nature" instance=ExtResource("64_r")]
 transform = Transform3D(-0.126638, 0, -0.385015, 0, 0.405307, 0, 0.385015, 0, -0.126638, 5.2728, 0.1, 3.56039)
 
-[node name="building_afad_26_22" type="Node3D" parent="Buildings"]
+[node name="house_lv1_26_22" type="Node3D" parent="Buildings"]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 7, 0, 3)
 script = ExtResource("3_r")
-model_name = "building_afad"
+model_name = "house_lv1"
 
 [node name="road_27_22" parent="Roads" instance=ExtResource("44_r")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, 3)
@@ -8212,10 +8212,10 @@ model_name = "house_lv1"
 [node name="road_15_23" parent="Roads" instance=ExtResource("44_r")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, 5)
 
-[node name="house_lv2_16_23" type="Node3D" parent="Buildings"]
+[node name="building_school_16_23" type="Node3D" parent="Buildings"]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -13, 0, 5)
 script = ExtResource("3_r")
-model_name = "house_lv2"
+model_name = "building_school"
 
 [node name="grass_17_23" parent="Ground" instance=ExtResource("50_r")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0, 5)
@@ -8260,10 +8260,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 5)
 [node name="plaza_25_23" parent="Ground" instance=ExtResource("69_r")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 5)
 
-[node name="building_firestation_26_23" type="Node3D" parent="Buildings"]
+[node name="house_lv0_gecekondu_26_23" type="Node3D" parent="Buildings"]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 7, 0, 5)
 script = ExtResource("3_r")
-model_name = "building_firestation"
+model_name = "house_lv0_gecekondu"
 
 [node name="road_27_23" parent="Roads" instance=ExtResource("44_r")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, 5)
@@ -9567,10 +9567,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, 13)
 [node name="lamp_27_27" parent="Props" instance=ExtResource("46_r")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 8.07, 0.1, 13)
 
-[node name="house_lv1_28_27" type="Node3D" parent="Buildings"]
+[node name="building_news_28_27" type="Node3D" parent="Buildings"]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11, 0, 13)
 script = ExtResource("3_r")
-model_name = "house_lv1"
+model_name = "building_news"
 
 [node name="grass_29_27" parent="Ground" instance=ExtResource("48_r")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0, 13)
@@ -9846,10 +9846,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0, 15)
 script = ExtResource("3_r")
 model_name = "house_lv0_gecekondu"
 
-[node name="house_lv0_gecekondu_18_28" type="Node3D" parent="Buildings"]
+[node name="building_firestation_18_28" type="Node3D" parent="Buildings"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, 15)
 script = ExtResource("3_r")
-model_name = "house_lv0_gecekondu"
+model_name = "building_firestation"
 
 [node name="road_19_28" parent="Roads" instance=ExtResource("44_r")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0, 15)

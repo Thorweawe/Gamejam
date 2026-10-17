@@ -267,6 +267,8 @@ func _row_data(id: String) -> Dictionary:
 	d.name = game.shop_name(id) if game else it.name
 	d.desc = game.shop_desc(id) if game else it.desc
 	d.price = game.shop_cost(id) if game else maxi(0, int(it.cost))
+	if game and game.shop_price_text(id) != "":
+		d.price_text = game.shop_price_text(id)  # ornek: mahalleye gore degisen fiyat araligi
 	d.icon = it.icon
 	if it.get("target", false):
 		d.button_text = "Mahalle seç"

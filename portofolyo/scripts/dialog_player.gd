@@ -11,6 +11,10 @@ const HUD := preload("res://scripts/hud.gd")
 const C_TEXT := Color("#3b3330")
 const C_MUTED := Color("#8a7666")
 const VOWELS := {"a": "a", "ı": "a", "e": "e", "i": "i", "o": "o", "ö": "o", "u": "o", "ü": "o"}
+## Harf -> agiz bicimi (CharacterFigure.vowel: 0 genis "i/e" .. 1 yuvarlak "o/u")
+const SHAPES := {"a": 0.45, "ı": 0.3, "e": 0.15, "i": 0.0, "o": 0.85, "ö": 0.8, "u": 1.0, "ü": 0.95}
+const LIPS_CLOSED := ["m", "b", "p"]  # dudaklar birlesir
+const PUNCT := [",", ".", "!", "?", "…", ":", ";", "\"", "'"]
 const CHARS_PER_SEC := 40.0
 
 var hud: Node  # odak hedefleri icin (hud.target_rect)
@@ -46,6 +50,8 @@ var _bark_portrait: Portrait
 var _bark_text: Label
 var _bark_voice: AudioStreamPlayer
 var _bark_busy := false
+var _bark_speaking := false  # kisa replik su an konusuyor (yazi / ses akiyor)
+var _saying := 0  # karar kartinda konusan karakter sayisi (say)
 var _bark_queue: Array = []
 var _bark_talk := 0.0
 var _extra := {}  # baska yerlerdeki portreler (karar karti) -> agiz acikligi
@@ -156,12 +162,35 @@ void fragment() {
 	_text.add_theme_font_size_override("font_size", 20)
 	_text.add_theme_color_override("font_color", C_TEXT)
 	v.add_child(_text)
+	# alt satir: solda "Atla" (kutunun icinde, gozden kacmasin), sagda devam oku
+	var bottom := HBoxContainer.new()
+	bottom.add_theme_constant_override("separation", 10)
+	v.add_child(bottom)
+	_skip_btn = Button.new()
+	_skip_btn.text = "Sahneyi atla  »"
+	_skip_btn.tooltip_text = "ESC"
+	_skip_btn.focus_mode = Control.FOCUS_NONE
+	_skip_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	_skip_btn.add_theme_font_override("font", bold)
+	_skip_btn.add_theme_font_size_override("font_size", 14)
+	for st in ["font_color", "font_hover_color", "font_pressed_color"]:
+		_skip_btn.add_theme_color_override(st, Color("#a0552a") if st != "font_color" else C_MUTED)
+	var accent := Color("#d76f34")
+	_skip_btn.add_theme_stylebox_override("normal", HUD.sb(Color(accent.r, accent.g, accent.b, 0.08), 10, 1, Color(accent.r, accent.g, accent.b, 0.35), 12, 3))
+	_skip_btn.add_theme_stylebox_override("hover", HUD.sb(Color(accent.r, accent.g, accent.b, 0.18), 10, 1, Color(accent.r, accent.g, accent.b, 0.7), 12, 3))
+	_skip_btn.add_theme_stylebox_override("pressed", HUD.sb(Color(accent.r, accent.g, accent.b, 0.28), 10, 1, Color(accent.r, accent.g, accent.b, 0.8), 12, 3))
+	_skip_btn.pressed.connect(func(): _skip = true)
+	bottom.add_child(_skip_btn)
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bottom.add_child(spacer)
 	_more = UIIcon.new()
 	_more.kind = "play"
-	_more.color = Color("#d76f34")
+	_more.color = accent
 	_more.custom_minimum_size = Vector2(16, 16)
-	_more.size_flags_horizontal = Control.SIZE_SHRINK_END
-	v.add_child(_more)
+	_more.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	bottom.add_child(_more)
 	_name_tag = PanelContainer.new()
 	add_child(_name_tag)
 	_name = Label.new()
@@ -169,22 +198,6 @@ void fragment() {
 	_name.add_theme_font_size_override("font_size", 18)
 	_name.add_theme_color_override("font_color", Color.WHITE)
 	_name_tag.add_child(_name)
-
-	_skip_btn = Button.new()
-	_skip_btn.text = "Atla  ›"
-	_skip_btn.focus_mode = Control.FOCUS_NONE
-	_skip_btn.add_theme_font_override("font", bold)
-	_skip_btn.add_theme_font_size_override("font_size", 16)
-	_skip_btn.add_theme_stylebox_override("normal", HUD.sb(Color(1, 1, 1, 0.12), 12, 1, Color(1, 1, 1, 0.2), 16, 6))
-	_skip_btn.add_theme_stylebox_override("hover", HUD.sb(Color(1, 1, 1, 0.22), 12, 1, Color(1, 1, 1, 0.4), 16, 6))
-	_skip_btn.add_theme_stylebox_override("pressed", HUD.sb(Color(1, 1, 1, 0.3), 12, 1, Color(1, 1, 1, 0.4), 16, 6))
-	_skip_btn.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-	_skip_btn.offset_left = -130
-	_skip_btn.offset_right = -20
-	_skip_btn.offset_top = 20
-	_skip_btn.offset_bottom = 58
-	_skip_btn.pressed.connect(func(): _skip = true)
-	add_child(_skip_btn)
 	resized.connect(_layout)
 	_layout()
 
@@ -344,11 +357,7 @@ func _speak(p: Portrait, line: Dictionary, label: Label, player: AudioStreamPlay
 		if n != label.visible_characters:
 			label.visible_characters = n
 			var ch := text.substr(n - 1, 1).to_lower()
-			var mouth := 0.0
-			if VOWELS.has(ch):
-				mouth = 0.9
-			elif ch.strip_edges() != "" and not ch in [",", ".", "!", "?", "…", ":", "\"", "'"]:
-				mouth = 0.35
+			var mouth := _mouth_for(ch, p.figure)
 			if wait_click:
 				_talk_target = mouth
 			else:
@@ -376,6 +385,7 @@ func _speak(p: Portrait, line: Dictionary, label: Label, player: AudioStreamPlay
 		if voiced:
 			while player.playing:
 				await get_tree().process_frame
+		_bark_speaking = false  # sozu bitti; kutu okunsun diye biraz daha ekranda kalir
 		await get_tree().create_timer(1.6 + text.length() * 0.02).timeout
 
 
@@ -385,6 +395,19 @@ func say(p: Portrait, line: Variant, label: Label, speed := 45.0) -> void:
 	var text: String = line.get("text", "") if line is Dictionary else str(line)
 	var path := Dialogs.voice_path(line.get("id", "")) if line is Dictionary else ""
 	var voiced := path != ""
+	# once Nermin'in kisa repligi (bark) bitsin, sonra karttaki karakter konussun (sesler ust uste binmesin)
+	if _bark_speaking and is_instance_valid(label):
+		label.text = ""
+		while _bark_speaking:
+			await get_tree().process_frame
+			if not is_instance_valid(label) or not is_instance_valid(p):
+				return
+	_saying += 1
+	await _say_line(p, text, path, voiced, label, speed)
+	_saying -= 1
+
+
+func _say_line(p: Portrait, text: String, path: String, voiced: bool, label: Label, speed: float) -> void:
 	_card_voice.stop()
 	_card_talker = p if voiced else null
 	if voiced:
@@ -406,7 +429,7 @@ func say(p: Portrait, line: Variant, label: Label, speed := 45.0) -> void:
 		if n != label.visible_characters:
 			label.visible_characters = n
 			var ch := text.substr(n - 1, 1).to_lower()
-			var mouth := 0.9 if VOWELS.has(ch) else (0.35 if ch.strip_edges() != "" and not ch in [",", ".", "!", "?", ":", "\"", "'"] else 0.0)
+			var mouth := _mouth_for(ch, p.figure)
 			_extra[p] = mouth
 			if not voiced and mouth > 0.0 and n - last_blip >= 2:
 				last_blip = n
@@ -424,6 +447,19 @@ func say(p: Portrait, line: Variant, label: Label, speed := 45.0) -> void:
 	_extra[p] = 0.0
 
 
+## Yazidan dudak senkronu: sesli harf acar (bicimi harfe gore), m/b/p dudaklari kapatir,
+## diger sessizler yari acik, bosluk / noktalama kapali. Acilip kapanma yumusakligi figurde.
+func _mouth_for(ch: String, fig: CharacterFigure) -> float:
+	if SHAPES.has(ch):
+		fig.vowel = SHAPES[ch]
+		return 0.75 + SHAPES[ch] * 0.1 if ch != "i" else 0.6
+	if ch in LIPS_CLOSED:
+		return 0.0
+	if ch.strip_edges() == "" or ch in PUNCT:
+		return 0.0
+	return 0.32
+
+
 func _blip(vowel: String, pitch: float) -> void:
 	for b in _blips:
 		if not b.playing:
@@ -435,18 +471,22 @@ func _blip(vowel: String, pitch: float) -> void:
 
 func _process(delta: float) -> void:
 	_t += delta
+	# hedef aciklik dogrudan verilir; CharacterFigure hizli acip yumusak kapatir (cift yumusatma
+	# agzi agirlastiriyordu). Seslendirmede aciklik ses siddetinden, bicim spektrumdan gelir.
 	var level := _talk_target
-	if _voice.playing and _spectrum:
+	if _voice.playing and _spectrum and _talker:
 		level = _voice_level()
+		_talker.figure.vowel = _voice_shape()
 	if _talker:
-		_talker.figure.talk = lerpf(_talker.figure.talk, level, minf(1.0, delta * 20.0))
+		_talker.figure.talk = level
 	for p in [_left, _right]:
 		if p != _talker:
-			p.figure.talk = lerpf(p.figure.talk, 0.0, minf(1.0, delta * 15.0))
+			p.figure.talk = 0.0
 	var bl := _bark_talk
 	if _bark_voice.playing and _spectrum:
 		bl = _voice_level()
-	_bark_portrait.figure.talk = lerpf(_bark_portrait.figure.talk, bl, minf(1.0, delta * 20.0))
+		_bark_portrait.figure.vowel = _voice_shape()
+	_bark_portrait.figure.talk = bl
 	for p in _extra.keys():
 		if not is_instance_valid(p):
 			_extra.erase(p)
@@ -454,7 +494,8 @@ func _process(delta: float) -> void:
 		var lv: float = _extra[p]
 		if p == _card_talker and _card_voice.playing and _spectrum:
 			lv = _voice_level()
-		p.figure.talk = lerpf(p.figure.talk, lv, minf(1.0, delta * 20.0))
+			p.figure.vowel = _voice_shape()
+		p.figure.talk = lv
 	if _more.visible:
 		_more.position.y = sin(_t * 6.0) * 3.0
 	if _frame.visible:
@@ -464,6 +505,15 @@ func _process(delta: float) -> void:
 func _voice_level() -> float:
 	var m := _spectrum.get_magnitude_for_frequency_range(90.0, 3500.0).length()
 	return clampf((linear_to_db(maxf(m, 0.00001)) + 52.0) / 26.0, 0.0, 1.0)
+
+
+## Seslendirmede agiz bicimi: tiz enerji (2-4 kHz, "i/e") genis agiz, pes formant (300-900 Hz,
+## "o/u") yuvarlak agiz. Kaba ama canli: her hecede agiz bicim degistirir.
+func _voice_shape() -> float:
+	var low := _spectrum.get_magnitude_for_frequency_range(300.0, 900.0).length()
+	var high := _spectrum.get_magnitude_for_frequency_range(2000.0, 4000.0).length()
+	var r := high / maxf(low, 0.00001)
+	return clampf(0.95 - r * 2.5, 0.0, 1.0)
 
 
 # ------------------------------------------------------------------ ogretici odagi
@@ -512,6 +562,10 @@ func bark(key_or_line: Variant) -> void:
 			_bark_queue.append(line)
 		return
 	_bark_busy = true
+	# karar kartindaki karakter konusuyorsa sozunu kesme: bitmesini bekle
+	while _saying > 0:
+		await get_tree().process_frame
+	_bark_speaking = true
 	if _bark_portrait.char_id != line.who:
 		_bark_portrait.setup(line.who)
 	_bark_portrait.figure.set_mood(line.get("mood", "neutral"), true)
