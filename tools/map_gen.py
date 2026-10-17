@@ -47,7 +47,7 @@ OLD_PLAN = [  # sehrin cekirdegi (koordinatlar oyunda sabit; build_plan bunu buy
     "~RMMMwwwwwwwwwwwwBwwwwwwwwwww~~~~~",
     "RMMMMMmmg00k01001=01000k01g..~~~~~",
     "RMMMMMmm0=================1..~~~~~",
-    "~RMMMMmm1=1Aa=g2g=c1c=323=c..~~~~~",
+    "~RMMMMmmf=1Aa=g2g=c1c=323=c..~~~~~",
     "~RMMMMmm0=2p1=ppp=cPc=2ph=1U.~~~~~",
     "~~RMMMmm1=12k=1b2=ccc=3R2=c.~~~~~~",
     "~~RMMMmm0=================c.~~~~~~",
@@ -57,7 +57,7 @@ OLD_PLAN = [  # sehrin cekirdegi (koordinatlar oyunda sabit; build_plan bunu buy
     "~RMMMMmm0=================c..~~~~~",
     "~~RMMMmm1=0A1=TpT=2C3=2A1=c..~~~~~",
     "~~RMMMmm0=0p1=pAp=2p2=npK=1U~~~~~~",
-    "~~RMMMmm0=10f=TpT=132=121=c.~~~~~~",
+    "~~RMMMmm0=101=TpT=132=121=c.~~~~~~",
     "~~RMMMmm0=================1.~~~~~~",
     "~~RMMMmmgg12g21g2g12g21g2g..~~~~~~",
     "~RMMMMMM....................~~~~~~",
@@ -390,6 +390,13 @@ def main():
     mount = mount.filter(ImageFilter.GaussianBlur(10))
     path = path.filter(ImageFilter.GaussianBlur(1.6))
     Image.merge("RGB", (forest, mount, path)).save(os.path.join(tex_dir, "terrain_mask.png"))
+    # kumsal maskesi: cim / kum siniri karo kenarinda zikzak yapmasin, kivrimli bir cizgi olsun
+    sand = Image.new("L", tsize, 0)
+    for r in range(H):
+        for c in range(W):
+            if PLAN[r][c] in ".UJLR":
+                sand.paste(255, (tpad + c * tp, tpad + r * tp, tpad + (c + 1) * tp, tpad + (r + 1) * tp))
+    sand.filter(ImageFilter.GaussianBlur(13)).save(os.path.join(tex_dir, "sand_mask.png"))
     x0, z0 = pos(0, 0)
     tile_px = 2.0 / px  # dunya birimi / piksel
     map_min = (x0 - 1.0 - pad * tile_px, z0 - 1.0 - pad * tile_px)
@@ -517,7 +524,7 @@ def main():
                         prop(f"umbrella{i}_{n}", "sokak/beach_umbrella", x + rnd.uniform(-0.6, 0.6), 0.1, z + rnd.uniform(-0.6, 0.6),
                              yaw=rnd.uniform(0, 360), scale=1.4)
                 elif ch == "J":
-                    prop(f"pier_{n}", "sokak/pier", x + 0.6, 0.0, z)
+                    prop(f"pier_{n}", "sokak/pier", x - 1.3, 0.0, z)  # kumsala otursun
                 elif ch == "L":
                     prop(f"lighthouse_{n}", "sokak/lighthouse", x, 0.05, z, yaw=200, scale=1.1)
                 elif rnd.random() < 0.06:

@@ -255,7 +255,7 @@ func _start_day(d: int) -> void:
 		hud.dialog.bark("low_money")
 	hud.hide_day_summary()
 	hud.best_streak = 0
-	_today = {"money": money, "aw": awareness, "saved": totals.saved, "lost": totals.casualties,
+	_today = {"money": money, "aw": awareness, "pop": hud.city_pop(self), "saved": totals.saved, "lost": totals.casualties,
 		"collapsed": totals.collapsed, "actions": []}
 	await _process_later(d)
 	stats_changed.emit()
@@ -695,6 +695,7 @@ func _prep_moment(r: Dictionary) -> void:
 func _day_summary() -> Dictionary:
 	var out := {"day": day, "money0": _today.get("money", money), "money1": money,
 		"aw0": _today.get("aw", awareness), "aw1": awareness,
+		"pop0": _today.get("pop", hud.city_pop(self)), "pop1": hud.city_pop(self),
 		"saved": totals.saved - int(_today.get("saved", totals.saved)),
 		"lost": totals.casualties - int(_today.get("lost", totals.casualties)),
 		"collapsed": totals.collapsed - int(_today.get("collapsed", totals.collapsed)),

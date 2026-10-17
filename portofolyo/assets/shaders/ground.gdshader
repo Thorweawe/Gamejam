@@ -38,7 +38,10 @@ varying vec3 tile_z;
 // dunyaya gore hesaplanir -> komsu karolar arasinda dikis / kare kare ton farki olmaz.
 uniform sampler2D terrain_mask : filter_linear, repeat_disable;
 uniform float terrain = 0.0;
-uniform float dirt_grass = 0.0;  // 1: kahverengi toprak da cimen olur (dag karosu); patikalarda 0
+uniform float dirt_grass = 0.0;
+uniform sampler2D sand_mask : filter_linear, repeat_disable;
+uniform float sand_blend = 0.0;  // 1: cim karosu, kum maskesi yuksekse kuma doner; 2: kum karosu, dusukse cime doner
+uniform vec3 sand_col : source_color = vec3(0.79, 0.655, 0.505);  // kum karosunun isiklandirilmis rengiyle ayni  // 1: kahverengi toprak da cimen olur (dag karosu); patikalarda 0
 // 1: duz (yukari bakan) yuzeyler de cimen sayilir. Dag karosunun haki dokusu ne cimen ne toprak diye
 // taniniyordu ve oldugu gibi kaliyordu -> sehirle dag arasinda ayri renkte bir bant olusuyordu.
 uniform float flat_grass = 0.0;
@@ -171,6 +174,18 @@ void fragment() {
 	}
 
 	col = mix(col, dirt_col, path);
+	if (sand_blend > 0.0) {
+		float sm = texture(sand_mask, (wpos.xz - map_min) / map_size).r;
+		float edge = 0.5 + (big - 0.5) * 0.25 + (mid - 0.5) * 0.12;
+		float to_sand = smoothstep(edge - 0.03, edge + 0.03, sm);
+		vec3 sandc = sand_col * (1.0 + (fine - 0.5) * 0.06 + (mid - 0.5) * 0.05);
+		vec3 grassc = mix(grass_dark, grass_light, smoothstep(0.3, 0.7, big)) * (1.0 + (mid - 0.5) * 0.25);
+		if (sand_blend < 1.5) {
+			col = mix(col, sandc, to_sand);
+		} else {
+			col = mix(grassc, col, to_sand);
+		}
+	}
 	ALBEDO = col;
 	ROUGHNESS = mix(mix(0.88, 0.96, max(grass, path)), 0.12, water);
 	SPECULAR = mix(0.25, 0.5, water);

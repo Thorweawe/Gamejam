@@ -16,13 +16,14 @@ const MEADOW := Color(0.46, 0.6, 0.32)  # dag eteklerindeki soluk haki zemin bu 
 const GROUND := {
 	# hepsi ayni cayir tonunu alir: onceden cimen / orman karolari shader'in varsayilan (daha haki)
 	# tonunu, dag karolari MEADOW'u kullaniyordu -> dag eteginde iki farkli renk, keskin sinir
-	"forest_": {"terrain": 1.0, "meadow": MEADOW},
-	"grass_": {"terrain": 1.0, "meadow": MEADOW},
+	"forest_": {"terrain": 1.0, "meadow": MEADOW, "sand_blend": 1.0},
+	"grass_": {"terrain": 1.0, "meadow": MEADOW, "sand_blend": 1.0},
 	"river_": {"variation": 0.6, "river_mode": 1.0, "terrain": 1.0, "meadow": MEADOW},
-	"sand_": {"grass_amount": 0.0, "variation": 0.7},
+	"sand_": {"grass_amount": 0.0, "variation": 0.7, "sand_blend": 2.0},
 	"mountain_": {"terrain": 1.0, "dirt_grass": 1.0, "flat_grass": 1.0, "meadow": MEADOW, "variation": 1.2},
 }
 const TERRAIN_MASK := preload("res://assets/textures/terrain_mask.png")
+const SAND_MASK := preload("res://assets/textures/sand_mask.png")
 ## Tepe / zirve modelleri de arazi maskesini kullanir: dag eteginde zeminle ayni cayir tonu
 ## (onceden haki zeminde parlak yesil daireler gibi duruyordu).
 const NATURE := {
@@ -206,6 +207,10 @@ func _apply(node: Node, settings: Dictionary) -> void:
 				mat.set_shader_parameter(p, settings[p])
 			if settings.has("coast_cut"):
 				for p in ["land_mask", "map_min", "map_size"]:
+					mat.set_shader_parameter(p, _sea_mat.get_shader_parameter(p))
+			if settings.has("sand_blend") and _sea_mat:
+				mat.set_shader_parameter("sand_mask", SAND_MASK)
+				for p in ["map_min", "map_size"]:
 					mat.set_shader_parameter(p, _sea_mat.get_shader_parameter(p))
 			if settings.has("terrain") and _sea_mat:
 				mat.set_shader_parameter("terrain_mask", TERRAIN_MASK)

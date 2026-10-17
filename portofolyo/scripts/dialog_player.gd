@@ -284,6 +284,8 @@ func play_scene(lines: Array) -> void:
 	_voice.stop()
 	_talker = null
 	_hide_focus()
+	if hud and hud.has_method("demo_forecast"):
+		hud.demo_forecast(false)
 	var out := create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 	out.tween_property(_left, "position", _left_home + Vector2(-340, 0), 0.35)
 	out.tween_property(_right, "position", _right_home + Vector2(340, 0), 0.35)
@@ -323,6 +325,10 @@ func _scene_line(line: Dictionary) -> void:
 	_name.text = info.name
 	_name_tag.add_theme_stylebox_override("panel", HUD.sb(col.darkened(0.25), 10, 0, Color.TRANSPARENT, 14, 4, 4))
 	_box.add_theme_stylebox_override("panel", HUD.sb(Color("#fffaf2"), 18, 3, col, 24, 18, 10))
+	if hud and hud.has_method("demo_forecast"):
+		hud.demo_forecast(line.get("focus", "") == "forecast_area")
+		await get_tree().process_frame
+		await get_tree().process_frame
 	_focus(line.get("focus", ""), p, other)
 	await _speak(p, line, _text, _voice, true)
 

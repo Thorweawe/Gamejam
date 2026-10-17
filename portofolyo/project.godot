@@ -10,10 +10,11 @@ config_version=5
 
 [application]
 
-config/name="Portofolyo"
+config/name="Afete Hazır Şehir"
 run/main_scene="res://scenes/menu.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
-config/icon="res://icon.svg"
+config/icon="res://icon.png"
+config/windows_native_icon="res://icon.ico"
 
 [display]
 

@@ -354,8 +354,7 @@ func update_stats(g: Node) -> void:
 	_money_chip.tooltip_text = "Vergi +%s\nGider -%s\nOnarım -%s" % [GameManager.fmt_money(income),
 		GameManager.fmt_money(upkeep), GameManager.fmt_money(repair)]
 	var pop := city_pop(g)
-	_pop.text = "%d / %d" % [pop, MAX_POP]
-	_pop_bar.value = pop_ratio(pop)
+	_set_pop(pop)
 	var aw: float = g.awareness
 	_aw.text = "Farkındalık %%%d" % int(aw)
 	_aw_bar.value = aw
@@ -385,10 +384,66 @@ func stat_delta(stat: String, v: float) -> void:
 		_float_from(_aw_chip, "%+d farkındalık" % int(v), C_GOOD if v > 0 else C_BAD)
 
 
+## Nufus gostergesi: sayi yeni degere sayarak gider, cip yesil / kirmizi parlar ve buyuyup kuculur.
+var _shown_pop := -1
+var _target_pop := -1
+var _pop_tw: Tween
+
+
+func _set_pop(pop: int) -> void:
+	if _shown_pop < 0:
+		_shown_pop = pop
+		_target_pop = pop
+	if pop == _target_pop:
+		_pop.text = "%d / %d" % [_shown_pop, MAX_POP]
+		_pop_bar.value = pop_ratio(_shown_pop)
+		return
+	var up := pop > _target_pop
+	_target_pop = pop
+	if _pop_tw:
+		_pop_tw.kill()
+	_pop_tw = create_tween()
+	_pop_tw.tween_method(_show_pop_value, _shown_pop, pop, 1.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	var col := C_GOOD if up else C_BAD
+	_pop_chip.add_theme_stylebox_override("panel", sb(col.lerp(C_BG, 0.75), 14, 3, col, 12, 6, 6))
+	_pop_chip.pivot_offset = _pop_chip.size / 2.0
+	var pulse := _pop_chip.create_tween()
+	pulse.tween_property(_pop_chip, "scale", Vector2(1.12, 1.12), 0.15).set_trans(Tween.TRANS_BACK)
+	pulse.tween_property(_pop_chip, "scale", Vector2.ONE, 0.3)
+	pulse.tween_interval(1.0)
+	pulse.tween_callback(func(): _pop_chip.add_theme_stylebox_override("panel", sb(C_BG, 14, 2, C_LINE, 12, 6, 6)))
+
+
+func _show_pop_value(v: int) -> void:
+	_shown_pop = v
+	_pop.text = "%d / %d" % [v, MAX_POP]
+	_pop_bar.value = pop_ratio(v)
+
+
+## Haritada da gorunsun: tasinanlar sehre giren araclarla gelir, gidenler sehirden cikar.
+func _show_migration(n: int) -> void:
+	if game == null or n == 0:
+		return
+	var tr: Node = game.city.traffic
+	var keys: Array = tr.road.keys().filter(func(k): return not tr.dirt.has(k))
+	if keys.is_empty():
+		return
+	keys.sort_custom(func(a, b): return Vector2(a).length() < Vector2(b).length())
+	var inner: Array = keys.slice(0, keys.size() / 3)
+	var outer: Array = keys.slice(keys.size() * 2 / 3)
+	var cars := clampi(absi(n) / 15, 2, 8)
+	if n > 0:
+		tr.temp_cars(outer, inner, cars)
+		toast("Şehre %d kişi taşındı · güvenli şehir göç alıyor" % n, "good")
+	else:
+		tr.temp_cars(inner, outer, cars)
+		toast("%d kişi şehri terk etti" % -n, "bad")
+
+
 func _float_from(c: Control, text: String, color: Color) -> void:
-	var l := _label(_root, text, 18, color, true)
-	l.add_theme_constant_override("outline_size", 6)
-	l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.7))
+	var l := _label(_root, text, 22, color, true)
+	l.add_theme_constant_override("outline_size", 8)
+	l.add_theme_color_override("font_outline_color", Color(1, 0.98, 0.94, 0.95))
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	l.position = c.global_position + Vector2(c.size.x * 0.3, c.size.y + 2)
 	var tw := l.create_tween().set_parallel()
@@ -431,7 +486,8 @@ func _awareness_economy(g: Node) -> void:
 		var leave := maxi(0, EMIGRATION_AW - aw) * EMIGRATION_PER_AW if g.day > 1 else 0
 		_migrants += n - leave
 		if n - leave != 0:
-			_float_from(_pop_chip, "%+d kişi" % (n - leave), C_POP if n >= leave else C_BAD)
+			_float_from(_pop_chip, "%+d kişi" % (n - leave), C_GOOD if n >= leave else C_BAD)
+			_show_migration.call_deferred(n - leave)
 		if leave > n and not _warned_exodus:
 			_warned_exodus = true
 			toast("Halk kendini güvende hissetmiyor: farkındalık %%%d altındayken aileler şehri terk ediyor!" % EMIGRATION_AW, "bad")
@@ -442,7 +498,8 @@ func add_residents(n: int) -> void:
 	if n == 0:
 		return
 	_migrants += n
-	_float_from(_pop_chip, "%+d kişi" % n, C_POP if n > 0 else C_BAD)
+	_float_from(_pop_chip, "%+d kişi" % n, C_GOOD if n > 0 else C_BAD)
+	_show_migration.call_deferred(n)
 
 
 ## Afette olen her kisi icin ailesi ve korkan komsulari da sehri terk eder (kalici nufus kaybi;
@@ -453,6 +510,7 @@ func lose_residents(casualties: int) -> void:
 	var n := int(round(casualties * _pop_scale * DEATH_FLIGHT))
 	_migrants -= n
 	_float_from(_pop_chip, "-%d kişi" % n, C_BAD)
+	_show_migration.call_deferred(-n)
 
 
 ## Nufus orani: 0-100 (10.000 nufus = %100)
@@ -607,6 +665,22 @@ func _build_buttons() -> void:
 		_sfx("click")
 		risk_toggled.emit(on))
 	_risk_btn.tooltip_text = "Risk haritası (R): kırmızı binalar depremde en tehlikeli olanlar"
+	var gear := _button(_root, "", C_BG, 16)
+	gear.add_theme_stylebox_override("normal", sb(C_BG, 14, 2, C_LINE, 8, 8, 6))
+	gear.add_theme_stylebox_override("hover", sb(C_CARD, 14, 2, C_ACCENT, 8, 8, 6))
+	gear.add_theme_stylebox_override("pressed", sb(C_LINE, 14, 2, C_ACCENT, 8, 8, 6))
+	gear.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	gear.offset_right = -262
+	gear.offset_left = -262 - 62
+	gear.offset_top = 14
+	gear.offset_bottom = 76
+	gear.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	gear.tooltip_text = "Ayarlar: ses, müzik, efektler, tam ekran (ESC: menü)"
+	var gi := _icon(gear, "gear", C_TEXT, 30)
+	gi.position = Vector2(16, 16)
+	gear.pressed.connect(func():
+		_sfx("click")
+		open_settings())
 
 
 ## Ikonlu buyuk buton (ikon ustte, yazi altta).
@@ -885,6 +959,9 @@ func _fill_summary(v: VBoxContainer, _w: int, d: Dictionary) -> void:
 	var dm: int = d.money1 - d.money0
 	_summary_row(rows, "coin", "Kasa", "%s  (%s%s)" % [GameManager.fmt_money(d.money1), "+" if dm >= 0 else "", GameManager.fmt_money(dm)],
 		C_GOLD if dm >= 0 else C_BAD)
+	if d.has("pop0"):
+		var dp: int = d.pop1 - d.pop0
+		_summary_row(rows, "people", "Nüfus", "%d  (%s%d)" % [d.pop1, "+" if dp >= 0 else "", dp], C_GOOD if dp >= 0 else C_BAD)
 	var da: float = d.aw1 - d.aw0
 	_summary_row(rows, "shield", "Farkındalık", "%%%d  (%+d)" % [int(d.aw1), int(round(da))], C_GOOD if da >= 0 else C_BAD)
 	if d.saved > 0 or d.lost > 0:
@@ -1530,6 +1607,42 @@ func _close_pause() -> void:
 		_pause.queue_free()
 		_pause = null
 	get_tree().paused = false
+
+
+## Oyun ici ayarlar: oyun durur, ayar penceresi acilir; "Tamam" ile devam.
+func open_settings() -> void:
+	if _pause or get_tree().paused:
+		return
+	get_tree().paused = true
+	var holder := ColorRect.new()
+	holder.color = Color(0.1, 0.06, 0.03, 0.45)
+	holder.set_anchors_preset(Control.PRESET_FULL_RECT)
+	holder.mouse_filter = Control.MOUSE_FILTER_STOP
+	_root.add_child(holder)
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	holder.add_child(center)
+	var panel := SettingsPanel.new()
+	center.add_child(panel)
+	panel.closed.connect(func():
+		holder.queue_free()
+		get_tree().paused = false)
+
+
+## Ogretici: "Meteoroloji uyarisi" anlatilirken ornek bir uyari karti gosterilir (butonlar pasif).
+var _demo_forecast := false
+
+
+func demo_forecast(on: bool) -> void:
+	if on and not _forecast.visible:
+		_demo_forecast = true
+		show_forecast("flood", "Meteoroloji Uyarısı · örnek", "Dağlarda yoğun yağış bekleniyor. 2 gün içinde sel riski %70!",
+			[{"id": "evacuate_river", "name": "Kıyıyı Tahliye Et", "cost": 2500}, {"id": "sandbag", "name": "Kum Torbası Diz", "cost": 2000}])
+		for b in _forecast.find_children("*", "Button", true, false):
+			b.disabled = true
+	elif not on and _demo_forecast:
+		_demo_forecast = false
+		hide_forecast()
 
 
 func _pause_settings() -> void:
