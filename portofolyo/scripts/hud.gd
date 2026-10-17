@@ -1625,7 +1625,9 @@ func open_settings() -> void:
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	holder.add_child(center)
 	var panel := SettingsPanel.new()
+	panel.in_game = true  # oyun icinde: "Ana Menüye Dön" butonu da olsun
 	center.add_child(panel)
+	panel.to_menu.connect(_to_menu)
 	panel.closed.connect(func():
 		holder.queue_free()
 		get_tree().paused = false)
@@ -1657,7 +1659,9 @@ func _pause_settings() -> void:
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	holder.add_child(center)
 	var panel := SettingsPanel.new()
+	panel.in_game = true
 	center.add_child(panel)
+	panel.to_menu.connect(_to_menu)
 	panel.closed.connect(holder.queue_free)
 
 

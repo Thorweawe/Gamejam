@@ -3,6 +3,9 @@ extends PanelContainer
 ## Ayarlar penceresi (menu ve oyun ici duraklatma ekrani ortak kullanir).
 
 signal closed
+signal to_menu  # oyun icinden ana menuye donus (onaydan sonra)
+
+var in_game := false  # true: "Ana Menüye Dön" butonu gosterilir
 
 const HUD := preload("res://scripts/hud.gd")
 const C_TEXT := Color("#3b3330")
@@ -10,6 +13,30 @@ const C_MUTED := Color("#8a7666")
 const C_ACCENT := Color("#d76f34")
 
 var bold: Font
+var _main: VBoxContainer  # ayarlar
+var _controls: VBoxContainer  # kontroller listesi (sadece bilgi, degistirilemez)
+
+## Tus sablonu: [tuslar], ne ise yarar. Tuslar kod ile ayni (camera_rig, game_manager, day_cycle, dialog_player).
+const CONTROLS := [
+	["KAMERA", [
+		[["W", "A", "S", "D"], "Kamerayı kaydır (ok tuşları da olur)"],
+		[["Sağ tık", "Sürükle"], "Haritayı fareyle kaydır"],
+		[["Tekerlek"], "Yakınlaş / uzaklaş"],
+		[["Z", "X"], "Yakınlaş / uzaklaş"],
+		[["Q", "E"], "Kamerayı döndür"],
+	]],
+	["OYUN", [
+		[["Sol tık"], "Bina seç · yardım işaretine ekip gönder"],
+		[["R"], "Risk haritasını aç / kapat"],
+		[["N"], "Günü bitir"],
+		[["ESC"], "Duraklat (ayarlar, ana menü)"],
+		[["Sağ tık"], "Mahalle / kum torbası seçimini iptal et"],
+	]],
+	["KONUŞMALAR", [
+		[["Sol tık", "Boşluk", "Enter"], "Sonraki satır"],
+		[["ESC"], "Konuşmayı atla"],
+	]],
+]
 
 
 func _ready() -> void:
@@ -19,9 +46,12 @@ func _ready() -> void:
 	bold = fv
 	add_theme_stylebox_override("panel", HUD.sb(Color("#fffaf2"), 20, 2, Color("#d9b98f"), 26, 22, 10))
 	custom_minimum_size = Vector2(460, 0)
+	var root := VBoxContainer.new()
+	add_child(root)
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 14)
-	add_child(v)
+	root.add_child(v)
+	_main = v
 	var head := HBoxContainer.new()
 	head.add_theme_constant_override("separation", 12)
 	v.add_child(head)
@@ -42,6 +72,23 @@ func _ready() -> void:
 	_section(v, "GÖRÜNTÜ")
 	_toggle(v, "Tam ekran", "fullscreen")
 	_toggle(v, "Ekran sarsıntısı", "shake")
+	var ctl := _flat_button("Kontroller", Color("#577893"))
+	ctl.pressed.connect(func():
+		_sfx("click")
+		_show_controls(true))
+	v.add_child(ctl)
+	if in_game:
+		var home := _flat_button("Ana Menüye Dön", Color("#bd5a46"))
+		var confirm := [false]
+		home.pressed.connect(func():
+			_sfx("click")
+			if not confirm[0]:  # ilk basis: uyar, ikinci basis: don
+				confirm[0] = true
+				home.text = "Emin misin? İlerleme kaybolur · tekrar bas"
+				return
+			to_menu.emit())
+		v.add_child(home)
+	_build_controls(root)
 	var close := Button.new()
 	close.text = "Tamam"
 	close.focus_mode = Control.FOCUS_NONE
@@ -56,6 +103,77 @@ func _ready() -> void:
 		_sfx("click")
 		closed.emit())
 	v.add_child(close)
+
+
+func _flat_button(text: String, col: Color) -> Button:
+	var b := Button.new()
+	b.text = text
+	b.focus_mode = Control.FOCUS_NONE
+	b.custom_minimum_size = Vector2(0, 42)
+	b.add_theme_font_override("font", bold)
+	b.add_theme_font_size_override("font_size", 17)
+	b.add_theme_stylebox_override("normal", HUD.sb(col, 12, 0, Color.TRANSPARENT, 14, 8))
+	b.add_theme_stylebox_override("hover", HUD.sb(col.lightened(0.15), 12, 0, Color.TRANSPARENT, 14, 8))
+	b.add_theme_stylebox_override("pressed", HUD.sb(col.darkened(0.15), 12, 0, Color.TRANSPARENT, 14, 8))
+	for k in ["font_color", "font_hover_color", "font_pressed_color"]:
+		b.add_theme_color_override(k, Color.WHITE)
+	return b
+
+
+## Kontroller sayfasi: tus kapaklari + aciklama. Tuslar degistirilemez, sadece bilgi.
+func _build_controls(root: Node) -> void:
+	_controls = VBoxContainer.new()
+	_controls.add_theme_constant_override("separation", 8)
+	_controls.visible = false
+	root.add_child(_controls)
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 12)
+	_controls.add_child(head)
+	var badge := PanelContainer.new()
+	badge.add_theme_stylebox_override("panel", HUD.sb(Color("#577893"), 14, 0, Color.TRANSPARENT, 8, 8))
+	head.add_child(badge)
+	var ic := UIIcon.new()
+	ic.kind = "gear"
+	ic.custom_minimum_size = Vector2(26, 26)
+	badge.add_child(ic)
+	head.add_child(_label("Kontroller", 28, C_TEXT, true))
+	for group in CONTROLS:
+		_section(_controls, group[0])
+		for row in group[1]:
+			var h := HBoxContainer.new()
+			h.add_theme_constant_override("separation", 10)
+			_controls.add_child(h)
+			var keys := HBoxContainer.new()
+			keys.add_theme_constant_override("separation", 4)
+			keys.custom_minimum_size.x = 210
+			h.add_child(keys)
+			for k in row[0]:
+				var cap := PanelContainer.new()
+				# klavye tusu gorunumu: krem kapak, alt kenari kalin golge
+				var st := HUD.sb(Color("#fbf3e6"), 7, 2, Color("#d9b98f"), 8, 2)
+				st.border_width_bottom = 4
+				cap.add_theme_stylebox_override("panel", st)
+				var kl := _label(k, 14, C_TEXT, true)
+				kl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+				kl.custom_minimum_size.x = 18
+				cap.add_child(kl)
+				keys.add_child(cap)
+			var d := _label(row[1], 15, C_TEXT)
+			d.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			h.add_child(d)
+	var back := _flat_button("Geri", C_ACCENT)
+	back.custom_minimum_size.y = 46
+	back.pressed.connect(func():
+		_sfx("click")
+		_show_controls(false))
+	_controls.add_child(back)
+
+
+func _show_controls(on: bool) -> void:
+	_main.visible = not on
+	_controls.visible = on
+	custom_minimum_size.x = 560 if on else 460
+	reset_size()
 
 
 func _label(text: String, size: int, color: Color, is_bold := false) -> Label:

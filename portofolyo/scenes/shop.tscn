@@ -234,15 +234,15 @@ layout_mode = 2
 theme_override_constants/separation = 8
 metadata/_tab_index = 0
 
-[node name="Selector" type="HBoxContainer" parent="UI/ShopPopup/ShopPanel/TabContainer/Hazırlık"]
+[node name="Selector" type="HBoxContainer" parent="UI/ShopPopup/ShopPanel/TabContainer/Hazırlık" unique_id=1444458566]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="Hint" type="Label" parent="UI/ShopPopup/ShopPanel/TabContainer/Hazırlık"]
+[node name="Hint" type="Label" parent="UI/ShopPopup/ShopPanel/TabContainer/Hazırlık" unique_id=1405433804]
 layout_mode = 2
 text = "Yıkımı ve can kaybını azaltan yatırımlar"
 
-[node name="Scroll" type="ScrollContainer" parent="UI/ShopPopup/ShopPanel/TabContainer/Hazırlık"]
+[node name="Scroll" type="ScrollContainer" parent="UI/ShopPopup/ShopPanel/TabContainer/Hazırlık" unique_id=1219113213]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
