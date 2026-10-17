@@ -333,7 +333,6 @@ func _pick_event() -> Dictionary:
 ## degisen binalarin ustunde etiket cikar, para ve farkindalik degisimi ust panelde ucar.
 func apply_effects(fx: Dictionary, _source := "") -> void:
 	var focus := Vector3.INF
-	var shown := 0
 	for k in fx:
 		var v = fx[k]
 		match k:
@@ -345,14 +344,10 @@ func apply_effects(fx: Dictionary, _source := "") -> void:
 			"pop":
 				hud.add_residents(int(v))  # tasinan / giden aileler (nufus gostergesi)
 			"risk_fire", "risk_forest", "risk_flood", "risk_quake":
+				# karar kartinin risk etkisi yariya indirildi (ornek: x1.3 -> x1.15) ve oyuncuya gosterilmez
 				var key: String = k.trim_prefix("risk_")
-				risk[key] = clampf(risk[key] * float(v), 0.3, 3.0)
-				var at := _risk_area(key)
-				hud.world_toast(at, "%s riski %s" % [RISK_NAMES[key], "arttı" if float(v) > 1.0 else "azaldı"],
-					Color(1.0, 0.45, 0.35) if float(v) > 1.0 else Color(0.45, 0.95, 0.55), "warning" if float(v) > 1.0 else "shield", shown * 0.5)
-				shown += 1
-				if focus == Vector3.INF:
-					focus = at
+				var mult := 1.0 + (float(v) - 1.0) * 0.5
+				risk[key] = clampf(risk[key] * mult, 0.3, 3.0)
 			"kacak":
 				focus = _mark(_convert_houses(int(v), func(b): return b.model_name in ["house_lv1", "house_lv2"], func(m): return m + "_kacak"),
 					"Kaçak kat!", Color(1.0, 0.45, 0.35), "warning", focus)
@@ -704,8 +699,7 @@ func _day_summary() -> Dictionary:
 		"collapsed": totals.collapsed - int(_today.get("collapsed", totals.collapsed)),
 		"actions": _today.get("actions", []), "streak": hud.best_streak,
 		"next": daily_income() - upkeep() - repair_cost_today(), "warning": ""}
-	if not forecast.is_empty() and forecast.day > day:
-		out.warning = "%s riski! (%s)" % [_type_name(forecast.type).capitalize(), "yarın" if forecast.day == day + 1 else "2 gün içinde"]
+	# gun ozeti afet riskini soylemez: belirsizlik kalsin (uyari sadece meteoroloji kartinda)
 	return out
 
 
@@ -1183,7 +1177,12 @@ func assign_unit(inc: Incident) -> bool:
 	units_busy[unit] += 1
 	inc.state = Incident.State.EN_ROUTE
 	audio.play("dispatch")
-	var v: Agent = city.traffic.dispatch(GameData.UNIT_VEHICLES[unit], GameData.UNIT_STATIONS[unit], inc.global_position)
+	# istasyona donmekte olan ayni turden arac varsa o gider; yoksa istasyondan yeni arac cikar
+	var v: Agent = city.traffic.returning_vehicle(GameData.UNIT_VEHICLES[unit], inc.global_position)
+	if v:
+		city.traffic.redirect(v, inc.global_position)
+	else:
+		v = city.traffic.dispatch(GameData.UNIT_VEHICLES[unit], GameData.UNIT_STATIONS[unit], inc.global_position)
 	inc.vehicle = weakref(v)
 	# zayif referans: isaret ya da arac once silinirse baglanti guvenle bos gecer
 	var inc_ref: WeakRef = weakref(inc)
@@ -1299,42 +1298,33 @@ func set_risk_view(on: bool) -> void:
 		elif m in ["house_lv1", "house_lv2"] or (m.begins_with("building_") and GameData.quake_risk(m) >= 0.35):
 			c = Color(1.0, 0.8, 0.15, 0.5)
 		b.set_overlay(c)
-	for l in _district_labels:
-		l.visible = on
 	if on:
 		_update_district_labels()
+	else:
+		hud.district_tags([])
 	hud.set_risk_button(on)
 
 
+## Mahalle etiketleri (risk haritasi / mahalle secimi): HUD'da okunakli kartlar (ad, farkindalik cubugu,
+## mahalle guclendirmede paket fiyati). Sadece risk haritasi acikken gorunur.
 func _update_district_labels() -> void:
-	if _district_labels.is_empty():
-		for i in map_info.district_names.size():
-			var l := Label3D.new()
-			l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-			l.no_depth_test = true
-			l.fixed_size = true
-			l.pixel_size = 0.00045
-			l.font_size = 40
-			l.outline_size = 14
-			l.position = MapInfo.to3(map_info.district_centers[i], 3.2)
-			l.visible = false
-			city.add_child(l)
-			_district_labels.append(l)
-	for i in _district_labels.size():
-		var aw := district_aw[i]
-		var text := "%s\nFarkındalık %%%d" % [map_info.district_names[i], int(aw)]
-		var col := Color(1, 0.45, 0.4).lerp(Color(0.5, 1, 0.55), aw / 100.0)
+	if not risk_view:
+		return
+	var items := []
+	for i in map_info.district_names.size():
+		var item := {"pos": MapInfo.to3(map_info.district_centers[i], 1.0), "name": map_info.district_names[i],
+			"aw": district_aw[i], "extra": "", "extra_ok": true}
 		if place_mode == "reinforce_district":
 			# hedef secerken mahallenin gercek paket fiyati (magazadaki aralikla ayni hesap)
 			var cost := _district_reinforce_cost(_district_reinforce_list(i))
 			if cost <= 0:
-				text += "\nGüçlendirilecek ev yok"
-				col = Color(0.75, 0.75, 0.75)
+				item.extra = "Güçlendirilecek ev yok"
+				item.extra_ok = false
 			else:
-				text += "\nGüçlendirme: %s" % fmt_money(cost)
-				col = Color(1.0, 0.85, 0.35) if money >= cost else Color(1.0, 0.4, 0.35)
-		_district_labels[i].text = text
-		_district_labels[i].modulate = col
+				item.extra = "Güçlendirme: %s" % fmt_money(cost)
+				item.extra_ok = money >= cost
+		items.append(item)
+	hud.district_tags(items)
 
 
 static func fmt_money(v: int) -> String:

@@ -272,9 +272,33 @@ func dispatch(model: String, station_model: String, target: Vector3) -> Agent:
 	a.speed = 2.4
 	a.setup(self, a.get_meta("model"), start, a.dir)
 	a.set_meta("station", start)
+	a.set_meta("unit_model", model)
 	a.respond(nearest_road(target, true))
 	cars.append(a)
 	return a
+
+
+## Istasyona donmekte olan (gorevi bitmis / yetisememis) ayni turden en yakin arac. Yoksa null.
+## Gorevde olan (olay yerine giden ya da calisan) araclara dokunulmaz.
+func returning_vehicle(model: String, target: Vector3) -> Agent:
+	var best: Agent = null
+	var best_d := INF
+	for a in cars:
+		if not is_instance_valid(a) or a.get_meta("unit_model", "") != model:
+			continue
+		if not (a.despawn_on_arrival and a.mode == Agent.Mode.RESPOND):
+			continue
+		var d := a.position.distance_to(target)
+		if d < best_d:
+			best_d = d
+			best = a
+	return best
+
+
+## Donen araci yeni olaya yonlendir (istasyondan yeni arac cikmaz).
+func redirect(a: Agent, target: Vector3) -> void:
+	a.despawn_on_arrival = false
+	a.respond(nearest_road(target, true))
 
 
 func release(a: Agent) -> void:

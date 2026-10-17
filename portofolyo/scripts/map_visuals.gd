@@ -220,6 +220,15 @@ func _apply(node: Node, settings: Dictionary) -> void:
 		mi.material_override = _materials[key]
 
 
+## Yangin izi maskesi (disasters.gd): orman / cim karolarinin malzemelerine verilir.
+func set_burn_mask(tex: Texture2D) -> void:
+	for key in _materials:
+		var mat: ShaderMaterial = _materials[key]
+		if mat.get_shader_parameter("terrain") != null and float(mat.get_shader_parameter("terrain")) > 0.0:
+			mat.set_shader_parameter("burn_mask", tex)
+			mat.set_shader_parameter("use_burn", 1.0)
+
+
 func _tune_environment(env: Environment) -> void:
 	env.adjustment_saturation = 1.06  # neon tonlar biraz yatissin (onceden 1.15)
 	env.adjustment_contrast = 1.05

@@ -58,6 +58,7 @@ func rise(tiles: PackedVector2Array, lvl: float, rz: float, debris := true) -> v
 	river_z = rz
 	var mat := _get_water_mat()
 	mat.set_shader_parameter("river_z", rz)
+	_set_masks(mat, tiles)
 	if not tiles.is_empty():
 		_x_range = Vector2(INF, -INF)
 	for p in tiles:
@@ -241,6 +242,38 @@ static func _get_bolt_mat() -> StandardMaterial3D:
 
 
 # ------------------------------------------------------------------ su malzemesi
+## Su maskeleri: kara maskesi (deniz shader'iyla ayni) -> su kiyida kumsalla ayni cizgide biter;
+## sel maskesi (su basan karolar, yumusak daireler) -> su kenari kare degil, yuvarlak ve dalgali.
+func _set_masks(mat: ShaderMaterial, tiles: PackedVector2Array) -> void:
+	var city := get_parent().get_parent()
+	var sea := city.get_node_or_null("Sea") as MeshInstance3D if city else null
+	var sm := sea.mesh.material as ShaderMaterial if sea else null
+	if sm == null:
+		return
+	var mmin: Vector2 = sm.get_shader_parameter("map_min")
+	var msize: Vector2 = sm.get_shader_parameter("map_size")
+	var cut = sm.get_shader_parameter("coast_cut")
+	mat.set_shader_parameter("land_mask", sm.get_shader_parameter("land_mask"))
+	mat.set_shader_parameter("map_min", mmin)
+	mat.set_shader_parameter("map_size", msize)
+	mat.set_shader_parameter("coast_cut", float(cut) if cut != null else 0.55)
+	var ppu := 4.0
+	var img := Image.create(int(msize.x * ppu), int(msize.y * ppu), false, Image.FORMAT_L8)
+	var r := 7  # piksel (~1.75 birim): komsu karolarin daireleri birbirine kaynar
+	for p in tiles:
+		var cx := int((p.x - mmin.x) * ppu)
+		var cz := int((p.y - mmin.y) * ppu)
+		for y in range(cz - r, cz + r + 1):
+			for x in range(cx - r, cx + r + 1):
+				if x < 0 or y < 0 or x >= img.get_width() or y >= img.get_height():
+					continue
+				var d := Vector2(x - cx, y - cz).length() / r
+				var v := clampf(1.0 - d * d, 0.0, 1.0)
+				v = minf(1.0, v + img.get_pixel(x, y).r)  # toplanir: komsu karolar arasi bosluk kalmaz
+				img.set_pixel(x, y, Color(v, v, v))
+	mat.set_shader_parameter("flood_mask", ImageTexture.create_from_image(img))
+
+
 static func _get_water_mat() -> ShaderMaterial:
 	if _water_mat:
 		return _water_mat
@@ -248,6 +281,11 @@ static func _get_water_mat() -> ShaderMaterial:
 	sh.code = """shader_type spatial;
 render_mode blend_mix, depth_draw_never, cull_disabled, specular_schlick_ggx;
 uniform float river_z = 0.0;
+uniform sampler2D land_mask : filter_linear, repeat_disable;
+uniform sampler2D flood_mask : filter_linear, repeat_disable;
+uniform vec2 map_min;
+uniform vec2 map_size = vec2(1.0);
+uniform float coast_cut = 0.55;
 varying vec3 wp;
 float hash(vec2 p) {
 	uvec2 q = uvec2(ivec2(floor(p)) + 32768);
@@ -287,7 +325,19 @@ void fragment() {
 	ALBEDO = mix(col, vec3(0.62, 0.6, 0.52), foam);
 	ROUGHNESS = 0.32 + foam * 0.5;
 	SPECULAR = 0.15;
-	ALPHA = mix(0.88, 0.96, foam);
+	// kiyida kumsalla ayni yerde biter; sel kenari dalgali ve yuvarlak (kare karo kenari gorunmez)
+	vec2 muv = (wp.xz - map_min) / map_size;
+	float land = texture(land_mask, muv).r;
+	float edge_n = (noise(wp.xz * 0.45) - 0.5) * 0.26 + (noise(wp.xz * 1.4 + 5.0) - 0.5) * 0.1;
+	if (land < coast_cut + edge_n * 0.25) {
+		discard;
+	}
+	// kenar karonun icinde kalir (karo siniri ~0.67): kare kenar yerine dalgali kiyi
+	float fm = texture(flood_mask, muv).r + edge_n;
+	if (fm < 0.78) {
+		discard;
+	}
+	ALPHA = mix(0.88, 0.96, foam) * smoothstep(0.78, 0.84, fm);
 }"""
 	_water_mat = ShaderMaterial.new()
 	_water_mat.shader = sh

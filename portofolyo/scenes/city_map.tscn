@@ -11878,10 +11878,15 @@ model_name = "house_lv0_gecekondu"
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 19, 0, -7)
 script = ExtResource("3_r")
 
-[node name="building_firestation_14_18" type="Node3D" parent="Buildings" unique_id=437070078]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -17, 0, -5)
+[node name="building_firestation_22_18" type="Node3D" parent="Buildings" unique_id=437070078]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1, 0, -5)
 script = ExtResource("3_r")
 model_name = "building_firestation"
+
+[node name="house_lv0_gecekondu_14_18" type="Node3D" parent="Buildings"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -17, 0, -5)
+script = ExtResource("3_r")
+model_name = "house_lv0_gecekondu"
 
 [node name="house_lv1_16_18" type="Node3D" parent="Buildings" unique_id=1866263281]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -13, 0, -5)

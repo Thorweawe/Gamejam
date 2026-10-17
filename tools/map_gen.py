@@ -47,7 +47,7 @@ OLD_PLAN = [  # sehrin cekirdegi (koordinatlar oyunda sabit; build_plan bunu buy
     "~RMMMwwwwwwwwwwwwBwwwwwwwwwww~~~~~",
     "RMMMMMmmg00k01001=01000k01g..~~~~~",
     "RMMMMMmm0=================1..~~~~~",
-    "~RMMMMmmf=1Aa=g2g=c1c=323=c..~~~~~",
+    "~RMMMMmm0=1Aa=g2f=c1c=323=c..~~~~~",
     "~RMMMMmm0=2p1=ppp=cPc=2ph=1U.~~~~~",
     "~~RMMMmm1=12k=1b2=ccc=3R2=c.~~~~~~",
     "~~RMMMmm0=================c.~~~~~~",

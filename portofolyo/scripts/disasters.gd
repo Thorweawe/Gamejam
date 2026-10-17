@@ -465,7 +465,9 @@ func forest_fire(start: Vector2i, focus := true) -> Dictionary:
 			burning.erase(k)
 			if saved == 0:
 				_burn_tile(k)
-				r.burned += 1)
+				r.burned += 1
+			else:
+				_scorch(k, 0.45))  # sondurulen alan da kavrulmus iz birakir
 	ignite.call(start)
 	var spread: float = 0.03 * game.risk.forest * (0.5 if game.fire_plane else 1.0)
 	var t := 0.0
@@ -515,23 +517,58 @@ func _spawn_tile_fire(k: Vector2i) -> Array:
 
 func _burn_tile(k: Vector2i) -> void:
 	_burned[k] = true
-	for tree in _trees_by_tile.get(k, []):
+	# karonun kendi agaclari + komsu karolardan yanik alana sarkan agaclar
+	var trees: Array = []
+	for dx in [-2, 0, 2]:
+		for dz in [-2, 0, 2]:
+			for tree in _trees_by_tile.get(k + Vector2i(dx, dz), []):
+				if tree.visible and Vector2(tree.position.x - k.x, tree.position.z - k.y).length() < 1.45:
+					trees.append(tree)
+	for tree in trees:
 		var bare: Node3D = (load(M + "doga/agac/Tree_Bare_%d_%s_Color1.gltf" % [randi_range(1, 2), ["A", "B", "C"].pick_random()]) as PackedScene).instantiate()
 		bare.position = tree.position
 		bare.rotation = tree.rotation
 		bare.scale = tree.scale * 0.9
 		effects.add_child(bare)
 		tree.visible = false
-	var g: Node3D = _ground_by_tile.get(k)
-	if g:
-		g.visible = false
-		var burnt: Node3D = (load(M + "yol_zemin/tile_grass_burnt.gltf") as PackedScene).instantiate()
-		burnt.position = g.position
-		effects.add_child(burnt)
+	_scorch(k, 1.0)  # zemin kul olur (kare karo yerine yumusak kenarli leke)
 	for p in city.get_node("Props").get_children():
 		var nm := String(p.name)
 		if tile_key(p.position) == k and (nm.begins_with("grill_") or nm.begins_with("table_") or nm.begins_with("blanket_")):
 			p.visible = false  # piknik alani kul oldu
+
+
+## Yangin izi: zemin shader'ina verilen maskeye yumusak bir leke cizer (1 kul, ~0.45 kavrulmus).
+var _burn_img: Image
+var _burn_tex: ImageTexture
+
+
+func _scorch(k: Vector2i, amount: float) -> void:
+	var sea := (city.get_node("Sea") as MeshInstance3D).mesh.material as ShaderMaterial
+	var visuals := city.get_node_or_null("MapVisuals")
+	if sea == null or visuals == null:
+		return
+	var mmin: Vector2 = sea.get_shader_parameter("map_min")
+	var msize: Vector2 = sea.get_shader_parameter("map_size")
+	var ppu := 4.0
+	if _burn_img == null:
+		_burn_img = Image.create(int(msize.x * ppu), int(msize.y * ppu), false, Image.FORMAT_L8)
+	var cx := int((k.x - mmin.x) * ppu)
+	var cz := int((k.y - mmin.y) * ppu)
+	var r := 8
+	for y in range(cz - r, cz + r + 1):
+		for x in range(cx - r, cx + r + 1):
+			if x < 0 or y < 0 or x >= _burn_img.get_width() or y >= _burn_img.get_height():
+				continue
+			var d := Vector2(x - cx, y - cz).length() / r
+			var v := clampf(1.0 - d * d, 0.0, 1.0) * amount
+			if v > _burn_img.get_pixel(x, y).r:
+				_burn_img.set_pixel(x, y, Color(v, v, v))
+	if _burn_tex == null:
+		_burn_tex = ImageTexture.create_from_image(_burn_img)
+		visuals.set_burn_mask(_burn_tex)
+	else:
+		_burn_tex.update(_burn_img)
 
 
 func _river_z() -> float:

@@ -1019,7 +1019,78 @@ func world_toast(pos: Vector3, text: String, color: Color, icon := "", delay := 
 	_world_toasts.append([p, pos, 0.0, delay])
 
 
+## Mahalle kartlari: haritaya bagli, krem zeminli okunakli etiket + farkindalik cubugu.
+var _district_tags: Array = []  # [kart, dunya konumu]
+
+
+func district_tags(items: Array) -> void:
+	if items.size() != _district_tags.size():
+		for t in _district_tags:
+			t[0].queue_free()
+		_district_tags.clear()
+		for it in items:
+			var p := _panel(_markers, C_CARD, C_LINE, 12, 6, 12)
+			p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			var v := _vbox(p, 2)
+			_label(v, "", 16, C_TEXT, true)
+			var row := _hbox(v, 6)
+			var bar := ProgressBar.new()
+			bar.custom_minimum_size = Vector2(70, 7)
+			bar.show_percentage = false
+			bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			bar.add_theme_stylebox_override("background", sb(C_TINT, 4, 0, Color.TRANSPARENT, 0, 0))
+			row.add_child(bar)
+			_label(row, "", 13, C_MUTED, true)
+			_label(v, "", 13, C_GOLD, true)
+			_district_tags.append([p, Vector3.ZERO])
+	for i in items.size():
+		var it: Dictionary = items[i]
+		var p: PanelContainer = _district_tags[i][0]
+		_district_tags[i][1] = it.pos
+		var v := p.get_child(0)
+		var aw: float = it.aw
+		var col := C_BAD.lerp(C_GOLD, clampf(aw / 50.0, 0, 1)).lerp(C_GOOD, clampf((aw - 50.0) / 50.0, 0, 1))
+		(v.get_child(0) as Label).text = it.name
+		var bar := v.get_child(1).get_child(0) as ProgressBar
+		bar.value = aw
+		bar.add_theme_stylebox_override("fill", sb(col, 4, 0, Color.TRANSPARENT, 0, 0))
+		var awl := v.get_child(1).get_child(1) as Label
+		awl.text = "Farkındalık %%%d" % int(aw)
+		awl.add_theme_color_override("font_color", col.darkened(0.2))
+		var extra := v.get_child(2) as Label
+		extra.visible = it.extra != ""
+		extra.text = it.extra
+		extra.add_theme_color_override("font_color", C_GOLD.darkened(0.1) if it.extra_ok else C_BAD)
+		p.reset_size()
+	_place_district_tags()
+
+
+func _place_district_tags() -> void:
+	if _district_tags.is_empty() or game == null:
+		return
+	var cam: Camera3D = game.city.camera_rig.camera
+	var placed: Array[Rect2] = []
+	var order := range(_district_tags.size())
+	order.sort_custom(func(a, b): return cam.unproject_position(_district_tags[a][1]).y < cam.unproject_position(_district_tags[b][1]).y)
+	for i in order:
+		var p: PanelContainer = _district_tags[i][0]
+		p.visible = not cam.is_position_behind(_district_tags[i][1])
+		var r := Rect2(cam.unproject_position(_district_tags[i][1]) - p.size / 2.0, p.size)
+		# ust uste binen kart asagi kayar (kartlar haritada sabit yerine yakin kalir)
+		for _k in 4:
+			var moved := false
+			for q in placed:
+				if r.grow(3).intersects(q):
+					r.position.y = q.end.y + 4
+					moved = true
+			if not moved:
+				break
+		placed.append(r)
+		p.position = r.position
+
+
 func _process(delta: float) -> void:
+	_place_district_tags()
 	if game == null or _world_toasts.is_empty():
 		return
 	var cam: Camera3D = game.city.camera_rig.camera
@@ -1123,7 +1194,8 @@ func _option_row(parent: Node, o: Dictionary) -> void:
 	if locked:
 		col = Color(0.22, 0.24, 0.3)
 	var b := _button(parent, "", col, 15)
-	b.custom_minimum_size = Vector2(0, 40)
+	b.custom_minimum_size = Vector2(0, 52 if locked else 40)  # kilitliyse neden ikinci satirda
+	b.clip_contents = true
 	var h := _hbox(b, 8)
 	h.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	h.offset_left = 12
@@ -1131,12 +1203,21 @@ func _option_row(parent: Node, o: Dictionary) -> void:
 	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if locked:
 		_icon(h, "lock", C_MUTED, 16)
-	var l := _label(h, o.text, 15, Color.WHITE if not locked else C_MUTED, true)
-	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var price := _label(h, o.locked if locked else (("+" if gain else "") + GameManager.fmt_money(absi(o.cost))), 14,
-		C_MUTED if locked else (C_GOOD if gain else C_GOLD), true)
-	price.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var tv := _vbox(h, -2)
+	tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tv.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	tv.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var l := _label(tv, o.text, 15, Color.WHITE if not locked else Color(0.9, 0.9, 0.92), true)
+	l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	l.clip_text = true
+	if locked:
+		var why := _label(tv, o.locked, 12, Color(1.0, 0.82, 0.5), true)
+		why.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		why.clip_text = true
+	else:
+		var price := _label(h, ("+" if gain else "") + GameManager.fmt_money(absi(o.cost)), 14,
+			C_GOOD if gain else C_GOLD, true)
+		price.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	b.pressed.connect(func():
 		_sfx("click")
 		building_action.emit(o.id))
@@ -1435,8 +1516,7 @@ static func effect_lines(fx: Dictionary) -> Array:
 			"pop":
 				out.append(["Nüfus %+d kişi" % int(v), 1 if int(v) > 0 else -1])
 			"risk_fire", "risk_forest", "risk_flood", "risk_quake":
-				var up := float(v) > 1.0
-				out.append(["%s riski %s" % [RISK_TEXT[k.trim_prefix("risk_")], "arttı" if up else "azaldı"], -1 if up else 1])
+				pass  # afet riski oyuncuya soylenmez: belirsizlik kalsin
 			"kacak":
 				out.append(["%d binaya kaçak kat çıktı" % int(v), -1])
 			"river_site":

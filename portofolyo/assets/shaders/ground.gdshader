@@ -40,6 +40,9 @@ uniform sampler2D terrain_mask : filter_linear, repeat_disable;
 uniform float terrain = 0.0;
 uniform float dirt_grass = 0.0;
 uniform sampler2D sand_mask : filter_linear, repeat_disable;
+// yangin izi (disasters.gd calisma aninda cizer): 1 yanmis (kul), ~0.45 sondurulmus (kavrulmus cimen)
+uniform sampler2D burn_mask : filter_linear, repeat_disable;
+uniform float use_burn = 0.0;
 uniform float sand_blend = 0.0;  // 1: cim karosu, kum maskesi yuksekse kuma doner; 2: kum karosu, dusukse cime doner
 uniform vec3 sand_col : source_color = vec3(0.79, 0.655, 0.505);  // kum karosunun isiklandirilmis rengiyle ayni  // 1: kahverengi toprak da cimen olur (dag karosu); patikalarda 0
 // 1: duz (yukari bakan) yuzeyler de cimen sayilir. Dag karosunun haki dokusu ne cimen ne toprak diye
@@ -174,6 +177,18 @@ void fragment() {
 	}
 
 	col = mix(col, dirt_col, path);
+	if (use_burn > 0.0) {
+		vec2 bw = vec2(noise(wpos.xz * 0.7 + 11.0), noise(wpos.xz * 0.7 + 23.0)) - 0.5;
+		float bm = texture(burn_mask, (wpos.xz + bw * 0.8 - map_min) / map_size).r;
+		bm += (mid - 0.5) * 0.25 + (fine - 0.5) * 0.1;
+		float scorch = smoothstep(0.12, 0.3, bm);  // kavrulmus: sari-kahve cimen
+		float ash = smoothstep(0.55, 0.72, bm);  // tamamen yanmis: koyu kul
+		vec3 dry = col * vec3(0.78, 0.62, 0.36);
+		vec3 ash_c = mix(vec3(0.035, 0.03, 0.028), vec3(0.09, 0.075, 0.06), fine);
+		ash_c += vec3(0.5, 0.12, 0.0) * smoothstep(0.93, 0.99, noise(wpos.xz * 6.0)) * ash;  // sonmekte olan korlar
+		col = mix(col, dry, scorch);
+		col = mix(col, ash_c, ash);
+	}
 	if (sand_blend > 0.0) {
 		float sm = texture(sand_mask, (wpos.xz - map_min) / map_size).r;
 		float edge = 0.5 + (big - 0.5) * 0.25 + (mid - 0.5) * 0.12;
