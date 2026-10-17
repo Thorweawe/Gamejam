@@ -3,18 +3,17 @@ extends Node3D
 ## Haritadaki tiklanabilir baloncuklar (CityMap'in cocugu; GameManager kurar).
 ##  - Muze baloncugu: muze ilk acildiginda catisinin ustunde belirir, tiklanana kadar kalir.
 ##    Patlayinca ek farkindalik verir (muze ziyaretcileri).
-##  - Rastgele baloncuklar: gunun karar karti kapandiktan sonra (oyuncu serbestken), gunduz,
-##    rastgele araliklarla evlerin, ormanin, parklarin ustunde cikar. Gece / gun gecisinde cikmaz.
-##    Kisa surede tiklanirsa farkindalik ya da para verir; tiklanmazsa soner.
+##  - Gunun baloncuklari: karar karti kapandiktan sonra (oyuncu serbestken, gunduz) rastgele bir anda
+##    4 baloncuk ayni anda evlerin, ormanin, parklarin ustunde cikar; bunlar bitince o gun baska cikmaz.
+##    Gece / gun gecisinde / afette cikmaz. Kisa surede tiklanirsa farkindalik ya da para verir.
 ## Belirgin olsun diye: arkada nabiz atan parlak hale, kalin renkli zar, belirirken isilti + ses.
 ## Patlama: parlama + damlaciklar + isiltilar + halka dalgasi + "pop" sesi (ses kodla uretilir).
 ## Tiklama GameManager._unhandled_input'tan try_pop() ile gelir.
 
 const MUSEUM_REWARD := 4.0  # muze baloncugu: tum sehre farkindalik
-const RANDOM_LIFE := 9.0  # rastgele baloncugun omru (sn)
-const FIRST_GAP := Vector2(3.0, 9.0)  # karar karti kapandiktan sonra ilk baloncuk (sn)
-const RANDOM_GAP := Vector2(14.0, 30.0)  # sonraki rastgele baloncuklar arasi (sn)
-const MAX_RANDOM := 2
+const RANDOM_LIFE := 14.0  # rastgele baloncugun omru (sn): dordunu de yakalamaya yetsin
+const FIRST_GAP := Vector2(4.0, 20.0)  # karar karti kapandiktan sonra baloncuklarin gelecegi an (sn, rastgele)
+const BATCH := 4  # gunde bir kez ayni anda cikan baloncuk sayisi; bunlar bitince o gun baska cikmaz
 const RADIUS := 0.7
 const MUSEUM_ICONS := {
 	"deprem": ["res://assets/textures/deprem_muze_1_klasik.png", Color(0.95, 0.62, 0.25)],
@@ -32,6 +31,7 @@ var camera: Camera3D
 var _bubbles: Array[Dictionary] = []  # {node, kind, color, life, museum, t}
 var _next := 0.0
 var _was_free := false  # oyuncu bir onceki karede serbest miydi (karar karti kapandi mi)
+var _batch_day := -1  # gunun baloncuklarinin ciktigi gun
 var _hovered := -1
 var _hinted := false
 var _player: AudioStreamPlayer
@@ -233,32 +233,42 @@ func _spawn_random(delta: float) -> void:
 	if game.hud.dialog != null and game.hud.dialog.active:
 		return
 	if not _was_free:
-		# karar karti yeni kapandi: ilk baloncuk birkac saniye sonra, rastgele
+		# karar karti yeni kapandi: gunun baloncuklari rastgele bir anda gelir
 		_was_free = true
 		_next = randf_range(FIRST_GAP.x, FIRST_GAP.y)
+	if _batch_day == game.day:
+		return  # bugunun baloncuklari cikti: bitince (patlatilinca / sonunce) baska yok
 	_next -= delta
 	if _next > 0.0:
 		return
-	_next = randf_range(RANDOM_GAP.x, RANDOM_GAP.y)
-	var count := 0
-	for b in _bubbles:
-		if not b.museum:
-			count += 1
-	if count >= MAX_RANDOM:
-		return
-	var spot := _random_spot()
-	if spot == Vector3.INF:
+	# gunde bir kez: BATCH baloncuk ayni anda (birkac salise arayla, farkli yerlerde)
+	var spots: Array[Vector3] = []
+	for i in BATCH:
+		var spot := _random_spot(spots)
+		if spot != Vector3.INF:
+			spots.append(spot)
+	if spots.size() < 2:
 		_next = 2.0  # ekranda uygun yer yok (kamera denize bakiyor): az sonra tekrar dene
 		return
-	var kind := "aw" if randf() < 0.6 else "money"
-	_spawn(spot, kind, KINDS[kind][0], KINDS[kind][1], RANDOM_LIFE)
+	_batch_day = game.day
+	for i in spots.size():
+		var kind := "aw" if randf() < 0.6 else "money"
+		_spawn_later(spots[i], kind, i * 0.18)
 	if not _hinted:
 		_hinted = true
 		game.hud.toast("Baloncuklar kısa süre kalır: tıkla, farkındalık ya da para kazan!", "info")
 
 
-## Ekranda gorunen bir ev catisi, orman ya da park ustu.
-func _random_spot() -> Vector3:
+func _spawn_later(spot: Vector3, kind: String, delay: float) -> void:
+	if delay > 0.0:
+		await get_tree().create_timer(delay).timeout
+	if _batch_day != game.day or game.busy:
+		return  # bu arada afet / gun gecisi basladi
+	_spawn(spot, kind, KINDS[kind][0], KINDS[kind][1], RANDOM_LIFE)
+
+
+## Ekranda gorunen bir ev catisi, orman ya da park ustu (taken: ayni partideki diger baloncuklarin yeri).
+func _random_spot(taken: Array[Vector3] = []) -> Vector3:
 	var city: Node = game.city
 	var map_info: MapInfo = game.map_info
 	var options: Array[Vector3] = []
@@ -276,7 +286,8 @@ func _random_spot() -> Vector3:
 			continue
 		var sp := camera.unproject_position(o)
 		# ust / alt panellerin altinda kalmasin, kenarlara yapismasin
-		if sp.x > 120 and sp.x < vp.x - 120 and sp.y > 150 and sp.y < vp.y - 170 and not _near_other(o):
+		if sp.x > 120 and sp.x < vp.x - 120 and sp.y > 150 and sp.y < vp.y - 170 and not _near_other(o) \
+				and not taken.any(func(t): return t.distance_to(o) < 4.0):
 			return o
 	return Vector3.INF
 

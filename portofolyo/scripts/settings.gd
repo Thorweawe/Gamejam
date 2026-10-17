@@ -49,6 +49,7 @@ static func set_value(key: String, v: Variant) -> void:
 static func apply() -> void:
 	if values.is_empty():
 		load_settings()
+	TurkishGlyphFix.install()  # fontta eksik "ş" cengeli kaymasin (bkz. turkish_glyph_fix.gd)
 	ensure_buses()
 	for pair in [["Master", "master"], ["Music", "music"], ["SFX", "sfx"], ["Ambience", "ambience"], ["Voice", "voice"]]:
 		var i := AudioServer.get_bus_index(pair[0])

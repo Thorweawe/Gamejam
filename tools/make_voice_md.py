@@ -3,7 +3,7 @@ import re
 import os
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 src = open(os.path.join(ROOT, "portofolyo", "scripts", "dialogs.gd"), encoding='utf-8').read()
-names = {"baskan": "BAŞKAN (Kerem)", "nermin": "NERMİN HANIM"}
+names = {"baskan": "BAŞKAN", "nermin": "NERMİN HANIM"}
 mood_tr = {"happy": "neşeli", "neutral": "normal", "worried": "endişeli", "surprised": "şaşkın", "angry": "kararlı"}
 anim_tr = {"wave": "el sallar", "tea": "çay yudumlar", "point": "parmağıyla gösterir", "jump": "zıplar",
            "facepalm": "elini alnına vurur", "shrug": "omuz silker", "nod": "başını sallar",
@@ -56,7 +56,7 @@ out = ["# Seslendirme Senaryosu", "",
        "- Satır başında ve sonunda en fazla 0,2 sn sessizlik bırakın (yoksa ağız boşta açık bekler).",
        "- Toplam süre: açılış yaklaşık 70 sn, öğretici yaklaşık 90 sn.", "",
        "## Karakterler", "",
-       "- **Başkan Kerem Yıldız** (oyuncu): genç, iyi niyetli, biraz şaşkın ama kararlı. Doğal, samimi ton.",
+       "- **Başkan** (oyuncu): genç, iyi niyetli, biraz şaşkın ama kararlı. Doğal, samimi ton.",
        "- **Nermin Hanım** (sekreter): 30 yıllık emektar, her şeyi bilen, çay tutkunu, dramatik. Hızlı ve enerjik konuşur, abartılı tepkiler verir. Komedi onda.", "",
        "**Not** sütunu yüz ifadesini ve animasyonu yazar; o duyguyla okuyun."]
 for title, const, desc in [("1. Açılış hikayesi", "INTRO", "Menüden sonra, oyunun başında oynar."),

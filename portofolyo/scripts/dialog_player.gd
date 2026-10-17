@@ -521,6 +521,7 @@ func _focus(target: String, speaker: Portrait, other: Portrait) -> void:
 	var m := _spot.material as ShaderMaterial
 	if target == "" or hud == null or not hud.has_method("target_rect"):
 		_hide_focus()
+		create_tween().tween_property(_shade, "modulate:a", 1.0, 0.25)
 		for p in [speaker, other]:
 			_portrait_home(p, true)
 		return
@@ -528,6 +529,10 @@ func _focus(target: String, speaker: Portrait, other: Portrait) -> void:
 	if r.size == Vector2.ZERO:
 		_hide_focus()
 		return
+	# hedef silik gorunmesin: devre disi dugme odak suresince tam gorunur, alttaki koyu
+	# gradyan cekilir (karartmayi spot katmani yapar, hedefin ustu aydinlik kalir)
+	hud.tutorial_highlight(target)
+	create_tween().tween_property(_shade, "modulate:a", 0.0, 0.25)
 	m.set_shader_parameter("hole", Vector4(r.position.x, r.position.y, r.size.x, r.size.y))
 	create_tween().tween_method(func(v: float): m.set_shader_parameter("strength", v), float(m.get_shader_parameter("strength")), 1.0, 0.3)
 	_frame.visible = true
@@ -548,6 +553,8 @@ func _portrait_home(p: Portrait, show: bool) -> void:
 func _hide_focus() -> void:
 	var m := _spot.material as ShaderMaterial
 	_frame.visible = false
+	if hud and hud.has_method("tutorial_highlight"):
+		hud.tutorial_highlight("")
 	create_tween().tween_method(func(v: float): m.set_shader_parameter("strength", v), float(m.get_shader_parameter("strength")), 0.0, 0.25)
 
 

@@ -26,11 +26,22 @@ uniform float coast_cut = 0.0;
 // nehir karolari: maske nehri kara sayar; kiyi cizgisi nehrin iki yanindaki kumsaldan (z +-2) okunur
 // ki nehir kumsalla ayni yerde bitip denize acilsin (suyun altindaki kum yatak da birlikte kesilir)
 uniform float river_mode = 0.0;
+// duz nehir karolari (map_visuals.gd karo basina 1 yapar; kose karolarinda 0): karo duzlestirilir, su
+// kanali karonun ortasindaki duz serit yerine kivrimli bir cizgiyi izler. Kivrim her karo sinirinda
+// sifira iner -> kopru, kose karolari ve komsu karolarla kesintisiz birlesir.
+instance uniform float meander = 0.0;
+const float RIVER_HALF = 0.51;  // tile_river_straight kanal yari genisligi (modelden olculdu)
+varying vec3 tile_c;
+varying vec3 tile_x;
+varying vec3 tile_z;
 // arazi maskesi (map_gen.py): R orman, G dag. terrain > 0 iken cimen rengi karoya gore degil
 // dunyaya gore hesaplanir -> komsu karolar arasinda dikis / kare kare ton farki olmaz.
 uniform sampler2D terrain_mask : filter_linear, repeat_disable;
 uniform float terrain = 0.0;
 uniform float dirt_grass = 0.0;  // 1: kahverengi toprak da cimen olur (dag karosu); patikalarda 0
+// 1: duz (yukari bakan) yuzeyler de cimen sayilir. Dag karosunun haki dokusu ne cimen ne toprak diye
+// taniniyordu ve oldugu gibi kaliyordu -> sehirle dag arasinda ayri renkte bir bant olusuyordu.
+uniform float flat_grass = 0.0;
 uniform vec3 meadow : source_color = vec3(0.55, 0.62, 0.36);
 
 varying vec3 wpos;
@@ -61,8 +72,15 @@ float shore_wave(vec2 p) {
 }
 
 void vertex() {
+	if (meander > 0.0) {
+		VERTEX.y = 0.1;  // kiyiyla ayni yukseklik (komsu karolarla basamak / nokta nokta dikis kalmasin); kanal basamagi kalkar: su ve kiyi ayni duzlemde, kivrimi shader cizer
+		NORMAL = vec3(0.0, 1.0, 0.0);
+	}
 	wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	wnormal = (MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz;
+	tile_c = MODEL_MATRIX[3].xyz;
+	tile_x = normalize(MODEL_MATRIX[0].xyz);
+	tile_z = normalize(MODEL_MATRIX[2].xyz);
 }
 
 void fragment() {
@@ -74,6 +92,17 @@ void fragment() {
 	// yesil ve turkuaz (saha, dag etegi) yuzeyler cimen; belirgin mavi yuzeyler su
 	float grass = smoothstep(0.06, 0.16, base.g - base.r) * smoothstep(-0.1, -0.02, base.g - base.b) * grass_amount;
 	float water = smoothstep(0.1, 0.2, base.b - base.g) * smoothstep(0.15, 0.3, base.b - base.r);
+	if (meander > 0.0) {
+		// karo ekseni boyunca konum (karo merkezleri tek, sinirlari cift dunya koordinatinda)
+		float along = dot(wpos, tile_z);
+		float across = dot(wpos - tile_c, tile_x);
+		float amp = 0.3 * (0.55 + 0.45 * noise(vec2(along * 0.3, 7.0)));
+		float center = amp * sin(along * 1.5707963);  // her karo sinirinda 0
+		float edge = (noise(wpos.xz * 2.2) - 0.5) * 0.12;  // patika gibi duzensiz kiyi
+		float d = abs(across - center) - (RIVER_HALF + edge);
+		water = 1.0 - smoothstep(-0.03, 0.03, d);
+		grass = max(grass, 1.0 - water);  // kanaldan cikan kisim kiyi cimeni olur
+	}
 
 	// cimen: genis acik / koyu lekeler + kucuk kurumus ot alanlari + ince taneler
 	vec3 g = mix(grass_dark, grass_light, smoothstep(0.3, 0.7, big)) * grass_shade;
@@ -82,13 +111,21 @@ void fragment() {
 	g *= 1.0 + ((mid - 0.5) * 0.3 + (fine - 0.5) * 0.12 + (blades - 0.5) * 0.14) * variation;
 
 	if (terrain > 0.0) {
-		vec3 tm = texture(terrain_mask, (wpos.xz - map_min) / map_size).rgb;
+		vec2 tuv = (wpos.xz - map_min) / map_size;
+		vec3 tm = texture(terrain_mask, tuv).rgb;
 		g *= mix(1.0, 0.8, tm.r);  // orman tabani hafif koyu
 		vec3 md = meadow * (0.88 + 0.24 * big) * (1.0 + (fine - 0.5) * 0.1);
-		g = mix(g, md, smoothstep(0.05, 0.85, tm.g) * 0.9);  // dag etegi cayir tonu
+		// dag etegi cayir tonu: maske ~1.5 birim cevresinden ortalanir ve sadece daga yaklastikca
+		// guclenir -> dag eteginden sehrin yesiline gecis 2 karoya yayilir (onceden sehir kenarinda keskin cizgi)
+		vec2 o = vec2(1.5) / map_size;
+		float mg = (tm.g * 2.0 + texture(terrain_mask, tuv + vec2(o.x, 0.0)).g + texture(terrain_mask, tuv - vec2(o.x, 0.0)).g
+			+ texture(terrain_mask, tuv + vec2(0.0, o.y)).g + texture(terrain_mask, tuv - vec2(0.0, o.y)).g) / 6.0;
+		mg += (big - 0.5) * 0.12;  // sinir duz bir cizgi degil, lekeli
+		g = mix(g, md, smoothstep(0.3, 0.95, mg) * 0.9);
 		// dag karosunun kahverengi topragi da ayni zemin rengini alir (kaya lekeleri kalir)
 		float dirt = smoothstep(0.08, 0.16, base.r - base.b) * step(base.b, base.g) * (1.0 - grass) * dirt_grass;
 		grass = max(grass, dirt);
+		grass = max(grass, flat_grass * smoothstep(0.8, 0.95, normalize(wnormal).y));
 	}
 	vec3 dirt_col = vec3(0.0);
 	float path = 0.0;

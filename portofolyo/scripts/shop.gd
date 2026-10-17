@@ -133,15 +133,74 @@ func _style_fonts() -> void:
 	hazard_hint.add_theme_color_override("font_color", Color(1, 1, 1, 0.82))
 
 
+## Sekme cubugu: her sekmede ikon (Hazirlik'inki secili afete gore degisir), secili sekme panelin
+## renginde, ustunde altin serit ve biraz yukari tasar; digerleri koyu, aralikli, ustune gelince parlar.
+const TAB_ICONS := ["", "res://assets/ui_icons/news.svg", "res://assets/textures/belediye_1_saat_kulesi.png"]
+const TAB_GOLD := Color("#f2c14e")
+
+
 func _setup_tab_styles() -> void:
 	var base_panel = tab_container.get_theme_stylebox("panel")
 	_tab_panel_style = base_panel.duplicate() if base_panel is StyleBoxFlat else StyleBoxFlat.new()
 	tab_container.add_theme_stylebox_override("panel", _tab_panel_style)
-	var base_selected = tab_container.get_theme_stylebox("tab_selected")
-	_tab_selected_style = base_selected.duplicate() if base_selected is StyleBoxFlat else StyleBoxFlat.new()
+	# secili: panelle birlesik renk, altin ust serit, yanlarda ince parlak kenar, 6 px yukari tasar
+	_tab_selected_style = _tab_box(Color("#6b3a2e"))
+	_tab_selected_style.border_width_top = 4
+	_tab_selected_style.border_width_left = 2
+	_tab_selected_style.border_width_right = 2
+	_tab_selected_style.border_color = TAB_GOLD
+	_tab_selected_style.border_blend = false
+	_tab_selected_style.expand_margin_top = 6
+	_tab_selected_style.shadow_color = Color(0, 0, 0, 0.35)
+	_tab_selected_style.shadow_size = 6
+	_tab_selected_style.shadow_offset = Vector2(0, -2)
 	tab_container.add_theme_stylebox_override("tab_selected", _tab_selected_style)
+	# secili olmayan: koyu, alt kenarda soluk cizgi; yanlardaki saydam kenar sekmeler arasinda bosluk birakir
+	var off := _tab_box(Color(0.16, 0.17, 0.23, 1.0))
+	off.border_width_left = 3
+	off.border_width_right = 3
+	off.border_color = Color(0, 0, 0, 0)
+	tab_container.add_theme_stylebox_override("tab_unselected", off)
+	var hover := _tab_box(Color(0.23, 0.25, 0.33, 1.0))
+	hover.border_width_top = 2
+	hover.border_width_left = 3
+	hover.border_width_right = 3
+	hover.border_color = Color(TAB_GOLD.r, TAB_GOLD.g, TAB_GOLD.b, 0.55)
+	hover.expand_margin_top = 2
+	tab_container.add_theme_stylebox_override("tab_hovered", hover)
+	tab_container.add_theme_constant_override("icon_max_width", 30)
+	tab_container.add_theme_constant_override("icon_separation", 10)
+	tab_container.add_theme_font_size_override("font_size", 21)
+	tab_container.add_theme_color_override("font_unselected_color", Color(0.7, 0.73, 0.8))
+	tab_container.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.45))
+	tab_container.add_theme_constant_override("outline_size", 4)
+	for i in mini(TAB_ICONS.size(), tab_container.get_tab_count()):
+		if TAB_ICONS[i] != "":
+			tab_container.set_tab_icon(i, load(TAB_ICONS[i]))
+	_update_tab_icon()
 	tab_container.tab_changed.connect(_on_tab_changed)
 	_update_tab_color(tab_container.current_tab)
+
+
+func _tab_box(c: Color) -> StyleBoxFlat:
+	var s := StyleBoxFlat.new()
+	s.bg_color = c
+	s.corner_radius_top_left = 14
+	s.corner_radius_top_right = 14
+	s.corner_detail = 8
+	s.anti_aliasing = true
+	s.content_margin_left = 20
+	s.content_margin_right = 22
+	s.content_margin_top = 9
+	s.content_margin_bottom = 9
+	return s
+
+
+## Hazirlik sekmesinin ikonu secili afetin ikonu olur (deprem / sel / yangin).
+func _update_tab_icon() -> void:
+	for h in HAZARDS:
+		if h[0] == _hazard:
+			tab_container.set_tab_icon(0, load(h[3]))
 
 
 func _on_tab_changed(tab_idx: int) -> void:
@@ -153,7 +212,7 @@ func _update_tab_color(tab_idx: int) -> void:
 	if tab_idx >= 0 and tab_idx < TAB_COLORS.size():
 		var col: Color = HAZARD_BG[_hazard] if tab_idx == 0 else TAB_COLORS[tab_idx]
 		_tab_panel_style.bg_color = col
-		_tab_selected_style.bg_color = col
+		_tab_selected_style.bg_color = col.lightened(0.06)  # sekme panelden bir ton acik: one cikar
 
 
 # ------------------------------------------------------------------ Hazirlik: Deprem / Sel / Yangin secici
@@ -183,6 +242,7 @@ func _select_hazard(id: String) -> void:
 	_sfx("click")
 	_hazard = id
 	_style_hazard_buttons()
+	_update_tab_icon()
 	_update_tab_color(tab_container.current_tab)
 	populate_shop()
 	refresh()

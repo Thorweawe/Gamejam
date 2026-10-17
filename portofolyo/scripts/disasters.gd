@@ -30,7 +30,6 @@ var _burned := {}  # Vector2i -> true (yanmis orman, oyun boyunca oyle kalir)
 var _sandbags := {}  # Vector2i -> Node3D
 var _grill_smoke: Array[Node3D] = []
 var _rain: GPUParticles3D
-var _flood_mat: StandardMaterial3D
 var _used_spots := {}  # olay kartlariyla doldurulan yerler
 var _quake_day := -100  # son deprem gunu (depremden hemen sonraki selde kacis trafigi yogun)
 var life: Node  # city_life.gd: tatbikat gruplari, sabah trafigi, cadirlar, yikinti basindaki komsular
@@ -554,21 +553,16 @@ func flood(severity: float, focus := true) -> Dictionary:
 	traffic.panic(6.0)
 	r.evacuated = traffic.evacuate(game.evac_ratio(Vector3.INF))
 	var level: float = 0.05 + 0.16 * severity * game.risk.flood * (1.0 - protection * 0.4)
-	var waters: Array[Node3D] = []
 	var stranded: Array = []  # [bina, nufus]
 	var tiles := PackedVector2Array(map_info.river_tiles)
 	if protection < 2:
 		for p in map_info.flood_tiles:
 			if not _sandbags.has(tile_key(MapInfo.to3(p))):
 				tiles.append(p)
-	for p in tiles:
-		var w: Node3D = (load(M + "yol_zemin/flood_water_overlay.gltf") as PackedScene).instantiate()
-		w.position = Vector3(p.x, 0.0, p.y)
-		effects.add_child(w)
-		for mi in w.find_children("*", "MeshInstance3D", true, false):
-			mi.material_override = _flood_material()
-		waters.append(w)
-		w.create_tween().tween_property(w, "position:y", level + randf_range(-0.01, 0.01), 3.0).set_trans(Tween.TRANS_SINE)
+	# akan camurlu su nehirden disari yayilir, enkaz suruklenir, simsek / gok gurultusu (flood_fx.gd)
+	var fx := FloodFX.new()
+	effects.add_child(fx)
+	fx.rise(tiles, level, _river_z())
 	r.flooded = tiles.size()
 	# su basan yollar kapanir; dere kenarindan araclar kacar (depremden hemen sonraysa cok daha yogun)
 	var closed: Array[Vector2i] = []
@@ -615,22 +609,9 @@ func flood(severity: float, focus := true) -> Dictionary:
 	_set_rain(false)
 	for k in closed:
 		traffic.set_blocked(k, false)
-	for w in waters:
-		var tw := w.create_tween()
-		tw.tween_property(w, "position:y", -0.05, 3.0)
-		tw.tween_callback(w.queue_free)
+	fx.drain()
 	river_evacuated = false
 	return r
-
-
-func _flood_material() -> StandardMaterial3D:
-	if _flood_mat == null:
-		_flood_mat = StandardMaterial3D.new()
-		_flood_mat.albedo_color = Color(0.42, 0.5, 0.48, 0.82)  # camurlu sel suyu
-		_flood_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		_flood_mat.roughness = 0.2
-		_flood_mat.metallic_specular = 0.8
-	return _flood_mat
 
 
 func _in_flood_zone(p: Vector3) -> bool:
@@ -674,15 +655,9 @@ func averted(type: String) -> Dictionary:
 			camera_rig.focus(Vector3(0, 0, _river_z() + 3.0), 40.0, 1.2)
 			_set_rain(true)
 			await _wait(1.5)
-			var waters: Array[Node3D] = []
-			for p in map_info.river_tiles:  # dere kabarir ama yatagindan tasmaz
-				var w: Node3D = (load(M + "yol_zemin/flood_water_overlay.gltf") as PackedScene).instantiate()
-				w.position = Vector3(p.x, 0.0, p.y)
-				effects.add_child(w)
-				for mi in w.find_children("*", "MeshInstance3D", true, false):
-					mi.material_override = _flood_material()
-				waters.append(w)
-				w.create_tween().tween_property(w, "position:y", 0.12, 2.5).set_trans(Tween.TRANS_SINE)
+			var fx := FloodFX.new()  # dere kabarir ama yatagindan tasmaz (firtina yine gelir)
+			effects.add_child(fx)
+			fx.rise(map_info.river_tiles, 0.12, _river_z(), false)
 			await _wait(3.0)
 			for b in city.buildings():
 				if _in_flood_zone(b.position):
@@ -690,10 +665,7 @@ func averted(type: String) -> Dictionary:
 			out.text = "Dere kabardı ama kum torbaları ve tahliye sayesinde kimse zarar görmedi."
 			await _wait(1.5)
 			_set_rain(false)
-			for w in waters:
-				var tw := w.create_tween()
-				tw.tween_property(w, "position:y", -0.05, 2.5)
-				tw.tween_callback(w.queue_free)
+			fx.drain(2.5)
 			river_evacuated = false
 		"forest_fire":
 			var p: Vector2 = map_info.picnic_spots[randi() % map_info.picnic_spots.size()] if not map_info.picnic_spots.is_empty() else Vector2.ZERO
@@ -753,10 +725,6 @@ func place_sandbags_auto() -> int:
 	for i in keys.size():
 		get_tree().create_timer(0.6 + i * 0.12).timeout.connect(place_sandbag.bind(keys[i]))
 	return keys.size()
-
-
-func has_sandbag(k: Vector2i) -> bool:
-	return _sandbags.has(k)
 
 
 func _set_rain(on: bool) -> void:

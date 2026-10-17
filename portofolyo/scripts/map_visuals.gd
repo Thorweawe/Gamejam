@@ -10,20 +10,24 @@ extends Node
 const GROUND_SHADER := preload("res://assets/shaders/ground.gdshader")
 const OUTLINE_SHADER := preload("res://assets/shaders/outline.gdshader")
 const GraphicsQuality := preload("res://scripts/graphics_quality.gd")
-const MEADOW := Color(0.52, 0.6, 0.34)  # dag eteklerindeki soluk haki zemin bu cayir tonuna yaklasir
+const MEADOW := Color(0.46, 0.6, 0.32)  # dag eteklerindeki soluk haki zemin bu cayir tonuna yaklasir (cimene yakin, keskin gecis olmasin)
 ## Karo / model adi on eki -> shader ayarlari
 ## terrain: renk karo basina degil arazi maskesine gore (orman / dag etegi yumusak gecis, kare kare gorunmez)
 const GROUND := {
-	"forest_": {"terrain": 1.0},
-	"grass_": {"terrain": 1.0},
-	"river_": {"variation": 0.6, "river_mode": 1.0, "terrain": 1.0},
+	# hepsi ayni cayir tonunu alir: onceden cimen / orman karolari shader'in varsayilan (daha haki)
+	# tonunu, dag karolari MEADOW'u kullaniyordu -> dag eteginde iki farkli renk, keskin sinir
+	"forest_": {"terrain": 1.0, "meadow": MEADOW},
+	"grass_": {"terrain": 1.0, "meadow": MEADOW},
+	"river_": {"variation": 0.6, "river_mode": 1.0, "terrain": 1.0, "meadow": MEADOW},
 	"sand_": {"grass_amount": 0.0, "variation": 0.7},
-	"mountain_": {"terrain": 1.0, "dirt_grass": 1.0, "meadow": MEADOW, "variation": 1.2},
+	"mountain_": {"terrain": 1.0, "dirt_grass": 1.0, "flat_grass": 1.0, "meadow": MEADOW, "variation": 1.2},
 }
 const TERRAIN_MASK := preload("res://assets/textures/terrain_mask.png")
+## Tepe / zirve modelleri de arazi maskesini kullanir: dag eteginde zeminle ayni cayir tonu
+## (onceden haki zeminde parlak yesil daireler gibi duruyordu).
 const NATURE := {
-	"peak_": {"grass_shade": 0.78, "variation": 0.5},
-	"hill_": {"grass_shade": 0.85, "variation": 0.7},
+	"peak_": {"grass_shade": 0.78, "variation": 0.5, "terrain": 1.0, "meadow": MEADOW},
+	"hill_": {"grass_shade": 0.85, "variation": 0.7, "terrain": 1.0, "meadow": MEADOW},
 }
 
 var _materials := {}  # [doku, ayarlar] -> ShaderMaterial (ayni karolar tek malzemeyi paylasir)
@@ -44,6 +48,7 @@ func _ready() -> void:
 				if keep[p] != null:
 					_sea_mat.set_shader_parameter(p, keep[p])
 			_sea_mat.set_shader_parameter("coast_cut", COAST_CUT)
+			_set_river_mouth(city.get_node_or_null("MapInfo") as MapInfo)
 	_apply_group(city.get_node_or_null("Ground"), GROUND, true)
 	_apply_group(city.get_node_or_null("Nature"), NATURE)
 	_keep_on_sand(city.get_node_or_null("Props"))
@@ -107,6 +112,20 @@ const SEA_SHADER := preload("res://assets/shaders/sea.gdshader")
 var _sea_mat: ShaderMaterial
 
 
+## Nehir agzi (sea.gdshader river_z / river_x0): nehrin denize ulastigi dogu ucu. Nehir dogu-bati yonunde
+## (map_gen.py river_r satiri); kara maskesi orada biter, kiyi kopugu agizda bastirilir.
+func _set_river_mouth(info: MapInfo) -> void:
+	if info == null or info.river_tiles.is_empty():
+		return
+	var z: float = info.river_tiles[0].y
+	var x_end := -INF
+	for p in info.river_tiles:
+		if absf(p.y - z) < 0.5:
+			x_end = maxf(x_end, p.x)
+	_sea_mat.set_shader_parameter("river_z", z)
+	_sea_mat.set_shader_parameter("river_x0", x_end)
+
+
 ## Kiyi oyulunca en dis karodaki plaj semsiyeleri suya / kopuge denk gelebiliyor: kara maskesinin
 ## egimi boyunca biraz iceri (kuma) kaydir.
 func _keep_on_sand(props: Node) -> void:
@@ -163,6 +182,10 @@ func _apply_group(parent: Node, rules: Dictionary, coast := false) -> void:
 				if coast and _sea_mat:
 					settings = settings.merged({"coast_cut": COAST_CUT})
 				_apply(n, settings)
+				# duz nehir karolari kivrimli akar (ground.gdshader meander); koseler oldugu gibi
+				if prefix == "river_" and n.scene_file_path.contains("straight"):
+					for m in n.find_children("*", "MeshInstance3D", true, false):
+						(m as MeshInstance3D).set_instance_shader_parameter("meander", 1.0)
 				break
 
 

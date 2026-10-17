@@ -260,7 +260,7 @@ func _start_day(d: int) -> void:
 	await _process_later(d)
 	stats_changed.emit()
 	hud.hide_forecast()
-	var ev := _pick_event()
+	var ev := _pick_event() if d > 1 else {}  # ilk gun ogreticiden hemen sonra karar karti yok: oyuncu sehri tanisin
 	if not ev.is_empty():
 		audio.play("popup")
 		var sp: Array = Characters.EVENT_SPEAKERS.get(ev.id, [])
@@ -339,6 +339,8 @@ func apply_effects(fx: Dictionary, _source := "") -> void:
 			"awareness":
 				add_awareness(float(v))
 				hud.stat_delta("aw", float(v))
+			"pop":
+				hud.add_residents(int(v))  # tasinan / giden aileler (nufus gostergesi)
 			"risk_fire", "risk_forest", "risk_flood", "risk_quake":
 				var key: String = k.trim_prefix("risk_")
 				risk[key] = clampf(risk[key] * float(v), 0.3, 3.0)
@@ -706,10 +708,6 @@ func _day_summary() -> Dictionary:
 func _log_action(text: String) -> void:
 	if _today.has("actions"):
 		_today.actions.append(text)
-
-
-func _item_name(id: String) -> String:
-	return shop_name(id)
 
 
 ## Bir replik oyun boyunca bir kez soylensin (ilk deprem, ilk uyari...).

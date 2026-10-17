@@ -11,6 +11,11 @@ uniform sampler2D land_mask : filter_linear, repeat_disable;
 uniform vec2 map_min;
 uniform vec2 map_size;
 uniform float coast_cut = 0.63;  // map_visuals.gd COAST_CUT ile ayni olmali
+// nehir agzi (map_visuals.gd doldurur): kara maskesi nehri kara saydigi icin kiyi kopugu agzi boydan
+// boya kesiyordu (nehir kopuk duvarina carpiyormus gibi). Agizda kopuk bastirilir, nehrin acik turkuazi
+// denize dogru yelpaze gibi acilarak karisir.
+uniform float river_z = 0.0;
+uniform float river_x0 = 100000.0;  // kiyinin nehri kestigi x (dogu kiyisi); varsayilan: agiz yok
 varying vec3 wpos;
 varying float wave;
 
@@ -74,6 +79,17 @@ void fragment() {
 	// kopuk sadece su tarafinda; kara tarafi (normalde kumun altinda, nehir agzinda gorunur) sig su
 	foam += (1.0 - smoothstep(reach * 0.5, reach, e)) * smoothstep(-0.03, 0.0, e) * 0.95;
 	col = mix(col, shallow * 1.15, (1.0 - smoothstep(0.0, 0.12, e)) * 0.45);  // kiyiya yakin acik turkuaz
+
+	// nehir agzi: agzin genisligi denize dogru acilir; burada kiyi kopugu yok, nehir suyu yayilir
+	float dx = wpos.x - river_x0;
+	float spread = 1.1 + max(dx, 0.0) * 0.22;
+	float plume = (1.0 - smoothstep(spread * 0.6, spread, abs(wpos.z - river_z + sin(wpos.x * 0.8 + TIME * 0.6) * 0.15)))
+		* smoothstep(-4.0, -1.5, dx) * (1.0 - smoothstep(4.0, 9.0, dx));
+	foam *= 1.0 - plume;
+	col = mix(col, shallow * 1.2, plume * 0.6 * (1.0 - smoothstep(0.0, 14.0, dx)));
+	// akinti cizgileri: nehirden denize uzanan hafif parlak seritler
+	float flowline = smoothstep(0.85, 0.98, sin((wpos.z - river_z) * 7.0 + noise(wpos.xz * 0.6) * 2.0) * 0.5 + 0.5);
+	col += vec3(0.05) * flowline * plume * smoothstep(-1.0, 3.0, dx);
 
 	col = mix(col, vec3(0.95, 0.98, 1.0), clamp(foam, 0.0, 1.0) * 0.8);
 	col += wave * 0.035;

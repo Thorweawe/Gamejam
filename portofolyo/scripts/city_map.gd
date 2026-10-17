@@ -15,6 +15,10 @@ func _ready() -> void:
 	var visuals: Node = preload("res://scripts/map_visuals.gd").new()
 	visuals.name = "MapVisuals"
 	add_child(visuals)
+	# ana adanin acigindaki yukseltili mini adalar (bkz. islands.gd)
+	var islands: Node = preload("res://scripts/islands.gd").new()
+	islands.name = "Islands"
+	add_child(islands)
 
 
 func buildings() -> Array[Node]:

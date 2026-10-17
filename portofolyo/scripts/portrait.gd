@@ -52,8 +52,3 @@ func setup(id: String, mood := "neutral") -> void:
 	char_id = id
 	figure.build(Characters.info(id).look)
 	figure.set_mood(mood, true)
-
-
-## Kamera yakinligi: 1 = bas + omuzlar, daha buyuk deger = gogus hizasina kadar.
-func set_framing(k: float) -> void:
-	_camera.position = Vector3(0, 1.32 - (k - 1.0) * 0.25, 3.1 * k)

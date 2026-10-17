@@ -12,7 +12,7 @@ Bu dosya `portofolyo/scripts/dialogs.gd` içindeki metinlerden üretildi (`tools
 
 ## Karakterler
 
-- **Başkan Kerem Yıldız** (oyuncu): genç, iyi niyetli, biraz şaşkın ama kararlı. Doğal, samimi ton.
+- **Başkan** (oyuncu): genç, iyi niyetli, biraz şaşkın ama kararlı. Doğal, samimi ton.
 - **Nermin Hanım** (sekreter): 30 yıllık emektar, her şeyi bilen, çay tutkunu, dramatik. Hızlı ve enerjik konuşur, abartılı tepkiler verir. Komedi onda.
 
 **Not** sütunu yüz ifadesini ve animasyonu yazar; o duyguyla okuyun.
@@ -24,15 +24,15 @@ Menüden sonra, oyunun başında oynar.
 | Dosya | Kim | Replik | Not |
 |---|---|---|---|
 | `intro_01` | NERMİN HANIM | Başkanım, hoş geldiniz! Ben Nermin, sekreteriniz. Çayınız da hazır, tavşan kanı! Şekerini sormadım, üç attım. | neşeli, el sallar |
-| `intro_02` | BAŞKAN (Kerem) | Sağ ol Nermin Hanım. İlk günden çay... Üç şeker ha? Bu belediyeyi şimdiden sevdim. | neşeli, çay yudumlar |
+| `intro_02` | BAŞKAN | Sağ ol Nermin Hanım. İlk günden çay... Üç şeker ha? Bu belediyeyi şimdiden sevdim. | neşeli, çay yudumlar |
 | `intro_03` | NERMİN HANIM | Otuz yıldır buradayım, tam yedi başkan gördüm. Hepsi aynı şeyi söyledi: "Bize bir şey olmaz!" | normal, parmağıyla gösterir |
-| `intro_04` | BAŞKAN (Kerem) | Eee? Olmadı mı? | şaşkın |
+| `intro_04` | BAŞKAN | Eee? Olmadı mı? | şaşkın |
 | `intro_05` | NERMİN HANIM | Olmaz mı! Biri deprem olunca masanın altına gireceğine dolabın üstüne çıktı. Hâlâ indiremedik! Yemeğini sepetle yolluyoruz. | şaşkın, zıplar |
-| `intro_06` | BAŞKAN (Kerem) | Tamam, tamam... Ben öyle olmayacağım. Dolaplardan uzak dururum. Söyle bakalım, durum ne? | endişeli, elini alnına vurur |
+| `intro_06` | BAŞKAN | Tamam, tamam... Ben öyle olmayacağım. Dolaplardan uzak dururum. Söyle bakalım, durum ne? | endişeli, elini alnına vurur |
 | `intro_07` | NERMİN HANIM | Şehrimiz fay hattının üstünde, yanı başında orman, ortasından dere geçiyor. Deprem, yangın, sel... Hepsi kapıda. Sıra numarası bile aldılar. | endişeli, omuz silker |
-| `intro_08` | BAŞKAN (Kerem) | Bu kadar da şanssız olunmaz ki! Burayı kim seçmiş? | endişeli |
+| `intro_08` | BAŞKAN | Bu kadar da şanssız olunmaz ki! Burayı kim seçmiş? | endişeli |
 | `intro_09` | NERMİN HANIM | Şans değil başkanım, hazırlık! Afeti durduramayız ama zararını azaltabiliriz. Önümüzde yirmi gün var. | normal, parmağıyla gösterir |
-| `intro_10` | BAŞKAN (Kerem) | Yirmi gün... Peki. Hadi Nermin Hanım, şehir bize emanet! | neşeli, başını sallar |
+| `intro_10` | BAŞKAN | Yirmi gün... Peki. Hadi Nermin Hanım, şehir bize emanet! | neşeli, başını sallar |
 | `intro_11` | NERMİN HANIM | İşte bu! Yedinci başkan da aynen böyle demişti ama... neyse! O şimdi Bodrum'da balık tutuyor. Size her şeyi anlatayım. | neşeli, zıplar |
 
 ## 2. Öğretici
@@ -43,17 +43,17 @@ Açılıştan hemen sonra. Nermin anlattıkça ekranda ilgili arayüz parçası 
 |---|---|---|---|
 | `tut_01` | NERMİN HANIM | Sol üstte kasamız. Vergiler her sabah gelir, binaların bakımı ve onarımı da her gün para yer. Para gelir, para gider, Nermin kalır. | normal, parmağıyla gösterir |
 | `tut_02` | NERMİN HANIM | Bu yeşil kalkan halkın farkındalığı. Halk ne kadar bilinçliyse afette o kadar az can kaybederiz. | neşeli |
-| `tut_03` | BAŞKAN (Kerem) | Farkındalığı nasıl artıracağız? | normal |
+| `tut_03` | BAŞKAN | Farkındalığı nasıl artıracağız? | normal |
 | `tut_04` | NERMİN HANIM | Mağazadan başkanım! Gazete ilanı, tatbikat, deprem çantası... Binaları da mahalle mahalle toplu güçlendirebilirsiniz. İndirim sormayın, yok. | neşeli, parmağıyla gösterir |
 | `tut_05` | NERMİN HANIM | Bu da risk haritası. Kırmızı binalar depremde ilk yıkılacak olanlar. Kaçak katlara dikkat! | endişeli |
-| `tut_06` | BAŞKAN (Kerem) | Kaçak kat mı? Bizim şehirde mi? | şaşkın |
+| `tut_06` | BAŞKAN | Kaçak kat mı? Bizim şehirde mi? | şaşkın |
 | `tut_07` | NERMİN HANIM | Ah başkanım... Kimin evine baksanız bir kat fazla. Teyzemin evi bile bir buçuk kat fazla. | endişeli, omuz silker |
 | `tut_08` | NERMİN HANIM | Her sabah kapıya biri gelir: müteahhit, muhtar, itfaiye şefi... Ne karar verirseniz unutmazlar. Kalplerine bakın! Şefler sizi severse ekipler uçar, küserlerse kaplumbağa gibi gelirler. | normal |
 | `tut_09` | NERMİN HANIM | Meteoroloji uyarı verirse sağ üstte görürsünüz, hemen önlem alın. Ama deprem... deprem haber vermez. | normal, parmağıyla gösterir |
-| `tut_10` | BAŞKAN (Kerem) | Peki afet olursa ne yapacağım? | endişeli |
+| `tut_10` | BAŞKAN | Peki afet olursa ne yapacağım? | endişeli |
 | `tut_11` | NERMİN HANIM | Haritada yardım işaretleri çıkar. Tıklayın, ekip yola çıksın. Ekiplerimiz sol altta; binalarını geliştirirseniz çoğalırlar. | normal, parmağıyla gösterir |
 | `tut_12` | NERMİN HANIM | İşiniz bitince Günü Bitir'e basın. Akşam size günün özetini getiririm. Çayla birlikte tabii. | neşeli, parmağıyla gösterir |
-| `tut_13` | BAŞKAN (Kerem) | Nermin Hanım, sen olmasan ne yapardım? | neşeli |
+| `tut_13` | BAŞKAN | Nermin Hanım, sen olmasan ne yapardım? | neşeli |
 | `tut_14` | NERMİN HANIM | Yedi başkan da aynısını söyledi başkanım. Hadi, iş başına! Çayınız soğumasın. | neşeli, el sallar |
 
 ## 3. Son gün (20. gün)
@@ -63,23 +63,23 @@ Büyük afet zinciri başlamadan önce.
 | Dosya | Kim | Replik | Not |
 |---|---|---|---|
 | `final_01` | NERMİN HANIM | Başkanım! Bilim insanları aradı. Büyük fay hareketlendi, üstüne de sağanak geliyor! | şaşkın, zıplar |
-| `final_02` | BAŞKAN (Kerem) | Bugün mü? Hepsi birden mi? Kampanya mı var? | endişeli |
+| `final_02` | BAŞKAN | Bugün mü? Hepsi birden mi? Kampanya mı var? | endişeli |
 | `final_03` | NERMİN HANIM | Bugün. Ama siz yirmi gündür buna hazırlanıyorsunuz. Hazır mıyız? | normal, parmağıyla gösterir |
-| `final_04` | BAŞKAN (Kerem) | Hazırız Nermin Hanım. Herkes görev başına! | kararlı, başını sallar |
+| `final_04` | BAŞKAN | Hazırız Nermin Hanım. Herkes görev başına! | kararlı, başını sallar |
 
 ## 4. Oyun sonu: iyi (A-C notu)
 
 | Dosya | Kim | Replik | Not |
 |---|---|---|---|
 | `end_good_01` | NERMİN HANIM | Başardık başkanım! Şehir ayakta, halk bilinçli. Sekizinci başkan efsane oldu! Dolaptaki başkan bile alkışlıyor! | neşeli, zıplar |
-| `end_good_02` | BAŞKAN (Kerem) | Asıl kahraman halkımız, Nermin Hanım. Bir de senin çayların tabii. | neşeli, çay yudumlar |
+| `end_good_02` | BAŞKAN | Asıl kahraman halkımız, Nermin Hanım. Bir de senin çayların tabii. | neşeli, çay yudumlar |
 
 ## 5. Oyun sonu: kötü (D-F notu)
 
 | Dosya | Kim | Replik | Not |
 |---|---|---|---|
 | `end_bad_01` | NERMİN HANIM | Zor günlerdi başkanım... Ama bu bir ders. Afetler değil, hazırlıksızlık yıkar. | endişeli |
-| `end_bad_02` | BAŞKAN (Kerem) | Haklısın. Bir dahaki sefere ilk günden hazırlanacağız. Önce dolaptakini indirelim. | endişeli, başını sallar |
+| `end_bad_02` | BAŞKAN | Haklısın. Bir dahaki sefere ilk günden hazırlanacağız. Önce dolaptakini indirelim. | endişeli, başını sallar |
 
 ## 6. Oyun içi kısa replikler (Nermin Hanım)
 

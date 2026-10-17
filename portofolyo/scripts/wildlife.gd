@@ -106,6 +106,24 @@ func _add_boat() -> void:
 		"angle": randf() * TAU, "speed": randf_range(0.03, 0.06) * (1 if randf() < 0.5 else -1), "phase": randf() * TAU})
 
 
+## Mini adalar (islands.gd) kurulunca cagirir: rotasi bir adaya degen tekne baska yere tasinir.
+## spots: [x, z, yaricap, yukseklik]
+func avoid_islands(spots: Array) -> void:
+	for b in _boats:
+		for attempt in 30:
+			var hit := false
+			for s in spots:
+				var d := Vector2(b.center.x, b.center.z).distance_to(Vector2(s.x, s.y))
+				if absf(d - b.radius) < s.z * 2.3 + 1.0:
+					hit = true
+					break
+			if not hit:
+				break
+			var c := map_info.sea_points[randi() % map_info.sea_points.size()]
+			b.center = Vector3(c.x, 0.02, c.y)
+			b.radius = randf_range(3.0, 7.0)
+
+
 func _process(delta: float) -> void:
 	var t := Time.get_ticks_msec() / 1000.0
 	for f in _flyers:

@@ -437,6 +437,14 @@ func _awareness_economy(g: Node) -> void:
 			toast("Halk kendini güvende hissetmiyor: farkındalık %%%d altındayken aileler şehri terk ediyor!" % EMIGRATION_AW, "bad")
 
 
+## Karar kartindan gelen nufus degisimi (oyun nufusu biriminde: + tasinan, - giden aileler).
+func add_residents(n: int) -> void:
+	if n == 0:
+		return
+	_migrants += n
+	_float_from(_pop_chip, "%+d kişi" % n, C_POP if n > 0 else C_BAD)
+
+
 ## Afette olen her kisi icin ailesi ve korkan komsulari da sehri terk eder (kalici nufus kaybi;
 ## yikilan binalar onarilir ama giden insan geri gelmez).
 func lose_residents(casualties: int) -> void:
@@ -539,10 +547,6 @@ func toast(text: String, kind := "info") -> void:
 	tw.tween_interval(4.0)
 	tw.tween_property(p, "modulate:a", 0.0, 0.5)
 	tw.tween_callback(p.queue_free)
-
-
-func show_message(text: String, kind := "info") -> void:
-	toast(text, kind)
 
 
 func show_forecast(type: String, title: String, text: String, actions: Array) -> void:
@@ -804,6 +808,32 @@ func target_rect(name: String) -> Rect2:
 	if c == null or not c.is_visible_in_tree():
 		return Rect2()
 	return c.get_global_rect()
+
+
+## Ogretici odagi: anlatilan dugme oyun mesgulken devre disi (gri, yari saydam) gorunuyordu.
+## Odak suresince tam gorunur yapilir; tiklama yine de gecmez (diyalog katmani fareyi tutar,
+## Gunu Bitir zaten DayCycle.locked ile korunur). "" = onceki hedefi eski haline dondur.
+var _lit: Control
+var _lit_state := {}
+
+
+func tutorial_highlight(name: String) -> void:
+	if _lit and is_instance_valid(_lit):
+		_lit.modulate = _lit_state.modulate
+		if _lit is BaseButton:
+			(_lit as BaseButton).disabled = _lit_state.disabled
+		if _lit == _shop_btn:
+			set_actions_enabled(_actions_enabled)  # magaza dugmesi kendi durumuna
+	_lit = null
+	var c: Control = {"shop": _shop_btn, "risk": _risk_btn, "endday": get_node_or_null("../UI/EndDayButton"),
+		"money": _money_chip, "aw": _aw_chip, "units": _units_panel}.get(name)
+	if c == null:
+		return
+	_lit = c
+	_lit_state = {"modulate": c.modulate, "disabled": (c as BaseButton).disabled if c is BaseButton else false}
+	c.modulate = Color.WHITE
+	if c is BaseButton:
+		(c as BaseButton).disabled = false
 
 
 ## Oyun acilisi: siyahtan yavasca acilir (menuden gecisin devami).
@@ -1204,28 +1234,11 @@ func _text(parent: Node, text: String, width: int, size := 17, color := C_TEXT) 
 	return rt
 
 
-func show_intro() -> void:
-	await _modal("Afete Hazır Şehir", "hall", C_ACCENT, 640, _fill_intro, ["Göreve başla"])
 
 
-func _fill_intro(v: VBoxContainer, w: int) -> void:
-	_text(v, "Belediye başkanı sensin. [b]20 gün[/b] boyunca şehrini depreme, yangına ve sele hazırla.", w, 18)
-	for row in [["news", C_BLUE, "Her sabah bir karar kartı gelir. Seçimin haritada iz bırakır."],
-			["warning", C_ACCENT, "Uyarı gelince önlem al. Deprem ise asla haber vermez!"],
-			["rescue", C_BAD, "Afette yardım işaretlerine tıkla, ekip gönder. Süre dolarsa can kaybı olur."],
-			["shop", C_GOLD, "Mağazadan yatırım yap: farkındalık, altyapı, güçlendirme."]]:
-		var col: Color = row[1]
-		var h := _hbox(v, 12)
-		var badge := _panel(h, Color(col.r, col.g, col.b, 0.18), Color.TRANSPARENT, 6, 6, 10)
-		_icon(badge, row[0], col, 22)
-		var l := _label(h, row[2], 16, C_TEXT)
-		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		l.custom_minimum_size.x = w - 60
-		l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-
-
-## Olay karti: karti sunan karakter solda (iliskiye gore yuz ifadesi + selam), sagda secenekler ve
-## sonuclarini gosteren cipler. Secimden sonra karakter tepki verir. Doner: secilen indeks.
+## Olay karti: karti sunan karakter solda (iliskiye gore yuz ifadesi + selam), sagda uc secenek.
+## Sonuclar secimden once gizli (sadece maliyet yazar); secince yesil ++ / kirmizi -- sonuc listesi
+## cikar, karakter tepki verir, oyuncu Devam'a basinca kart kapanir. Doner: secilen indeks.
 func show_event(ev: Dictionary, rel := 0) -> int:
 	var dim := _dim()
 	var center := CenterContainer.new()
@@ -1281,22 +1294,93 @@ func show_event(ev: Dictionary, rel := 0) -> int:
 		portrait.figure.gesture("wave" if rel >= 0 else "angry")
 		dialog.say(portrait, Characters.greet(who, rel), bubble_text)
 	var result: int = await _modal_done
+	# secilmeyenler kaybolur, secilen kalir; altinda sonuc listesi (yesil ++ / kirmizi --)
+	choices.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for c in choices.get_children():
+		if c.get_index() != result:
+			var tw := c.create_tween()
+			tw.tween_property(c, "modulate:a", 0.0, 0.2)
+			tw.tween_callback(c.hide)
+	var delta: int = sp[1][result] if sp.size() > 1 and result < sp[1].size() else 0
+	await get_tree().create_timer(0.25).timeout
+	_result_list(v, ev.choices[result].effects, who, delta)
 	# karakterin tepkisi
-	if portrait and sp.size() > 1 and result < sp[1].size():
-		var delta: int = sp[1][result]
-		choices.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		for c in choices.get_children():
-			if c.get_index() != result:
-				c.create_tween().tween_property(c, "modulate:a", 0.25, 0.2)
-		if delta != 0:
-			var reaction := Characters.react(who, delta, rel)
-			portrait.figure.set_mood(reaction.get("mood", "happy" if delta > 0 else "angry"))
-			portrait.figure.gesture("jump" if delta > 0 else "angry")
-			await dialog.say(portrait, reaction, bubble_text, 55.0)
-			_pop_hearts(hearts, delta)
-			await get_tree().create_timer(1.0).timeout
+	if portrait and delta != 0:
+		var reaction := Characters.react(who, delta, rel)
+		portrait.figure.set_mood(reaction.get("mood", "happy" if delta > 0 else "angry"))
+		portrait.figure.gesture("jump" if delta > 0 else "angry")
+		_pop_hearts(hearts, delta)
+		await dialog.say(portrait, reaction, bubble_text, 55.0)
+	# oyuncu sonuclari okusun: Devam'a basinca kart kapanir
+	var ok := _button(v, "Devam  ›", accent.darkened(0.15), 17)
+	ok.size_flags_horizontal = Control.SIZE_SHRINK_END
+	ok.custom_minimum_size = Vector2(160, 44)
+	await ok.pressed
+	_sfx("click")
 	dim.queue_free()
 	return result
+
+
+## Secimin sonuclari: iyiler yesil "++", kotuler kirmizi "--", notr / ileride cikacaklar gri.
+## Karar kartinda secimden ONCE gosterilmez (oyuncu ne olacagini bilmeden karar verir).
+func _result_list(parent: Node, fx: Dictionary, who: String, rel_delta: int) -> void:
+	var box := _panel(parent, Color(1, 1, 1, 0.55), C_LINE, 14, 12, 10)
+	var col := _vbox(box, 4)
+	_label(col, "SONUÇ", 12, C_MUTED, true)
+	var lines := effect_lines(fx)
+	if who != "" and rel_delta != 0:
+		lines.append(["%s seni %s" % [Characters.info(who).get("short", who), "sevdi" if rel_delta > 0 else "hiç sevmedi"],
+			1 if rel_delta > 0 else -1])
+	for i in lines.size():
+		var kind: int = lines[i][1]
+		var color: Color = C_GOOD if kind > 0 else (C_BAD if kind < 0 else C_MUTED)
+		var mark: String = "++" if kind > 0 else ("--" if kind < 0 else "•")
+		var l := _label(col, "%s  %s" % [mark, lines[i][0]], 17, color, true)
+		l.modulate.a = 0.0
+		l.create_tween().tween_property(l, "modulate:a", 1.0, 0.25).set_delay(0.12 * i)
+	box.modulate.a = 0.0
+	box.create_tween().tween_property(box, "modulate:a", 1.0, 0.2)
+	_sfx("popup")
+
+
+## Etki sozlugu -> [yazi, tur] (tur: 1 iyi, -1 kotu, 0 notr).
+static func effect_lines(fx: Dictionary) -> Array:
+	var out := []
+	for k in fx:
+		var v = fx[k]
+		match k:
+			"money":
+				out.append(["Kasa %s%s" % ["+" if int(v) > 0 else "", GameManager.fmt_money(int(v))], 1 if int(v) > 0 else -1])
+			"awareness":
+				out.append(["Farkındalık %+d" % int(v), 1 if float(v) > 0 else -1])
+			"pop":
+				out.append(["Nüfus %+d kişi" % int(v), 1 if int(v) > 0 else -1])
+			"risk_fire", "risk_forest", "risk_flood", "risk_quake":
+				var up := float(v) > 1.0
+				out.append(["%s riski %s" % [RISK_TEXT[k.trim_prefix("risk_")], "arttı" if up else "azaldı"], -1 if up else 1])
+			"kacak":
+				out.append(["%d binaya kaçak kat çıktı" % int(v), -1])
+			"river_site":
+				out.append(["Dere yatağına %d bina yapıldı" % int(v), -1])
+			"reinforce":
+				out.append(["%d bina güçlendirildi" % int(v), 1])
+			"upgrade":
+				out.append(["%d gecekondu yenilendi" % int(v), 1])
+			"upgrade_service":
+				out.append(["%s gelişti (+1 araç)" % GameData.UNIT_NAMES.get(v, "Birim"), 1])
+			"kits":
+				out.append(["Deprem çantaları dağıtıldı", 1])
+			"drills":
+				out.append(["Tatbikat yapıldı", 1])
+			"assembly":
+				out.append(["Toplanma alanı %+d" % int(v), 1 if int(v) > 0 else -1])
+			"build":
+				out.append(["Haritada yeni yapı: " + str(v.get("label", "yapı")), 0])
+			"later":
+				out.append(["Bu kararın sonucu birkaç gün sonra ortaya çıkabilir...", 0])
+	if out.is_empty():
+		out.append(["Hiçbir şey değişmedi", 0])
+	return out
 
 
 ## Iliski gostergesi: 5 kalp (-3..+3 araligini 0..5 dolu kalbe cevirir).
@@ -1351,8 +1435,10 @@ func _choice_card(parent: Node, choice: Dictionary, index: int, locked := false)
 	flow.add_theme_constant_override("h_separation", 6)
 	flow.add_theme_constant_override("v_separation", 6)
 	v.add_child(flow)
-	for c in effect_chips(choice.effects):
-		_chip(flow, c[0], c[1], c[2], 13, Color(c[2].r, c[2].g, c[2].b, 0.12))
+	# sonuclar secimden once gizli; sadece maliyeti belli olan secenekte fiyat yazar
+	var cost := -int(choice.effects.get("money", 0))
+	if cost > 0:
+		_chip(flow, "coin", "Maliyet: " + GameManager.fmt_money(cost), C_GOLD, 13, Color(C_GOLD.r, C_GOLD.g, C_GOLD.b, 0.12))
 	for c in p.find_children("*", "Control", true, false):
 		c.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if locked:
@@ -1367,53 +1453,6 @@ func _choice_card(parent: Node, choice: Dictionary, index: int, locked := false)
 		p.add_theme_stylebox_override("panel", hover)
 		_sfx("hover"))
 	p.mouse_exited.connect(func(): p.add_theme_stylebox_override("panel", normal))
-
-
-## Bir secenegin sonuclarini kisa ciplere cevir: [ikon, yazi, renk]
-static func effect_chips(fx: Dictionary) -> Array:
-	var out := []
-	for k in fx:
-		var v = fx[k]
-		match k:
-			"money":
-				out.append(["coin", ("+" if int(v) > 0 else "") + GameManager.fmt_money(int(v)), C_GOLD if int(v) > 0 else C_BAD])
-			"awareness":
-				out.append(["shield", "Farkındalık %+d" % int(v), C_GOOD if float(v) > 0 else C_BAD])
-			"risk_fire", "risk_forest", "risk_flood", "risk_quake":
-				var up := float(v) > 1.0
-				out.append(["warning" if up else "shield", "%s riski %s" % [RISK_TEXT[k.trim_prefix("risk_")], "artar" if up else "azalır"],
-					C_BAD if up else C_GOOD])
-			"kacak":
-				out.append(["warning", "%d binaya kaçak kat" % int(v), C_BAD])
-			"river_site":
-				out.append(["warning", "Dere yatağına bina", C_BAD])
-			"reinforce":
-				out.append(["shield", "%d bina güçlenir" % int(v), C_GOOD])
-			"upgrade":
-				out.append(["house", "%d gecekondu yenilenir" % int(v), C_GOOD])
-			"upgrade_service":
-				out.append(["star", "%s gelişir" % GameData.UNIT_NAMES.get(v, "Birim"), C_GOOD])
-			"kits":
-				out.append(["kit", "Deprem çantası", C_GOOD])
-			"drills":
-				out.append(["drill", "Tatbikat", C_GOOD])
-			"assembly":
-				out.append(["flag", "Toplanma alanı %+d" % int(v), C_GOOD if int(v) > 0 else C_BAD])
-			"build":
-				out.append(["map", "Haritada: " + str(v.get("label", "yapı")), C_BLUE])
-			"later":
-				out.append(["warning", "Sonucu ileride çıkar", Color(1.0, 0.75, 0.4)])
-	if out.is_empty():
-		out.append(["check", "Değişiklik yok", C_MUTED])
-	return out
-
-
-func show_decision(title: String, text: String, buttons: Array) -> int:
-	return await _modal(title, "warning", Color(1.0, 0.35, 0.28), 580, _fill_decision.bind(text), buttons)
-
-
-func _fill_decision(v: VBoxContainer, w: int, text: String) -> void:
-	_text(v, "[center]" + text + "[/center]", w, 18)
 
 
 ## Oyun sonu. failed = true ise nufus %20'nin altina dustugu icin erken bitti (sadece baslik degisir).

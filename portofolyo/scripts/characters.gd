@@ -6,7 +6,7 @@ extends RefCounted
 
 ## look anahtarlari: skin, hair, hair_color, outfit, outfit2, hat, glasses, mustache, beard, tie, extra
 const CHARS := {
-	"baskan": {"name": "Başkan Kerem Yıldız", "short": "Başkan", "title": "Belediye Başkanı", "pitch": 0.9, "color": Color(0.4, 0.68, 1.0),
+	"baskan": {"name": "Başkan", "short": "Başkan", "title": "Belediye Başkanı", "pitch": 0.9, "color": Color(0.4, 0.68, 1.0),
 		"look": {"skin": Color(0.87, 0.67, 0.52), "hair": "short", "hair_color": Color(0.17, 0.12, 0.1),
 			"outfit": Color(0.16, 0.22, 0.38), "outfit2": Color(0.95, 0.95, 0.97), "tie": Color(0.8, 0.15, 0.15), "beard": true}},
 	"nermin": {"name": "Nermin Hanım", "short": "Nermin", "title": "Başkanlık Sekreteri", "pitch": 1.35, "color": Color(0.85, 0.45, 0.9),
@@ -41,22 +41,25 @@ const CHARS := {
 			"outfit": Color(0.96, 0.97, 0.98), "outfit2": Color(0.3, 0.65, 0.75), "extra": "stethoscope"}},
 }
 
-## Olay karti -> sunan karakter ve her secenegin o karaktere etkisi (+1 sevinir, -1 kizar, 0 notr)
+## Olay karti -> sunan karakter ve her secenegin (GameData.EVENTS sirasiyla, 3 secenek) o karaktere
+## etkisi (+1 sevinir, -1 kizar, 0 notr). Her karakter kendi cikarina bakar: muteahhit parali
+## secenegi, sefler kendi birimine yatirimi, muhtar mahallesini sever; "dogru" secenek her zaman
+## herkesi memnun etmez.
 const EVENT_SPEAKERS := {
-	"bribe_floor": ["selim", [1, -1]], "river_site": ["selim", [1, -1]], "mall_park": ["selim", [1, -1]],
-	"hotel_forest": ["selim", [1, -1]], "cheap_concrete": ["selim", [1, -1]], "coast_hotel": ["selim", [1, -1]],
-	"donation": ["selim", [1, -1]], "election": ["selim", [1, -1]],
-	"muhtar_drill": ["husnu", [1, -1]], "gecekondu_deed": ["husnu", [1, -1]], "illegal_power": ["husnu", [1, -1]],
-	"dam": ["husnu", [1, -1]], "drains": ["husnu", [1, -1]], "stubble": ["husnu", [1, -1]],
-	"fire_truck": ["murat", [1, -1]], "smoke_detector": ["murat", [1, -1]], "volunteer_fire": ["murat", [1, -1]],
-	"afad_volunteer": ["elif", [1, -1]], "tsunami_sign": ["elif", [1, -1]], "help_neighbor": ["elif", [1, -1]],
-	"grant": ["elif", [1, -1]], "kits_campaign": ["elif", [1, -1]], "insurance": ["elif", [1, -1]],
-	"drill_parents": ["ayse", [-1, 1]], "curriculum": ["ayse", [1, -1]], "old_school": ["ayse", [1, -1]],
-	"bottle_cleanup": ["ayse", [1, -1]],
-	"interview": ["tolga", [1, -1]], "fake_quake": ["tolga", [1, -1]], "influencer": ["tolga", [1, -1]],
-	"scientist": ["oguz", [1, -1]],
-	"bbq_festival": ["riza", [1, -1]], "parking": ["riza", [1, -1]], "camping": ["riza", [-1, 1]],
-	"generator": ["zeynep", [1, -1]],
+	"bribe_floor": ["selim", [1, 0, -1]], "river_site": ["selim", [1, 0, -1]], "mall_park": ["selim", [1, 0, -1]],
+	"hotel_forest": ["selim", [1, 0, -1]], "cheap_concrete": ["selim", [1, 0, -1]], "coast_hotel": ["selim", [1, 0, -1]],
+	"donation": ["selim", [1, 0, -1]], "election": ["selim", [1, -1, 0]],
+	"muhtar_drill": ["husnu", [1, 0, -1]], "gecekondu_deed": ["husnu", [1, -1, 0]], "illegal_power": ["husnu", [-1, 0, 1]],
+	"dam": ["husnu", [1, 1, -1]], "drains": ["husnu", [1, 1, -1]], "stubble": ["husnu", [1, 0, -1]],
+	"fire_truck": ["murat", [1, 0, -1]], "smoke_detector": ["murat", [1, 0, -1]], "volunteer_fire": ["murat", [1, 1, -1]],
+	"afad_volunteer": ["elif", [1, 1, -1]], "tsunami_sign": ["elif", [1, 0, -1]], "help_neighbor": ["elif", [1, 0, -1]],
+	"grant": ["elif", [1, 1, -1]], "kits_campaign": ["elif", [1, 0, -1]], "insurance": ["elif", [1, 1, -1]],
+	"drill_parents": ["ayse", [-1, 1, 1]], "curriculum": ["ayse", [1, 0, -1]], "old_school": ["ayse", [1, 0, -1]],
+	"bottle_cleanup": ["ayse", [1, 1, -1]],
+	"interview": ["tolga", [1, 0, -1]], "fake_quake": ["tolga", [1, 1, -1]], "influencer": ["tolga", [1, 0, -1]],
+	"scientist": ["oguz", [1, 0, -1]],
+	"bbq_festival": ["riza", [1, 0, -1]], "parking": ["riza", [1, 0, -1]], "camping": ["riza", [-1, 0, 1]],
+	"generator": ["zeynep", [1, 0, -1]],
 }
 
 ## Iliskiye gore selam. Kademe: love (+3), like (+1/+2), neutral (0), cold (-1/-2), hate (-3).

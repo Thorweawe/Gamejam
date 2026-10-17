@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://o0s45xrkt0vj"]
+[gd_scene format=3 uid="uid://bbb254v46mhip"]
 
 [ext_resource type="PackedScene" uid="uid://ch3o6gbkhwl4k" path="res://assets/models/binalar/kamu/building_townhall_lv1.gltf" id="1_y1wlr"]
 [ext_resource type="PackedScene" uid="uid://ch8pcp1gl33uo" path="res://assets/models/binalar/kamu/building_news.gltf" id="2_n2jt6"]
