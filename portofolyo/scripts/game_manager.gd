@@ -247,6 +247,8 @@ func _start_day(d: int) -> void:
 		audio.play("click")
 		if who != "" and choice < sp[1].size():
 			rel[who] = clampi(int(rel.get(who, 0)) + int(sp[1][choice]), -3, 3)
+			if absi(rel[who]) == 3:
+				bark_once(("love_" if rel[who] > 0 else "hate_") + who)
 		await apply_effects(ev.choices[choice].effects, ev.title)
 	if d >= GameData.TOTAL_DAYS:
 		await _finale()

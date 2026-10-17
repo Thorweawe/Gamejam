@@ -1,6 +1,6 @@
 """ElevenLabs ile Nermin ve Baskan repliklerini seslendirir.
 
-Replikler portofolyo/scripts/dialogs.gd'den okunur (id, who, mood, text).
+Replikler portofolyo/scripts/dialogs.gd ve characters.gd'den okunur (id, who, mood, text).
 Cikti: portofolyo/assets/voice/<id>.mp3 (dialog_player.gd burada bulursa calar).
 
 API anahtari: ELEVENLABS_API_KEY ortam degiskeni ya da tools/.elevenlabs_key dosyasi
@@ -10,6 +10,7 @@ API anahtari: ELEVENLABS_API_KEY ortam degiskeni ya da tools/.elevenlabs_key dos
   py tools/elevenlabs_tts.py --add-voice OWNER VOICE AD  # paylasilan sesi hesaba ekle
   py tools/elevenlabs_tts.py                            # eksik dosyalari uret
   py tools/elevenlabs_tts.py --force intro_01 tut_03    # secili replikleri yeniden uret
+  py tools/elevenlabs_tts.py --force nermin             # bir karakterin tum repliklerini yeniden uret
   py tools/elevenlabs_tts.py --force                    # hepsini yeniden uret
 """
 
@@ -25,6 +26,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DIALOGS = ROOT / "portofolyo" / "scripts" / "dialogs.gd"
+CHARACTERS = ROOT / "portofolyo" / "scripts" / "characters.gd"  # kart karakterlerinin selam / tepkileri
 OUT_DIR = ROOT / "portofolyo" / "assets" / "voice"
 TOOLS = Path(__file__).resolve().parent
 VOICES_FILE = TOOLS / "voices.json"
@@ -76,7 +78,7 @@ def request(method: str, path: str, body=None, accept="application/json") -> byt
 
 
 def load_lines() -> list[dict]:
-    src = DIALOGS.read_text(encoding="utf-8")
+    src = DIALOGS.read_text(encoding="utf-8") + "\n" + CHARACTERS.read_text(encoding="utf-8")
     lines = []
     for m in LINE_RE.finditer(src):
         mood = MOOD_RE.search(m["rest"])
@@ -150,7 +152,7 @@ def synthesize(only: list[str], force: bool, out_dir: Path | None = None, model:
     out_dir.mkdir(parents=True, exist_ok=True)
     done = 0
     for i, line in enumerate(lines):
-        if only and line["id"] not in only:
+        if only and line["id"] not in only and line["who"] not in only:
             continue
         out = out_dir / f"{line['id']}.mp3"
         if out.exists() and not force:
@@ -160,8 +162,10 @@ def synthesize(only: list[str], force: bool, out_dir: Path | None = None, model:
         text = line["text"]
         if v3:
             # v3: stability sadece 0.0 (yaratici) / 0.5 (dogal) / 1.0 (sabit); duygu etiketle verilir.
-            settings = {"stability": voices.get("v3_stability", 0.5)}
-            tag = V3_TAGS.get(line["mood"])
+            # Karakter basina "v3_stability" (1.0 = ses tinisi her satirda ayni kalir) ve "tags" (false = etiketsiz).
+            settings = {"stability": cfg.get("v3_stability", voices.get("v3_stability", 0.5))}
+            tags = cfg.get("tags", V3_TAGS)
+            tag = tags.get(line["mood"]) if tags else None
             if tag:
                 text = f"{tag} {text}"
         else:
@@ -170,6 +174,8 @@ def synthesize(only: list[str], force: bool, out_dir: Path | None = None, model:
         body = {"text": text, "model_id": model, "voice_settings": settings}
         if v3:
             body["language_code"] = "tr"
+        if "seed" in cfg:
+            body["seed"] = cfg["seed"]  # ayni tohum = satirlar arasi daha tutarli ses
         # Ayni sahnedeki komsu replikler tonlamayi tutarli yapar (bark'lar tek basina; v3 desteklemiyor).
         scene = line["id"].rsplit("_", 1)[0]
         if not scene.startswith("bark") and not v3:

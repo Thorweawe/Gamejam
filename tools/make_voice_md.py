@@ -37,6 +37,16 @@ when = {"first_forecast": "İlk hava uyarısında", "first_quake": "İlk depremd
         "first_forest_fire": "İlk orman yangınında", "first_flood": "İlk selde", "aftershock": "İlk artçı depremde",
         "prep_good": "Güçlendirilmiş binalar ilk kez ayakta kalınca", "prep_bad": "İlk kez hazırlıksız yakalanınca",
         "low_money": "Kasa 1.500 TL'nin altına düşünce", "streak": "İlk 3'lü kurtarma serisinde"}
+char_names = {"selim": "Müteahhit Selim Bey", "husnu": "Muhtar Hüsnü Amca", "murat": "İtfaiye Müdürü Murat Şef",
+              "elif": "AFAD Koordinatörü Elif Hanım", "ayse": "Ayşe Öğretmen", "tolga": "Gazeteci Tolga",
+              "oguz": "Prof. Dr. Oğuz Taner", "riza": "Esnaf Rıza Usta", "zeynep": "Dr. Zeynep Aydın"}
+for c, n in char_names.items():
+    when["love_" + c] = n + " tam kalbe ulaşınca"
+    when["hate_" + c] = n + " tamamen küsünce"
+tier_tr = {"love": "selam: hayran (+3)", "like": "selam: sıcak (+1/+2)", "neutral": "selam: nötr (0)",
+           "cold": "selam: soğuk (-1/-2)", "hate": "selam: küs (-3)", "pleased": "tepki: dostu yine sevindi",
+           "won": "tepki: gönlü alındı", "hurt": "tepki: kırıldı", "fed_up": "tepki: zaten küstü, yine kızdı"}
+chars_src = open(os.path.join(ROOT, "portofolyo", "scripts", "characters.gd"), encoding='utf-8').read()
 out = ["# Seslendirme Senaryosu", "",
        "Bu dosya `portofolyo/scripts/dialogs.gd` içindeki metinlerden üretildi (`tools/make_voice_md.py`). Metni değiştirirseniz önce orayı değiştirip betiği yeniden çalıştırın.", "",
        "## Nasıl kaydedilir?", "",
@@ -65,9 +75,16 @@ out += ["", "## 6. Oyun içi kısa replikler (Nermin Hanım)", "",
         "| Dosya | Ne zaman | Replik | Not |", "|---|---|---|---|"]
 for id_, key, text, mood in barks():
     out.append("| `%s` | %s | %s | %s |" % (id_, when.get(key, key), text, mood))
-out += ["", "## 7. Seslendirmesi olmayan karakterler", "",
-        "Karar kartlarını sunan diğer karakterler kendi ses perdelerinde mırıldanarak konuşur: Müteahhit Selim Bey, "
-        "Muhtar Hüsnü Amca, İtfaiye Müdürü Murat Şef, AFAD Koordinatörü Elif Hanım, Ayşe Öğretmen, Gazeteci Tolga, "
-        "Prof. Dr. Oğuz Taner, Esnaf Rıza Usta, Dr. Zeynep Aydın. Selam ve tepki cümleleri `portofolyo/scripts/characters.gd` içinde."]
+out += ["", "## 7. Karar kartı karakterleri", "",
+        "Kartı sunan karakter ilişki puanına (-3..+3) göre selam verir, kararından sonra önceki ilişkiye göre tepki verir. "
+        "Metinler `portofolyo/scripts/characters.gd` içinde.", ""]
+for c, n in char_names.items():
+    out += ["### " + n, "", "| Dosya | Ne zaman | Replik |", "|---|---|---|"]
+    for m in LINE.finditer(chars_src):
+        id_, who, mid, text = m.groups()
+        if who == c:
+            kind = id_.split("_")[2] if "_greet_" in id_ else id_.split("_react_")[1]
+            out.append("| `%s` | %s | %s |" % (id_, tier_tr.get(kind, kind), text.replace('\\"', '"')))
+    out.append("")
 open(os.path.join(ROOT, "SESLENDIRME.md"), 'w', encoding='utf-8').write("\n".join(out) + "\n")
 print("satir:", sum(1 for l in out if l.startswith("| `")))

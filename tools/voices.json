@@ -1,14 +1,17 @@
 {
   "model_id": "eleven_v3",
   "v3_stability": 0.5,
-  "nermin": {
-    "name": "Lily",
-    "voice_id": "pFZP5JQG7iQjIQuC4Bku",
-    "settings": {"stability": 0.4, "similarity_boost": 0.8, "style": 0.35, "use_speaker_boost": true}
-  },
-  "baskan": {
-    "name": "George",
-    "voice_id": "JBFqnCBsd6RMkjVDRZzb",
-    "settings": {"stability": 0.5, "similarity_boost": 0.8, "style": 0.2, "use_speaker_boost": true}
-  }
+  "nermin": {"name": "Alice", "voice_id": "Xb7hH8MSUJpSbSDYk0k2", "settings": {"stability": 0.4, "similarity_boost": 0.8, "style": 0.35},
+    "v3_stability": 1.0, "seed": 1958,
+    "tags": {"surprised": "[excited]", "happy": "[cheerfully]"}},
+  "baskan": {"name": "George", "voice_id": "JBFqnCBsd6RMkjVDRZzb", "settings": {"stability": 0.5, "similarity_boost": 0.8, "style": 0.2}},
+  "selim": {"name": "Callum", "voice_id": "N2lVS1w4EtoT3dr4eOWO", "settings": {"stability": 0.4}},
+  "husnu": {"name": "Roger", "voice_id": "CwhRBWXzGAHq8TQ4Fs17", "settings": {"stability": 0.4}},
+  "murat": {"name": "Harry", "voice_id": "SOYHLrjzK2X1ezoPC6cr", "settings": {"stability": 0.4}},
+  "elif": {"name": "Bella", "voice_id": "hpp4J3VqNfWAUOO0d1Us", "settings": {"stability": 0.4}},
+  "ayse": {"name": "Jessica", "voice_id": "cgSgspJ2msm6clMCkdW9", "settings": {"stability": 0.4}},
+  "tolga": {"name": "Charlie", "voice_id": "IKne3meq5aSn9XLyUdCD", "settings": {"stability": 0.4}},
+  "oguz": {"name": "Daniel", "voice_id": "onwK4e9ZLuTAKqWW03F9", "settings": {"stability": 0.4}},
+  "riza": {"name": "Chris", "voice_id": "iP95p4xoKVk53GoZ742B", "settings": {"stability": 0.4}},
+  "zeynep": {"name": "Laura", "voice_id": "FGY2WhTYpPnrIDTdsKH5", "settings": {"stability": 0.4}}
 }

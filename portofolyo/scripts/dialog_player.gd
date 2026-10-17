@@ -49,6 +49,8 @@ var _bark_busy := false
 var _bark_queue: Array = []
 var _bark_talk := 0.0
 var _extra := {}  # baska yerlerdeki portreler (karar karti) -> agiz acikligi
+var _card_voice: AudioStreamPlayer  # karar karti karakterinin sesi
+var _card_talker: Portrait
 
 
 func _ready() -> void:
@@ -64,6 +66,9 @@ func _ready() -> void:
 	_bark_voice = AudioStreamPlayer.new()
 	_bark_voice.bus = "Voice"
 	add_child(_bark_voice)
+	_card_voice = AudioStreamPlayer.new()
+	_card_voice.bus = "Voice"
+	add_child(_card_voice)
 	for i in 3:
 		var b := AudioStreamPlayer.new()
 		b.bus = "Voice"
@@ -374,8 +379,18 @@ func _speak(p: Portrait, line: Dictionary, label: Label, player: AudioStreamPlay
 		await get_tree().create_timer(1.6 + text.length() * 0.02).timeout
 
 
-## Herhangi bir portreyi konustur (karar karti): yazi akar, agiz oynar, karakter mirildanir.
-func say(p: Portrait, text: String, label: Label, speed := 45.0) -> void:
+## Herhangi bir portreyi konustur (karar karti): yazi akar, agiz oynar.
+## line: metin ya da {id, text} satiri; id'nin ses dosyasi varsa calinir, yoksa karakter mirildanir.
+func say(p: Portrait, line: Variant, label: Label, speed := 45.0) -> void:
+	var text: String = line.get("text", "") if line is Dictionary else str(line)
+	var path := Dialogs.voice_path(line.get("id", "")) if line is Dictionary else ""
+	var voiced := path != ""
+	_card_voice.stop()
+	_card_talker = p if voiced else null
+	if voiced:
+		_card_voice.stream = load(path)
+		_card_voice.play()
+		speed = maxf(12.0, text.length() / maxf(0.5, _card_voice.stream.get_length() * 0.9))
 	label.text = text
 	label.visible_characters = 0
 	var pitch: float = Characters.info(p.char_id).get("pitch", 1.0)
@@ -384,6 +399,7 @@ func say(p: Portrait, text: String, label: Label, speed := 45.0) -> void:
 	while is_instance_valid(label) and label.visible_characters < text.length() and label.visible_characters >= 0:
 		await get_tree().process_frame
 		if not is_instance_valid(label) or not is_instance_valid(p):
+			_card_voice.stop()
 			return
 		shown += speed * get_process_delta_time()
 		var n := mini(text.length(), int(shown))
@@ -392,11 +408,19 @@ func say(p: Portrait, text: String, label: Label, speed := 45.0) -> void:
 			var ch := text.substr(n - 1, 1).to_lower()
 			var mouth := 0.9 if VOWELS.has(ch) else (0.35 if ch.strip_edges() != "" and not ch in [",", ".", "!", "?", ":", "\"", "'"] else 0.0)
 			_extra[p] = mouth
-			if mouth > 0.0 and n - last_blip >= 2:
+			if not voiced and mouth > 0.0 and n - last_blip >= 2:
 				last_blip = n
 				_blip(VOWELS.get(ch, ["a", "e", "o"].pick_random()), pitch)
 	if is_instance_valid(label):
 		label.visible_characters = -1
+	# ses bitene kadar bekle (kart kapanirsa kes)
+	while voiced and _card_voice.playing and _card_talker == p:
+		await get_tree().process_frame
+		if not is_instance_valid(p):
+			_card_voice.stop()
+			break
+	if _card_talker == p:
+		_card_talker = null
 	_extra[p] = 0.0
 
 
@@ -427,7 +451,10 @@ func _process(delta: float) -> void:
 		if not is_instance_valid(p):
 			_extra.erase(p)
 			continue
-		p.figure.talk = lerpf(p.figure.talk, _extra[p], minf(1.0, delta * 20.0))
+		var lv: float = _extra[p]
+		if p == _card_talker and _card_voice.playing and _spectrum:
+			lv = _voice_level()
+		p.figure.talk = lerpf(p.figure.talk, lv, minf(1.0, delta * 20.0))
 	if _more.visible:
 		_more.position.y = sin(_t * 6.0) * 3.0
 	if _frame.visible:

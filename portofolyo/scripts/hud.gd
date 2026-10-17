@@ -1259,9 +1259,10 @@ func show_event(ev: Dictionary, rel := 0) -> int:
 			if c.get_index() != result:
 				c.create_tween().tween_property(c, "modulate:a", 0.25, 0.2)
 		if delta != 0:
-			portrait.figure.set_mood("happy" if delta > 0 else "angry")
+			var reaction := Characters.react(who, delta, rel)
+			portrait.figure.set_mood(reaction.get("mood", "happy" if delta > 0 else "angry"))
 			portrait.figure.gesture("jump" if delta > 0 else "angry")
-			await dialog.say(portrait, Characters.react(who, delta), bubble_text, 55.0)
+			await dialog.say(portrait, reaction, bubble_text, 55.0)
 			_pop_hearts(hearts, delta)
 			await get_tree().create_timer(1.0).timeout
 	dim.queue_free()
