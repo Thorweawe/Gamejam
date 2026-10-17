@@ -42,6 +42,7 @@ Açılıştan hemen sonra. Nermin anlattıkça ekranda ilgili arayüz parçası 
 | Dosya | Kim | Replik | Not |
 |---|---|---|---|
 | `tut_01` | NERMİN HANIM | Sol üstte kasamız. Vergiler her sabah gelir, binaların bakımı ve onarımı da her gün para yer. Para gelir, para gider, Nermin kalır. | normal, parmağıyla gösterir |
+| `tut_nufus` | NERMİN HANIM | İşte bu da nüfus barı. Nüfus iki binin altına inerse şehri kaybederiz! Afette can kaybı olursa ya da halk kendini güvende hissetmezse aileler toplanıp gider. | endişeli, bara işaret eder, parmağını sallayarak uyarır |
 | `tut_02` | NERMİN HANIM | Bu yeşil kalkan halkın farkındalığı. Halk ne kadar bilinçliyse afette o kadar az can kaybederiz. | neşeli |
 | `tut_03` | BAŞKAN | Farkındalığı nasıl artıracağız? | normal |
 | `tut_04` | NERMİN HANIM | Mağazadan başkanım! Gazete ilanı, tatbikat, deprem çantası... Binaları da mahalle mahalle toplu güçlendirebilirsiniz. İndirim sormayın, yok. | neşeli, parmağıyla gösterir |

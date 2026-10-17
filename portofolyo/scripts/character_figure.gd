@@ -8,7 +8,7 @@ extends Node3D
 ##   set_mood("neutral" | "happy" | "angry" | "worried" | "surprised")
 ##   talk = 0..1 (agiz acikligi; dudak senkronu bunu her karede gunceller)
 ##   vowel = 0..1 (agiz bicimi: 0 genis "e/i", 0.5 "a", 1 yuvarlak "o/u")
-##   gesture("wave" | "shrug" | "facepalm" | "point" | "jump" | "nod" | "shake" | "tea" | "angry")
+##   gesture("wave" | "shrug" | "facepalm" | "point" | "jump" | "nod" | "shake" | "tea" | "angry" | "warn")
 
 const MOODS := {
 	# kas acisi (ic uc yukari +), kas yuksekligi, goz yuksekligi, agiz kose acisi (+ gulumseme), agiz genisligi
@@ -251,6 +251,26 @@ func gesture(kind: String) -> void:
 			tw.chain().tween_property(self, "position:x", position.x - 0.05, 0.05)
 			tw.chain().tween_property(self, "position:x", position.x, 0.05)
 			tw.chain().tween_interval(0.4)
+		"warn":
+			# "Aman ha!": sol elle ekranin sol ustundeki gostergeye isaret, bakis oraya; sonra sol el
+			# endiseyle gogse, sag el havada "dikkat!" diye uc kez sallanir, bas hafifce "yok yok"
+			# (l: ekranin solundaki kol; kollar ekran duzleminde, konusma kutusunun ustunde kalacak yukseklikte)
+			tw.tween_property(l, "rotation", Vector3(-0.3, 0, -2.75), 0.32).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tw.parallel().tween_property(head, "rotation", Vector3(-0.15, -0.3, 0.1), 0.32)
+			tw.tween_property(l, "rotation:z", -2.55, 0.18)  # "iste bu!" diye bir kez vurgular
+			tw.tween_property(l, "rotation:z", -2.75, 0.18)
+			tw.tween_interval(0.3)
+			tw.tween_property(l, "rotation", Vector3(-1.15, 0, 0.75), 0.28)
+			tw.parallel().tween_property(r, "rotation", Vector3(-0.35, 0, 2.75), 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tw.parallel().tween_property(head, "rotation", Vector3(0.05, 0.0, 0.0), 0.28)
+			for i in 3:
+				tw.tween_property(r, "rotation:z", 3.0, 0.13)
+				tw.parallel().tween_property(head, "rotation:y", 0.13, 0.13)
+				tw.tween_property(r, "rotation:z", 2.45, 0.13)
+				tw.parallel().tween_property(head, "rotation:y", -0.13, 0.13)
+			tw.tween_property(r, "rotation:z", 2.75, 0.1)
+			tw.parallel().tween_property(head, "rotation:y", 0.0, 0.1)
+			tw.tween_interval(0.45)
 	# her jestten sonra rahat durusa yumusakca don
 	tw.chain().set_parallel(true)
 	tw.tween_property(l, "rotation", Vector3.ZERO, 0.4)

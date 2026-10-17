@@ -7,7 +7,8 @@ names = {"baskan": "BAŞKAN", "nermin": "NERMİN HANIM"}
 mood_tr = {"happy": "neşeli", "neutral": "normal", "worried": "endişeli", "surprised": "şaşkın", "angry": "kararlı"}
 anim_tr = {"wave": "el sallar", "tea": "çay yudumlar", "point": "parmağıyla gösterir", "jump": "zıplar",
            "facepalm": "elini alnına vurur", "shrug": "omuz silker", "nod": "başını sallar",
-           "shake": "başını iki yana sallar", "angry": "sinirlenir"}
+           "shake": "başını iki yana sallar", "angry": "sinirlenir",
+           "warn": "bara işaret eder, parmağını sallayarak uyarır"}
 LINE = re.compile(r'\{"id": "([^"]+)", "who": "([^"]+)"(.*?)"text": "((?:[^"\\]|\\.)*)"\}', re.S)
 
 

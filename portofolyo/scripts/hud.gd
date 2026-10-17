@@ -861,6 +861,8 @@ func target_rect(name: String) -> Rect2:
 	match name:
 		"money":
 			c = _money_chip
+		"pop":
+			c = _pop_chip
 		"aw":
 			c = _aw_chip
 		"shop":
@@ -900,7 +902,7 @@ func tutorial_highlight(name: String) -> void:
 			set_actions_enabled(_actions_enabled)  # magaza dugmesi kendi durumuna
 	_lit = null
 	var c: Control = {"shop": _shop_btn, "risk": _risk_btn, "endday": get_node_or_null("../UI/EndDayButton"),
-		"money": _money_chip, "aw": _aw_chip, "units": _units_panel}.get(name)
+		"money": _money_chip, "pop": _pop_chip, "aw": _aw_chip, "units": _units_panel}.get(name)
 	if c == null:
 		return
 	_lit = c
