@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+<defs><clipPath id="a"><polygon points="12,59 12,11 24,11 26,17 30,14 33,24 38,21 41,33 46,30 52,40 52,59"/></clipPath></defs>
+<polygon points="12,59 12,11 24,11 26,17 30,14 33,24 38,21 41,33 46,30 52,40 52,59" fill="#4F7CFF" stroke="#1E2A3A" stroke-width="2" stroke-linejoin="round"/>
+<g clip-path="url(#a)"><rect x="18" y="16" width="7" height="7" rx="1" fill="#FFFFFF"/><rect x="28.5" y="16" width="7" height="7" rx="1" fill="#1E2A3A"/><rect x="39" y="16" width="7" height="7" rx="1" fill="#FFFFFF"/><rect x="18" y="26" width="7" height="7" rx="1" fill="#FFFFFF"/><rect x="28.5" y="26" width="7" height="7" rx="1" fill="#1E2A3A"/><rect x="39" y="26" width="7" height="7" rx="1" fill="#FFFFFF"/><rect x="18" y="36" width="7" height="7" rx="1" fill="#1E2A3A"/><rect x="28.5" y="36" width="7" height="7" rx="1" fill="#FFFFFF"/><rect x="39" y="36" width="7" height="7" rx="1" fill="#1E2A3A"/></g>
+<rect x="9" y="5" width="16" height="6" rx="2" fill="#1E2A3A"/>
+<rect x="30" y="4" width="20" height="6" rx="2" fill="#1E2A3A" transform="rotate(28 40 7)"/>
+<path d="M21 14 L17 22 L22 28 L16 36 L20 44" fill="none" stroke="#1E2A3A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M34 30 L38 38 L35 45" fill="none" stroke="#1E2A3A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="27" y="46" width="10" height="13" rx="1.5" fill="#1E2A3A"/>
+<path d="M27 50 L37 55" fill="none" stroke="#4F7CFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="50" cy="49" r="6" fill="#C9D1DC" opacity="0.8"/>
+<circle cx="57" cy="47" r="4.5" fill="#C9D1DC" opacity="0.8"/>
+<rect x="44" y="51" width="8" height="5" rx="1" fill="#4F7CFF" stroke="#1E2A3A" stroke-width="1.5" transform="rotate(15 48.0 53.5)"/>
+<rect x="51" y="49" width="7" height="6" rx="1" fill="#4F7CFF" stroke="#1E2A3A" stroke-width="1.5" transform="rotate(-20 54.5 52.0)"/>
+<rect x="55" y="54" width="6" height="4" rx="1" fill="#1E2A3A" stroke="#1E2A3A" stroke-width="1.5" transform="rotate(8 58.0 56.0)"/>
+<rect x="40" y="54" width="5" height="4" rx="1" fill="#C9D1DC" stroke="#1E2A3A" stroke-width="1.5" transform="rotate(-10 42.5 56.0)"/>
+<rect x="4" y="54" width="5" height="4" rx="1" fill="#4F7CFF" stroke="#1E2A3A" stroke-width="1.5" transform="rotate(25 6.5 56.0)"/>
+<rect x="4" y="58" width="56" height="4" rx="2" fill="#1E2A3A"/>
+</svg>

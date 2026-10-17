@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+<path d="M3 18 V54 C14 51 24 51 32 56 C40 51 50 51 61 54 V18 Z" fill="#4F7CFF"/>
+<path d="M32 15 C24 10 14 10 6 13 V49 C14 46 24 46 32 51 Z" fill="#FFFFFF" stroke="#1E2A3A" stroke-width="3" stroke-linejoin="round"/>
+<path d="M32 15 C40 10 50 10 58 13 V49 C50 46 40 46 32 51 Z" fill="#FFFFFF" stroke="#1E2A3A" stroke-width="3" stroke-linejoin="round"/>
+<rect x="10" y="21" width="16" height="2.5" rx="1.25" fill="#1E2A3A" opacity="0.3"/><rect x="10" y="27" width="16" height="2.5" rx="1.25" fill="#1E2A3A" opacity="0.3"/><rect x="10" y="33" width="16" height="2.5" rx="1.25" fill="#1E2A3A" opacity="0.3"/><rect x="10" y="39" width="16" height="2.5" rx="1.25" fill="#1E2A3A" opacity="0.3"/><rect x="38" y="21" width="16" height="2.5" rx="1.25" fill="#1E2A3A" opacity="0.3"/><rect x="38" y="27" width="16" height="2.5" rx="1.25" fill="#1E2A3A" opacity="0.3"/><rect x="38" y="33" width="16" height="2.5" rx="1.25" fill="#1E2A3A" opacity="0.3"/><rect x="38" y="39" width="16" height="2.5" rx="1.25" fill="#1E2A3A" opacity="0.3"/>
+</svg>
