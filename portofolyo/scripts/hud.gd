@@ -72,6 +72,7 @@ var _streak_time := 0
 var _flash: ColorRect
 var _summary: PanelContainer
 var _black: ColorRect
+var dialog: DialogPlayer
 
 
 func _ready() -> void:
@@ -96,6 +97,9 @@ func _ready() -> void:
 	_modal_root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_modal_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_root.add_child(_modal_root)
+	dialog = DialogPlayer.new()
+	dialog.hud = self
+	_root.add_child(dialog)
 	_style_day_ui.call_deferred()
 	# ilk kare siyah baslar (menuden gecis); GameManager fade_in ile acar
 	_black = ColorRect.new()
@@ -606,6 +610,8 @@ func _on_incident_resolved(inc: Incident, saved: int, lost: int, m: IncidentMark
 		best_streak = maxi(best_streak, _streak)
 		if _streak >= 2 and is_instance_valid(m):
 			_show_streak(m.position + m.size / 2.0)
+		if _streak >= 3 and game:
+			game.bark_once("streak")
 	else:
 		_streak = 0
 		var dead := int(round(lost * float(Incident.KINDS[inc.kind].lethality)))
@@ -638,6 +644,32 @@ func _show_streak(at: Vector2) -> void:
 	var audio := get_node_or_null("../Audio")
 	if audio:
 		audio.play("coins", 1.0 + mini(_streak, 6) * 0.08)
+
+
+## Ogretici odagi: arayuz parcasinin ekrandaki dikdortgeni.
+func target_rect(name: String) -> Rect2:
+	var c: Control = null
+	match name:
+		"money":
+			c = _money_chip
+		"aw":
+			c = _aw_chip
+		"shop":
+			c = _shop_btn
+		"risk":
+			c = _risk_btn
+		"units":
+			c = _units_panel
+		"endday":
+			c = get_node_or_null("../UI/EndDayButton")
+		"clock":
+			c = get_node_or_null("../UI/ClockPanel")
+		"forecast_area":
+			var vp := _root.size
+			return Rect2(vp.x - 344, 14, 330, 120)
+	if c == null or not c.is_visible_in_tree():
+		return Rect2()
+	return c.get_global_rect()
 
 
 ## Oyun acilisi: siyahtan yavasca acilir (menuden gecisin devami).
@@ -1213,29 +1245,106 @@ func _fill_intro(v: VBoxContainer, w: int) -> void:
 		l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
 
-## Olay karti: her secenek bir kart; altinda sonuclari gosteren cipler. Doner: secilen indeks.
-func show_event(ev: Dictionary) -> int:
+## Olay karti: karti sunan karakter solda (iliskiye gore yuz ifadesi + selam), sagda secenekler ve
+## sonuclarini gosteren cipler. Secimden sonra karakter tepki verir. Doner: secilen indeks.
+func show_event(ev: Dictionary, rel := 0) -> int:
 	var dim := _dim()
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	dim.add_child(center)
-	var accent := Color(0.4, 0.68, 1.0)
-	var card := _panel(center, Color(0.08, 0.1, 0.15, 0.98), Color(accent.r, accent.g, accent.b, 0.5), 24, 20, 20)
-	card.custom_minimum_size = Vector2(620, 0)
-	var v := _vbox(card, 14)
+	var sp: Array = Characters.EVENT_SPEAKERS.get(ev.id, [])
+	var who: String = sp[0] if not sp.is_empty() else ""
+	var accent: Color = Characters.info(who).color if who != "" else Color(0.4, 0.68, 1.0)
+	var card := _panel(center, Color(0.08, 0.1, 0.15, 0.98), Color(accent.r, accent.g, accent.b, 0.5), 22, 18, 20)
+	var row := _hbox(card, 18)
+	var portrait: Portrait = null
+	var bubble_text: Label = null
+	var hearts: Control = null
+	if who != "":
+		var left := _vbox(row, 6)
+		var frame := _panel(left, Color(accent.r, accent.g, accent.b, 0.12), Color(accent.r, accent.g, accent.b, 0.35), 0, 0, 16)
+		portrait = Portrait.new()
+		portrait.custom_minimum_size = Vector2(190, 230)
+		frame.add_child(portrait)
+		portrait.setup(who, Characters.mood_for(rel))
+		var info := Characters.info(who)
+		var nm := _label(left, info.name, 16, C_TEXT, true)
+		nm.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		nm.custom_minimum_size.x = 190
+		var tl := _label(left, info.title, 12, C_MUTED)
+		tl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		tl.custom_minimum_size.x = 190
+		hearts = _relation_hearts(rel)
+		left.add_child(hearts)
+	var v := _vbox(row, 12)
+	v.custom_minimum_size.x = 540
 	var head := _hbox(v, 12)
-	var badge := _panel(head, accent, Color.TRANSPARENT, 8, 8, 16)
-	_icon(badge, "news", Color.WHITE, 30)
 	var tv := _vbox(head, -2)
 	_label(tv, "GÜNÜN KARARI", 12, accent, true)
 	_label(tv, ev.title, 26, C_TEXT, true)
-	_text(v, ev.text, 572, 17, Color(0.85, 0.88, 0.95))
+	if portrait:
+		var bubble := _panel(v, Color(accent.r, accent.g, accent.b, 0.14), Color(accent.r, accent.g, accent.b, 0.4), 14, 8, 12)
+		bubble_text = _label(bubble, "", 16, C_TEXT, true)
+		bubble_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		bubble_text.custom_minimum_size.x = 500
+	_text(v, ev.text, 540, 16, Color(0.8, 0.84, 0.92))
+	var choices := _vbox(v, 10)
 	for i in ev.choices.size():
-		_choice_card(v, ev.choices[i], i)
+		_choice_card(choices, ev.choices[i], i)
 	_pop_in(card, dim)
+	if portrait:
+		portrait.figure.gesture("wave" if rel >= 0 else "angry")
+		dialog.say(portrait, Characters.greet(who, rel), bubble_text)
 	var result: int = await _modal_done
+	# karakterin tepkisi
+	if portrait and sp.size() > 1 and result < sp[1].size():
+		var delta: int = sp[1][result]
+		choices.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		for c in choices.get_children():
+			if c.get_index() != result:
+				c.create_tween().tween_property(c, "modulate:a", 0.25, 0.2)
+		if delta != 0:
+			portrait.figure.set_mood("happy" if delta > 0 else "angry")
+			portrait.figure.gesture("jump" if delta > 0 else "angry")
+			await dialog.say(portrait, Characters.react(who, delta), bubble_text, 55.0)
+			_pop_hearts(hearts, delta)
+			await get_tree().create_timer(1.0).timeout
 	dim.queue_free()
 	return result
+
+
+## Iliski gostergesi: 5 kalp (-3..+3 araligini 0..5 dolu kalbe cevirir).
+func _relation_hearts(rel: int) -> Control:
+	var h := HBoxContainer.new()
+	h.alignment = BoxContainer.ALIGNMENT_CENTER
+	h.add_theme_constant_override("separation", 3)
+	h.custom_minimum_size.x = 190
+	h.set_meta("rel", rel)
+	_fill_hearts(h, rel)
+	return h
+
+
+func _fill_hearts(h: Control, rel: int) -> void:
+	for c in h.get_children():
+		c.queue_free()
+	var full := clampi(rel + 3, 0, 6)  # 0..6 -> yarim kalpler
+	for i in 3:
+		var ic := UIIcon.new()
+		ic.kind = "heart"
+		var amount := clampi(full - i * 2, 0, 2)
+		ic.color = [Color(1, 1, 1, 0.15), Color(1.0, 0.55, 0.6, 0.6), Color(1.0, 0.35, 0.45)][amount]
+		ic.custom_minimum_size = Vector2(18, 18)
+		h.add_child(ic)
+
+
+func _pop_hearts(h: Control, delta: int) -> void:
+	var rel: int = clampi(int(h.get_meta("rel", 0)) + delta, -3, 3)
+	h.set_meta("rel", rel)
+	_fill_hearts(h, rel)
+	h.pivot_offset = h.size / 2.0
+	var tw := h.create_tween()
+	tw.tween_property(h, "scale", Vector2(1.3, 1.3), 0.12).set_trans(Tween.TRANS_BACK)
+	tw.tween_property(h, "scale", Vector2.ONE, 0.2)
 
 
 func _choice_card(parent: Node, choice: Dictionary, index: int) -> void:

@@ -38,6 +38,7 @@ func _ready() -> void:
 	_slider(v, "Müzik", "music")
 	_slider(v, "Efektler", "sfx")
 	_slider(v, "Ortam (dalga, kuş)", "ambience")
+	_slider(v, "Seslendirme", "voice")
 	_section(v, "GÖRÜNTÜ")
 	_toggle(v, "Tam ekran", "fullscreen")
 	_toggle(v, "Ekran sarsıntısı", "shake")

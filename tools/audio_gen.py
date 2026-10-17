@@ -247,6 +247,23 @@ def start_game():
     save("start_game", out * env(n, 0.01, 0.4), 0.7)
 
 
+def babble():
+    """Seslendirmesi olmayan karakterler icin kisa hece sesleri (a, e, o, i). Oyunda karakterin
+    ses perdesiyle (pitch) calinir: komik 'mirildanma' konusmasi."""
+    formants = {"a": (800, 1200), "e": (500, 1850), "o": (480, 880), "i": (320, 2300)}
+    f0 = 210.0
+    sec = 0.085
+    x = t(sec)
+    n = len(x)
+    for v, (f1, f2) in formants.items():
+        y = np.zeros(n)
+        for k in range(1, 18):
+            f = f0 * k
+            w = np.exp(-((f - f1) / 160.0) ** 2) + 0.6 * np.exp(-((f - f2) / 220.0) ** 2) + 0.15 / k
+            y += w * np.sin(2 * np.pi * f * x * (1.0 + 0.04 * x / sec))
+        save("blip_" + v, y * env(n, 0.006, 0.035), 0.55)
+
+
 def wind():
     """Afet oncesi ruzgar: alcak ugultu + yavas esintiler + hafif islik."""
     sec = 8.3
@@ -315,6 +332,7 @@ if __name__ == "__main__":
         sys.exit(0)
     sfx()
     start_game()
+    babble()
     wind()
     ambience()
     music_calm()

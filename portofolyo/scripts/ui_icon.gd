@@ -157,6 +157,10 @@ func _draw() -> void:
 		"home":
 			draw_colored_polygon(PackedVector2Array([c + Vector2(-r, 0), c + Vector2(0, -r * 0.9), c + Vector2(r, 0)]), color)
 			draw_rect(Rect2(c + Vector2(-r * 0.65, 0), Vector2(r * 1.3, r * 0.85)), color)
+		"heart":
+			draw_circle(c + Vector2(-r * 0.42, -r * 0.2), r * 0.48, color)
+			draw_circle(c + Vector2(r * 0.42, -r * 0.2), r * 0.48, color)
+			draw_colored_polygon(PackedVector2Array([c + Vector2(-r * 0.88, 0), c + Vector2(r * 0.88, 0), c + Vector2(0, r * 0.9)]), color)
 		"check":
 			draw_polyline(PackedVector2Array([c + Vector2(-r * 0.6, 0), c + Vector2(-r * 0.15, r * 0.5), c + Vector2(r * 0.7, -r * 0.5)]), color, w * 1.6)
 		_:

@@ -40,7 +40,9 @@ var _used_events: Array[String] = []
 var _later: Array[Dictionary] = []
 var _selected: Building
 var _district_labels: Array[Label3D] = []
-var _today := {}  # gunun ozeti icin: gun basindaki degerler ve yapilan yatirimlar
+var _today := {}
+var rel := {}  # karakter -> iliski puani (-3..+3); kart sunan karakterler bunu hatirlar
+var _barked := {}  # bir kez soylenen replikler  # gunun ozeti icin: gun basindaki degerler ve yapilan yatirimlar
 
 @onready var city: Node3D = $"../CityMap"
 @onready var day_cycle: DayCycle = $"../DayCycle"
@@ -85,7 +87,8 @@ func _ready() -> void:
 	rig._zoom = z * 0.4
 	rig.create_tween().tween_property(rig, "_zoom", z, 2.4).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	await get_tree().create_timer(1.1).timeout
-	await hud.show_intro()
+	await hud.dialog.play_scene(Dialogs.INTRO)
+	await hud.dialog.play_scene(Dialogs.TUTORIAL)
 	_start_day(1)
 
 
@@ -209,6 +212,9 @@ func _start_day(d: int) -> void:
 		city.traffic.end_evacuation()
 		city.traffic.set_picnic(true, d)
 	_update_awareness()
+	if money < 1500 and d - int(_barked.get("low_money", -10)) >= 5:
+		_barked["low_money"] = d
+		hud.dialog.bark("low_money")
 	hud.hide_day_summary()
 	hud.best_streak = 0
 	_today = {"money": money, "aw": awareness, "saved": totals.saved, "lost": totals.casualties,
@@ -219,8 +225,12 @@ func _start_day(d: int) -> void:
 	var ev := _pick_event()
 	if not ev.is_empty():
 		audio.play("popup")
-		var choice: int = await hud.show_event(ev)
+		var sp: Array = Characters.EVENT_SPEAKERS.get(ev.id, [])
+		var who: String = sp[0] if not sp.is_empty() else ""
+		var choice: int = await hud.show_event(ev, int(rel.get(who, 0)))
 		audio.play("click")
+		if who != "" and choice < sp[1].size():
+			rel[who] = clampi(int(rel.get(who, 0)) + int(sp[1][choice]), -3, 3)
 		await apply_effects(ev.choices[choice].effects, ev.title)
 	if d >= GameData.TOTAL_DAYS:
 		await _finale()
@@ -436,6 +446,7 @@ func _show_forecast(type: String, when: int, chance: int) -> void:
 	var f: Dictionary = GameData.FORECASTS[type]
 	hud.show_forecast(type, f.title, f.text % chance, f.actions)
 	audio.play("alert_soft")
+	bark_once("first_forecast")
 
 
 func do_precaution(id: String) -> void:
@@ -522,6 +533,7 @@ func run_disaster(type: String, minor := false) -> void:
 		"flood": Color(0.25, 0.5, 1.0)}.get(type, Color.RED), 2 if type == "quake" else 1)
 	if type == "quake":
 		_slowmo(0.55)
+	bark_once("first_" + type)
 	if not minor:
 		_had_disaster = true
 		_last_disaster_day = day
@@ -587,6 +599,7 @@ func _prep_moment(r: Dictionary) -> void:
 	if held.is_empty() and lives < 3:
 		if r.casualties > 0:
 			hud.show_alert("HAZIRLIKSIZ YAKALANDIK", "Güçlendirme, farkındalık ve ekipler can kaybını azaltır", "warning", Color(1.0, 0.55, 0.25))
+			bark_once("prep_bad")
 			await get_tree().create_timer(2.2).timeout
 		return
 	var parts := []
@@ -596,6 +609,8 @@ func _prep_moment(r: Dictionary) -> void:
 		parts.append("~%d can kurtuldu" % lives)
 	var green := Color(0.35, 0.95, 0.5)
 	hud.show_alert("HAZIRLIK İŞE YARADI!", "  ·  ".join(parts), "shield", Color(0.25, 0.75, 0.4))
+	if not held.is_empty():
+		bark_once("prep_good")
 	audio.play("success")
 	if not held.is_empty():
 		city.camera_rig.focus(held[0].global_position, 32.0, 0.9)
@@ -638,10 +653,24 @@ func _item_name(id: String) -> String:
 	return id
 
 
+## Bir replik oyun boyunca bir kez soylensin (ilk deprem, ilk uyari...).
+func bark_once(key: String) -> void:
+	if _barked.has(key) or not Dialogs.BARKS.has(key):
+		return
+	_barked[key] = true
+	hud.dialog.bark(key)
+
+
+## Servis sefleriyle iliski ekip hizini etkiler: memnun sef %18'e kadar hizli, kus sef yavas.
+func chief_factor(unit: String) -> float:
+	var who: String = {"fire": "murat", "medic": "zeynep", "rescue": "elif"}.get(unit, "")
+	return 1.0 - int(rel.get(who, 0)) * 0.06
+
+
 func _finale() -> void:
 	game_over = true
 	_set_busy(true)
-	await hud.show_decision("SON GÜN", "Büyük fay hattı harekete geçti, üstüne sağanak geliyor. Şehrin en büyük sınavı!", ["Hazırız!"])
+	await hud.dialog.play_scene(Dialogs.FINALE)
 	audio.play("alarm")
 	audio.set_music("tense")
 	hud.show_alert("BÜYÜK DEPREM!", "Tüm birimler göreve!", "warning")
@@ -658,6 +687,7 @@ func _finale() -> void:
 	await hud.show_report(report, true)
 	city.traffic.end_evacuation()
 	audio.play("end")
+	await hud.dialog.play_scene(Dialogs.ENDING_GOOD if grade()[0] in ["A", "B", "C"] else Dialogs.ENDING_BAD)
 	await hud.show_end(self)
 
 

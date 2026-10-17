@@ -87,12 +87,15 @@ func spawn_incident(kind: String, pos: Vector3, people: int, seconds: float, bui
 
 func work_time(unit: String) -> float:
 	var lvl: int = game.service_level(unit)
+	var t := 0.0
 	match unit:
 		"rescue":
-			return maxf(1.5, 4.5 - (lvl - 1) * 1.2 - mini(game.drills, 3) * 0.3)
+			t = maxf(1.5, 4.5 - (lvl - 1) * 1.2 - mini(game.drills, 3) * 0.3)
 		"fire":
-			return maxf(1.2, 3.5 - (lvl - 1) * 1.0)
-	return maxf(1.0, 2.5 - (lvl - 1) * 0.6)
+			t = maxf(1.2, 3.5 - (lvl - 1) * 1.0)
+		_:
+			t = maxf(1.0, 2.5 - (lvl - 1) * 0.6)
+	return t * game.chief_factor(unit)  # sefle iliski
 
 
 ## Enkaz altindakilerin dayanma suresi: farkindalik (dogru pozisyon), deprem cantasi (su, duduk).
@@ -220,6 +223,7 @@ func _aftershock(r: Dictionary, magnitude: float) -> void:
 	traffic.panic(2.5)
 	game.audio.play("quake")
 	game.hud.show_alert("ARTÇI DEPREM!", "Hasarlı binalar risk altında", "warning", Color(1.0, 0.5, 0.2))
+	game.bark_once("aftershock")
 	game.hud.flash(Color(1.0, 0.45, 0.2))
 	var fallen: Array = []
 	for b in city.buildings():

@@ -4,8 +4,8 @@ extends RefCounted
 ## Ses: Master / Music / SFX / Ambience veri yollari (yoksa olusturulur).
 
 const PATH := "user://settings.cfg"
-const BUSES := ["Music", "SFX", "Ambience"]
-const DEFAULTS := {"master": 0.8, "music": 0.7, "sfx": 0.8, "ambience": 0.6, "fullscreen": false, "shake": true}
+const BUSES := ["Music", "SFX", "Ambience", "Voice"]
+const DEFAULTS := {"master": 0.8, "music": 0.7, "sfx": 0.8, "ambience": 0.6, "voice": 1.0, "fullscreen": false, "shake": true}
 
 static var values := {}
 
@@ -17,6 +17,8 @@ static func ensure_buses() -> void:
 			var i := AudioServer.bus_count - 1
 			AudioServer.set_bus_name(i, b)
 			AudioServer.set_bus_send(i, "Master")
+			if b == "Voice":  # dudak senkronu icin ses seviyesi olcer
+				AudioServer.add_bus_effect(i, AudioEffectSpectrumAnalyzer.new())
 
 
 static func load_settings() -> void:
@@ -48,7 +50,7 @@ static func apply() -> void:
 	if values.is_empty():
 		load_settings()
 	ensure_buses()
-	for pair in [["Master", "master"], ["Music", "music"], ["SFX", "sfx"], ["Ambience", "ambience"]]:
+	for pair in [["Master", "master"], ["Music", "music"], ["SFX", "sfx"], ["Ambience", "ambience"], ["Voice", "voice"]]:
 		var i := AudioServer.get_bus_index(pair[0])
 		var v: float = float(values[pair[1]])
 		AudioServer.set_bus_volume_db(i, linear_to_db(maxf(v, 0.0001)))
