@@ -54,6 +54,14 @@ var _hazard_buttons := {}
 var _bold: FontVariation
 var _dim: ColorRect
 
+# Mouse sol tik ile asagi-yukari surukleyerek kaydirma (drag to scroll)
+var _potential_drag := false
+var _is_dragging := false
+var _drag_scroll_start := 0
+var _drag_mouse_start_y := 0.0
+var _drag_velocity := 0.0
+var _last_drag_time := 0
+
 
 func _ready() -> void:
 	game = get_tree().get_first_node_in_group("game")
@@ -72,6 +80,79 @@ func _ready() -> void:
 		shop_panel.visible = false
 
 
+func _process(delta: float) -> void:
+	if not is_open():
+		_drag_velocity = 0.0
+		return
+	# Surukleme birakildiginda akici atalet (inertia glide) ile kaymaya devam etsin
+	if not _is_dragging and absf(_drag_velocity) > 20.0:
+		var scroll := _get_active_scroll()
+		if scroll:
+			var old_scroll: int = scroll.scroll_vertical
+			scroll.scroll_vertical -= int(round(_drag_velocity * delta))
+			if scroll.scroll_vertical == old_scroll:
+				_drag_velocity = 0.0
+			else:
+				_drag_velocity = lerpf(_drag_velocity, 0.0, minf(1.0, delta * 8.0))
+		else:
+			_drag_velocity = 0.0
+
+
+## Magaza acikken mouse sol tik basili tutularak urun listesi yukari/asagi suruklenebilir.
+func _input(event: InputEvent) -> void:
+	if not is_open():
+		return
+
+	var scroll := _get_active_scroll()
+	if scroll == null:
+		return
+
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			if event.pressed:
+				var vbar := scroll.get_v_scroll_bar()
+				if vbar != null and vbar.visible and vbar.get_global_rect().has_point(event.position):
+					return  # Kaydirma cubuguna dogrudan tiklandiysa kendi mekanizmasi calissin
+				if scroll.get_global_rect().has_point(event.position):
+					_potential_drag = true
+					_is_dragging = false
+					_drag_scroll_start = scroll.scroll_vertical
+					_drag_mouse_start_y = event.position.y
+					_drag_velocity = 0.0
+					_last_drag_time = Time.get_ticks_msec()
+			else:
+				_potential_drag = false
+				if _is_dragging:
+					_is_dragging = false
+					if Time.get_ticks_msec() - _last_drag_time > 90:
+						_drag_velocity = 0.0
+					get_viewport().set_input_as_handled()
+
+	elif event is InputEventMouseMotion:
+		if _potential_drag:
+			var dy: float = event.position.y - _drag_mouse_start_y
+			if not _is_dragging and absf(dy) > 7.0:
+				_is_dragging = true
+			if _is_dragging:
+				scroll.scroll_vertical = int(round(_drag_scroll_start - dy))
+				_drag_velocity = event.velocity.y
+				_last_drag_time = Time.get_ticks_msec()
+				get_viewport().set_input_as_handled()
+
+
+func _get_active_scroll() -> ScrollContainer:
+	if not is_instance_valid(tab_container):
+		return null
+	match tab_container.current_tab:
+		0:
+			return tab_container.get_node_or_null("Hazırlık/Scroll") as ScrollContainer
+		1:
+			return tab_container.get_node_or_null("Farkındalık") as ScrollContainer
+		2:
+			return tab_container.get_node_or_null("Kamu Binaları") as ScrollContainer
+	return null
+
+
 # ------------------------------------------------------------------ acma / kapama
 func open() -> void:
 	refresh()
@@ -86,6 +167,9 @@ func open() -> void:
 
 
 func close() -> void:
+	_is_dragging = false
+	_potential_drag = false
+	_drag_velocity = 0.0
 	shop_panel.visible = false
 	_dim.visible = false
 
@@ -204,6 +288,9 @@ func _update_tab_icon() -> void:
 
 
 func _on_tab_changed(tab_idx: int) -> void:
+	_is_dragging = false
+	_potential_drag = false
+	_drag_velocity = 0.0
 	_sfx("click")
 	_update_tab_color(tab_idx)
 
@@ -239,6 +326,9 @@ func _build_hazard_selector() -> void:
 func _select_hazard(id: String) -> void:
 	if id == _hazard:
 		return
+	_is_dragging = false
+	_potential_drag = false
+	_drag_velocity = 0.0
 	_sfx("click")
 	_hazard = id
 	_style_hazard_buttons()

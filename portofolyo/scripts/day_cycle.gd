@@ -9,6 +9,7 @@ extends Node3D
 
 signal day_started(day: int)
 signal day_ending(day: int)  # animasyon basladiginda
+signal midnight_reached(day: int)  # gece yarisi durup gun sonu raporu acilacaginda
 
 const DAY_HOUR := 11.0  # gun boyunca sabit saat
 
@@ -33,6 +34,8 @@ var _lights_k := -1.0
 var gloom := 0.0
 var gloom_tint := Color(0.32, 0.34, 0.4)
 var _gloom_tw: Tween
+var _orig_zoom := -1.0
+var _zoom_tw: Tween
 
 @onready var city: Node3D = get_node(city_path)
 @onready var sun: DirectionalLight3D = city.get_node("Sun")
@@ -61,18 +64,28 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		skip_day()
 
 
-## Gunu gec: ~7 sn'lik gece animasyonu, sonunda day_started yayilir.
+## Gunu gec: gun batimi -> gece yarisina kadar gider, gece yarisi durup
+## midnight_reached yayar (gun sonu raporu acilir).
 func skip_day() -> void:
 	if transitioning or locked or day >= GameData.TOTAL_DAYS:
 		return
 	transitioning = true
 	end_day_button.disabled = true
 	day_ending.emit(day)
-	_zoom_out_and_back()
+	_zoom_to_night()
 
 	var tw := create_tween().set_trans(Tween.TRANS_SINE)
 	tw.tween_method(set_hour, DAY_HOUR, 21.0, sunset_time).set_ease(Tween.EASE_IN)  # gun batimi
-	tw.tween_method(set_hour, 21.0, 28.0, night_time)  # gece (21:00 -> 04:00)
+	tw.tween_method(set_hour, 21.0, 24.0, night_time * 0.5)  # gece yarisina kadar (21:00 -> 24:00)
+	tw.tween_callback(func():
+		midnight_reached.emit(day))
+
+
+## Gun sonu raporunda "Devam" denince dongu gece yarisindan sabaha dogru devam eder.
+func resume_to_morning() -> void:
+	_zoom_to_day()
+	var tw := create_tween().set_trans(Tween.TRANS_SINE)
+	tw.tween_method(set_hour, 24.0, 28.0, night_time * 0.5)  # gece yarisi -> 04:00
 	tw.tween_method(set_hour, 28.0, 24.0 + DAY_HOUR, sunrise_time).set_ease(Tween.EASE_OUT)  # sabah
 	tw.tween_callback(func():
 		day += 1
@@ -83,14 +96,25 @@ func skip_day() -> void:
 		day_started.emit(day))
 
 
-## Gece gecisinde kamera hafifce uzaklasir, sabah eski yerine doner.
-func _zoom_out_and_back() -> void:
+## Geceye gecerken kamera hafifce uzaklasir.
+func _zoom_to_night() -> void:
 	if camera_rig == null:
 		return
-	var z0: float = camera_rig._zoom
-	var tw := create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	tw.tween_property(camera_rig, "_zoom", minf(z0 * 1.2, camera_rig.zoom_max), sunset_time + night_time * 0.5)
-	tw.tween_property(camera_rig, "_zoom", z0, night_time * 0.5 + sunrise_time)
+	_orig_zoom = camera_rig._zoom
+	if _zoom_tw:
+		_zoom_tw.kill()
+	_zoom_tw = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_zoom_tw.tween_property(camera_rig, "_zoom", minf(_orig_zoom * 1.2, camera_rig.zoom_max), sunset_time + night_time * 0.5)
+
+
+## Sabah olurken kamera eski yerine doner.
+func _zoom_to_day() -> void:
+	if camera_rig == null or _orig_zoom <= 0.0:
+		return
+	if _zoom_tw:
+		_zoom_tw.kill()
+	_zoom_tw = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_zoom_tw.tween_property(camera_rig, "_zoom", _orig_zoom, night_time * 0.5 + sunrise_time)
 
 
 func set_hour(h: float) -> void:

@@ -73,8 +73,9 @@ func _ready() -> void:
 	day_cycle.day_started.connect(func(d): _start_day(d))
 	day_cycle.day_ending.connect(func(_d):
 		_select(null)
-		audio.play("day")
-		_pending_summary = _day_summary())  # sabah, gun baslarken ortada gosterilir
+		_set_busy(true)
+		audio.play("day"))
+	day_cycle.midnight_reached.connect(_on_midnight)
 	hud.action_pressed.connect(do_action)
 	hud.building_action.connect(do_building_action)
 	hud.precaution_pressed.connect(do_precaution)
@@ -230,15 +231,17 @@ func add_awareness(v: float, district := -1) -> void:
 
 
 # ------------------------------------------------------------------ gun akisi
+## Gece yarisi olunca zaman dongusu durur, gun sonu raporu cikar; "Devam" ile sabaha devam edilir.
+func _on_midnight(_d: int) -> void:
+	var summary := _day_summary()
+	await hud.show_day_summary(summary)
+	day_cycle.resume_to_morning()
+
+
 func _start_day(d: int) -> void:
 	day = d
 	_set_busy(true)
 	place_mode = ""
-	if not _pending_summary.is_empty():
-		await get_tree().create_timer(2.0).timeout  # "GUN X" yazisi kaybolsun
-		var summary := _pending_summary
-		_pending_summary = {}
-		await hud.show_day_summary(summary)  # once gun ozeti, kapaninca karar karti
 	if d > 1:
 		var repairs := 0
 		for b in city.buildings():

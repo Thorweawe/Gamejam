@@ -1,10 +1,11 @@
 extends Node3D
 ## Kus bakisi kamera.
 ## WASD / oklar: kaydir   Sag veya orta tik surukle: kaydir
-## Tekerlek: yakinlas/uzaklas   Q / E: dondur
+## Tekerlek / Z-X: yakinlas/uzaklas   Q / E: dondur
 
 @export var move_speed := 14.0
 @export var rotate_speed := 1.6
+@export var zoom_speed := 1.5
 @export var zoom_min := 10.0
 @export var zoom_max := 70.0
 @export var bounds := Vector2(22.0, 20.0)
@@ -34,6 +35,12 @@ func _process(delta: float) -> void:
 
 	var turn := float(Input.is_physical_key_pressed(KEY_Q)) - float(Input.is_physical_key_pressed(KEY_E))
 	rotation.y += turn * rotate_speed * delta
+
+	var zoom_in := Input.is_physical_key_pressed(KEY_Z) or Input.is_key_pressed(KEY_Z)
+	var zoom_out := Input.is_physical_key_pressed(KEY_X) or Input.is_key_pressed(KEY_X)
+	var zoom_dir := float(zoom_out) - float(zoom_in)
+	if zoom_dir != 0.0:
+		_zoom = clampf(_zoom + zoom_dir * _zoom * zoom_speed * delta, zoom_min, zoom_max)
 
 	camera.position = camera.position.lerp(_dir * _zoom, minf(1.0, delta * 10.0))
 

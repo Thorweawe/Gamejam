@@ -130,8 +130,6 @@ const SHOP_ITEMS := [
 		"icon": "res://assets/ui_icons/assembly.svg", "desc": "Bir parkı toplanma alanı yapar. Afette daha çok insan güvenle tahliye olur."},
 	{"id": "renewal", "cat": "deprem", "name": "Kentsel Dönüşüm", "cost": 12000, "once": true, "req": {"belediye": 3},
 		"icon": "res://assets/ui_icons/renewal.svg", "desc": "Bütün gecekondular depreme dayanıklı evlere dönüşür (2 gün inşaat)."},
-	{"id": "museum_deprem", "cat": "deprem", "name": "Deprem Müzesi", "cost": 6000, "once": true, "req": {"belediye": 2},
-		"icon": "res://assets/textures/deprem_muze_1_klasik.png", "desc": "Haritadaki arsaya müze kurulur. Farkındalık +6, halk depremde daha doğru davranır (tahliye artar)."},
 	{"id": "warning", "cat": "deprem", "name": "Erken Uyarı Sistemi", "cost": 7000, "once": true, "req": {"belediye": 3},
 		"icon": "res://assets/ui_icons/warning.svg", "desc": "Sismik sensör, siren ve SMS ağı. Her afette tahliye çok daha başarılı olur."},
 	# --- SEL ---
@@ -143,8 +141,6 @@ const SHOP_ITEMS := [
 		"icon": "res://assets/ui_icons/flood_barriers.svg", "desc": "Kapı ve pencerelere taşınabilir bariyer. Sel basan evler daha az hasar görür."},
 	{"id": "river", "cat": "sel", "name": "Dere Islahı", "cost": 8000, "max": 2, "req": {"belediye": 2},
 		"icon": "res://assets/ui_icons/river.svg", "desc": "Kıyılara beton duvar örülür, sel hasarı büyük ölçüde azalır."},
-	{"id": "museum_sel", "cat": "sel", "name": "Sel Müzesi", "cost": 6000, "once": true, "req": {"belediye": 2},
-		"icon": "res://assets/textures/sel_muze_1_klasik.png", "desc": "Haritadaki arsaya müze kurulur. Farkındalık +6, sel riski %15 azalır."},
 	# --- YANGIN ---
 	{"id": "forest", "cat": "yangin", "name": "Ormana Termal Kamera", "cost": 3000, "once": true,
 		"icon": "res://assets/ui_icons/forest.svg", "desc": "Gözetleme kulesi ve termal kamera. Orman yangını riski %40 azalır."},
@@ -156,8 +152,6 @@ const SHOP_ITEMS := [
 		"icon": "res://assets/ui_icons/extinguishers.svg", "desc": "Halk küçük yangına ilk müdahaleyi yapar: yangın daha yavaş büyür, itfaiyeye zaman kalır."},
 	{"id": "plane", "cat": "yangin", "name": "Yangın Söndürme Uçağı", "cost": 9000, "once": true, "req": {"itfaiye": 3},
 		"icon": "res://assets/ui_icons/plane.svg", "desc": "Orman yangınına havadan müdahale: yangın yarı hızda yayılır, söndürme kolaylaşır."},
-	{"id": "museum_yangin", "cat": "yangin", "name": "Yangın Müzesi", "cost": 6000, "once": true, "req": {"belediye": 2, "itfaiye": 2},
-		"icon": "res://assets/textures/yangin_muze_1_klasik.png", "desc": "Haritadaki arsaya müze kurulur. Farkındalık +6, ev ve orman yangını riski %15 azalır."},
 	# --- FARKINDALIK ---
 	{"id": "news", "cat": "farkindalik", "name": "Afet Rehberi Gazetesi", "cost": 1200, "target": true,
 		"icon": "res://assets/ui_icons/news.svg", "desc": "Bir mahalleye tıkla: o mahallede farkındalık +12."},
@@ -171,6 +165,12 @@ const SHOP_ITEMS := [
 		"icon": "res://assets/ui_icons/tv.svg", "desc": "Çök-Kapan-Tutun anlatılır. Tüm şehirde farkındalık +7."},
 	{"id": "volunteers", "cat": "farkindalik", "name": "Mahalle Afet Gönüllüleri", "cost": 4000, "once": true, "req": {"afad": 2},
 		"icon": "res://assets/ui_icons/volunteers.svg", "desc": "Eğitimli gönüllüler AFAD'a destek olur: enkaz kurtarma %20 hızlanır."},
+	{"id": "museum_deprem", "cat": "farkindalik", "name": "Deprem Müzesi", "cost": 6000, "once": true, "req": {"belediye": 2},
+		"icon": "res://assets/textures/deprem_muze_1_klasik.png", "desc": "Haritadaki arsaya müze kurulur. Farkındalık +6, halk depremde daha doğru davranır (tahliye artar)."},
+	{"id": "museum_sel", "cat": "farkindalik", "name": "Sel Müzesi", "cost": 6000, "once": true, "req": {"belediye": 2},
+		"icon": "res://assets/textures/sel_muze_1_klasik.png", "desc": "Haritadaki arsaya müze kurulur. Farkındalık +6, sel riski %15 azalır."},
+	{"id": "museum_yangin", "cat": "farkindalik", "name": "Yangın Müzesi", "cost": 6000, "once": true, "req": {"belediye": 2, "itfaiye": 2},
+		"icon": "res://assets/textures/yangin_muze_1_klasik.png", "desc": "Haritadaki arsaya müze kurulur. Farkındalık +6, ev ve orman yangını riski %15 azalır."},
 ]
 const SHOP_CATS := {"deprem": "Deprem", "sel": "Sel", "yangin": "Yangın", "farkindalik": "Farkındalık"}
 

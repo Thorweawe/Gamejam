@@ -241,12 +241,8 @@ func _spawn_random(delta: float) -> void:
 	_next -= delta
 	if _next > 0.0:
 		return
-	# gunde bir kez: BATCH baloncuk ayni anda (birkac salise arayla, farkli yerlerde)
-	var spots: Array[Vector3] = []
-	for i in BATCH:
-		var spot := _random_spot(spots)
-		if spot != Vector3.INF:
-			spots.append(spot)
+	# gunde bir kez: BATCH baloncuk ayni anda (birkac salise arayla, sehrin farkli yerlerine dagilmis)
+	var spots := _pick_batch_spots()
 	if spots.size() < 2:
 		_next = 2.0  # ekranda uygun yer yok (kamera denize bakiyor): az sonra tekrar dene
 		return
@@ -267,8 +263,8 @@ func _spawn_later(spot: Vector3, kind: String, delay: float) -> void:
 	_spawn(spot, kind, KINDS[kind][0], KINDS[kind][1], RANDOM_LIFE)
 
 
-## Ekranda gorunen bir ev catisi, orman ya da park ustu (taken: ayni partideki diger baloncuklarin yeri).
-func _random_spot(taken: Array[Vector3] = []) -> Vector3:
+## 4 baloncugun birbirine cok yakin cikmamasi icin ekranda ve dunyada ayrik noktalar secer.
+func _pick_batch_spots() -> Array[Vector3]:
 	var city: Node = game.city
 	var map_info: MapInfo = game.map_info
 	var options: Array[Vector3] = []
@@ -279,23 +275,95 @@ func _random_spot(taken: Array[Vector3] = []) -> Vector3:
 		options.append(MapInfo.to3(p, 3.0))
 	for p in map_info.park_tiles:
 		options.append(MapInfo.to3(p, 2.4))
-	options.shuffle()
+
 	var vp := get_viewport().get_visible_rect().size
+	var candidates: Array[Dictionary] = []
 	for o in options:
 		if camera.is_position_behind(o):
 			continue
 		var sp := camera.unproject_position(o)
 		# ust / alt panellerin altinda kalmasin, kenarlara yapismasin
-		if sp.x > 120 and sp.x < vp.x - 120 and sp.y > 150 and sp.y < vp.y - 170 and not _near_other(o) \
-				and not taken.any(func(t): return t.distance_to(o) < 4.0):
-			return o
-	return Vector3.INF
+		if sp.x > 120 and sp.x < vp.x - 120 and sp.y > 150 and sp.y < vp.y - 170:
+			if not _near_other(o, sp):
+				candidates.append({
+					"pos": o,
+					"screen": sp,
+					"district": map_info.district_of(o)
+				})
+
+	if candidates.size() < 2:
+		return []
+
+	# Kademeli mesafe esikleri (3D dunya mesafesi ve ekran piksel mesafesi)
+	# Ilk kademe baloncuklarin sehrin farkli mahallelerine ve ekranin ayri koselerine dagilmasini saglar
+	var tiers := [
+		{"world": 13.0, "screen": 220.0},
+		{"world": 9.5, "screen": 160.0},
+		{"world": 7.0, "screen": 110.0},
+	]
+	for tier in tiers:
+		for attempt in 4:
+			var result := _try_pick_spots(candidates, BATCH, float(tier.world), float(tier.screen))
+			if result.size() >= BATCH:
+				return result
+
+	# Eger ekran kucukse veya kamera cok yakinlasmissa, bulunan en iyi sonucu al
+	for tier in tiers:
+		var result := _try_pick_spots(candidates, BATCH, float(tier.world), float(tier.screen))
+		if result.size() >= 2:
+			return result
+
+	return []
 
 
-func _near_other(p: Vector3) -> bool:
+func _try_pick_spots(candidates: Array[Dictionary], count: int, min_world: float, min_screen: float) -> Array[Vector3]:
+	var pool := candidates.duplicate()
+	pool.shuffle()
+	var chosen: Array[Dictionary] = [pool.pop_back()]
+
+	for _step in count - 1:
+		var best_idx := -1
+		var best_score := -INF
+		for i in pool.size():
+			var cand: Dictionary = pool[i]
+			var cp: Vector3 = cand.pos
+			var cs: Vector2 = cand.screen
+			var min_w_dist := INF
+			var min_s_dist := INF
+			for c in chosen:
+				var wd: float = cp.distance_to(c.pos)
+				var sd: float = cs.distance_to(c.screen)
+				if wd < min_w_dist:
+					min_w_dist = wd
+				if sd < min_s_dist:
+					min_s_dist = sd
+			if min_w_dist >= min_world and min_s_dist >= min_screen:
+				# Farkli mahallede olmasi ve daha uzak olmasi ek puan kazandirir
+				var diff_district := 1.0 if not chosen.any(func(c): return c.district == cand.district) else 0.0
+				var score := min_w_dist + min_s_dist * 0.04 + diff_district * 5.0
+				if score > best_score:
+					best_score = score
+					best_idx = i
+		if best_idx >= 0:
+			chosen.append(pool[best_idx])
+			pool.remove_at(best_idx)
+		else:
+			break
+
+	var out: Array[Vector3] = []
+	for c in chosen:
+		out.append(c.pos)
+	return out
+
+
+func _near_other(p: Vector3, sp: Vector2 = Vector2.ZERO) -> bool:
 	for b in _bubbles:
-		if (b.node as Node3D).global_position.distance_to(p) < 3.0:
+		var bp: Vector3 = (b.node as Node3D).global_position
+		if bp.distance_to(p) < 8.0:
 			return true
+		if sp != Vector2.ZERO and camera != null and not camera.is_position_behind(bp):
+			if camera.unproject_position(bp).distance_to(sp) < 140.0:
+				return true
 	return false
 
 
