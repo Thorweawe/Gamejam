@@ -44,6 +44,8 @@ const RISK_TEXT := {"fire": "Yangın", "forest": "Orman yangını", "flood": "Se
 const MAX_POP := 10000           # sehrin maksimum nufusu
 const START_POP_RATIO := 40.0    # oyun %40 nufusla baslar (4.000)
 const MIN_POP_RATIO := 20.0      # bunun alti = oyun biter
+const ARRIVALS_PER_AW := 4       # her yeni gun, farkindaligin her yuzdesi icin gelen kisi (%100 = 400)
+const MONEY_PER_AW := 20         # farkindalik 1 puan artinca kasaya +20 TL, azalinca -20 TL
 
 var game: Node  # GameManager (game_manager.gd _ready'de atar)
 var font: Font
@@ -88,6 +90,10 @@ var _black: ColorRect
 var dialog: DialogPlayer
 var _pop_scale := 0.0     # gercek nufus -> oyun nufusu carpani (ilk okumada hesaplanir)
 var _game_over := false   # oyun sonu bir kez tetiklensin
+var _pop_chip: Control
+var _migrants := 0        # farkindalik sayesinde sehre tasinanlar (oyun nufusuna eklenir)
+var _arrival_day := 0     # en son hangi gunun gocu islendi
+var _last_aw := -1        # para hesabi icin son farkindalik puani (-1 = henuz okunmadi)
 
 
 func _ready() -> void:
@@ -291,6 +297,7 @@ func _build_stats() -> void:
 	p.mouse_filter = Control.MOUSE_FILTER_STOP
 	# nufus (yazi + bar)
 	p = _panel(row, C_BG, C_LINE, 12, 6)
+	_pop_chip = p
 	h = _hbox(p, 8)
 	_icon(h, "people", C_POP, 26)
 	var pv := _vbox(h, 2)
@@ -301,7 +308,7 @@ func _build_stats() -> void:
 	_pop_bar.add_theme_stylebox_override("background", sb(Color(1, 1, 1, 0.1), 4, 0, Color.TRANSPARENT, 0, 0))
 	_pop_bar.add_theme_stylebox_override("fill", sb(C_POP, 4, 0, Color.TRANSPARENT, 0, 0))
 	pv.add_child(_pop_bar)
-	p.tooltip_text = "Nüfus: vergi geliri getirir\n%%%d'nin altına düşerse oyun biter" % int(MIN_POP_RATIO)
+	p.tooltip_text = "Nüfus: vergi geliri getirir\nHer sabah farkındalık × %d kişi taşınır\n%%%d'nin altına düşerse oyun biter" % [ARRIVALS_PER_AW, int(MIN_POP_RATIO)]
 	p.mouse_filter = Control.MOUSE_FILTER_STOP
 	# farkindalik
 	p = _panel(row, C_BG, C_LINE, 12, 6)
@@ -327,6 +334,7 @@ func _build_stats() -> void:
 
 
 func update_stats(g: Node) -> void:
+	_awareness_economy(g)  # once: para ve nufus degisimi asagidaki yazilara yansisin
 	_money.text = GameManager.fmt_money(g.money)
 	# her biri tum binalari geziyor: bir kez hesapla
 	var income: int = g.daily_income()
@@ -390,7 +398,29 @@ func city_pop(g: Node) -> int:
 		if real <= 0:
 			return 0  # harita henuz yuklenmedi
 		_pop_scale = MAX_POP * START_POP_RATIO / 100.0 / float(real)
-	return int(round(real * _pop_scale))
+	return clampi(int(round(real * _pop_scale)) + _migrants, 0, MAX_POP)
+
+
+## Farkindalik ekonomisi (update_stats her cagrildiginda; degisim yoksa hicbir sey yapmaz):
+##  - Kasa: farkindalik puani her degistiginde (puan farki) x MONEY_PER_AW TL eklenir / dusulur.
+##    Ornek: %20 -> %40 = +400 TL, %40 -> %35 = -100 TL. Tam puanlar kullanilir: kucuk ondalik
+##    oynamalar para yazmaz, toplam her zaman (son puan - ilk puan) x 20 olur.
+##  - Goc: her yeni gun bir kez, o anki farkindalik x ARRIVALS_PER_AW kisi sehre tasinir (%20 = 80 kisi).
+func _awareness_economy(g: Node) -> void:
+	var aw := int(g.awareness)
+	if _last_aw < 0:
+		_last_aw = aw  # ilk okuma: baslangic farkindaligi para yazmaz
+	elif aw != _last_aw:
+		var gain := (aw - _last_aw) * MONEY_PER_AW
+		_last_aw = aw
+		g.money += gain
+		money_delta(gain)
+	if g.day != _arrival_day and _pop_scale > 0.0:
+		_arrival_day = g.day
+		var n := aw * ARRIVALS_PER_AW
+		if n > 0:
+			_migrants += n
+			_float_from(_pop_chip, "+%d kişi" % n, C_POP)
 
 
 ## Nufus orani: 0-100 (10.000 nufus = %100)
