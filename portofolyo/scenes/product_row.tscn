@@ -1,46 +1,138 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://bmxkch1kwoyu4"]
 
-[ext_resource type="Script" path="res://scripts/product_row.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://assets/textures/kitap.png" id="2_icon"]
+[ext_resource type="Script" uid="uid://bqaashoo3s5fv" path="res://scripts/product_row.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://cq2dxurw1ckjx" path="res://assets/textures/kitap.png" id="2_icon"]
+[ext_resource type="Texture2D" uid="uid://dbqgtfax1etd7" path="res://assets/textures/para_1lira_altin.png" id="3_coin"]
 
-[node name="ProductRow" type="HBoxContainer"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1l46r"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.9607843, 0.9019608, 0.78431374, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.95686275, 0.77254903, 0.25882354, 1)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_f31fg"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0.95686275, 0.77254903, 0.25882354, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_p5srn"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0.7882353, 0.6039216, 0.12156863, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_42dty"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(1, 0.8509804, 0.4, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_disabled"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0.28, 0.28, 0.32, 0.8)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="ProductRow" type="HBoxContainer" unique_id=163122666]
 offset_right = 40.0
 offset_bottom = 40.0
 size_flags_horizontal = 3
+theme_override_constants/separation = 14
 script = ExtResource("1_script")
 
-[node name="PanelContainer" type="PanelContainer" parent="."]
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=541299535]
+custom_minimum_size = Vector2(72, 72)
 layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_1l46r")
 
-[node name="TextureRect" type="TextureRect" parent="PanelContainer"]
+[node name="TextureRect" type="TextureRect" parent="PanelContainer" unique_id=1936867041]
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 texture = ExtResource("2_icon")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1929918860]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Name" type="Label" parent="VBoxContainer"]
+[node name="Name" type="Label" parent="VBoxContainer" unique_id=1302341507]
 layout_mode = 2
-theme_override_font_sizes/font_size = 25
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
 text = "Ürün Adı"
 
-[node name="Description" type="Label" parent="VBoxContainer"]
+[node name="Description" type="Label" parent="VBoxContainer" unique_id=866894242]
 custom_minimum_size = Vector2(250, 0)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.634239, 0.634239, 0.634239, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.88, 0.88, 0.92, 1)
+theme_override_font_sizes/font_size = 14
 text = "Ürün açıklaması"
 autowrap_mode = 2
 
-[node name="Price" type="Label" parent="."]
-custom_minimum_size = Vector2(60, 0)
+[node name="LockLabel" type="Label" parent="VBoxContainer"]
+visible = false
 layout_mode = 2
-text = "100"
+theme_override_colors/font_color = Color(1, 0.55, 0.15, 0.9)
+theme_override_font_sizes/font_size = 13
+text = ""
+autowrap_mode = 2
 
-[node name="BuyButton" type="Button" parent="."]
+[node name="Price" type="Label" parent="." unique_id=1439185294]
+visible = false
 layout_mode = 2
-text = "Satın al"
+
+[node name="BuyButton" type="Button" parent="." unique_id=1216363398]
+custom_minimum_size = Vector2(150, 42)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0.23137255, 0.039215688, 0.039215688, 1)
+theme_override_colors/font_hover_color = Color(0.23137255, 0.039215688, 0.039215688, 1)
+theme_override_colors/font_disabled_color = Color(0.72, 0.72, 0.75, 0.8)
+theme_override_constants/h_separation = 8
+theme_override_constants/icon_max_width = 24
+theme_override_font_sizes/font_size = 17
+theme_override_styles/normal = SubResource("StyleBoxFlat_f31fg")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_p5srn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_42dty")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_disabled")
+text = "Satın al  150"
+icon = ExtResource("3_coin")
+icon_alignment = 2
+expand_icon = true
+
+[node name="RightPadding" type="Control" parent="." unique_id=987162431]
+custom_minimum_size = Vector2(28, 0)
+layout_mode = 2

@@ -1,23 +1,166 @@
 [gd_scene format=3 uid="uid://c5tyt0gtrfve1"]
 
 [ext_resource type="Script" uid="uid://da60ixc8sbehv" path="res://scripts/shop.gd" id="1_lx5au"]
+[ext_resource type="Texture2D" uid="uid://dbqgtfax1etd7" path="res://assets/textures/para_1lira_altin.png" id="2_coin"]
+[ext_resource type="Texture2D" uid="uid://dsv5wsoyrgjq0" path="res://assets/textures/para_2_yigin.png" id="3_shop_icon"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_by5y6"]
-bg_color = Color(0.7137255, 0.019607844, 0.11764706, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_shop_normal"]
+content_margin_left = 20.0
+content_margin_top = 12.0
+content_margin_right = 20.0
+content_margin_bottom = 12.0
+bg_color = Color(0.1, 0.1, 0.14, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.95, 0.75, 0.2, 0.9)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0.95, 0.75, 0.2, 0.25)
+shadow_size = 6
+shadow_offset = Vector2(0, 2)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hma7u"]
-content_margin_left = 65.0
-content_margin_right = 65.0
-bg_color = Color(1, 0.043137256, 0.105882354, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_shop_pressed"]
+content_margin_left = 20.0
+content_margin_top = 12.0
+content_margin_right = 20.0
+content_margin_bottom = 12.0
+bg_color = Color(0.35, 0.28, 0.02, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.78, 0.6, 0.1, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.3)
+shadow_size = 2
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wwfqp"]
-content_margin_left = 65.0
-content_margin_right = 65.0
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_shop_hover"]
+content_margin_left = 20.0
+content_margin_top = 12.0
+content_margin_right = 20.0
+content_margin_bottom = 12.0
+bg_color = Color(0.15, 0.14, 0.05, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.88, 0.3, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(1, 0.85, 0.2, 0.45)
+shadow_size = 10
+shadow_offset = Vector2(0, 3)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_be76b"]
-content_margin_left = 65.0
-content_margin_right = 65.0
-bg_color = Color(0.38039216, 0, 0, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.09, 0.09, 0.12, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.85, 0.7, 0.3, 0.75)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_panel"]
+content_margin_left = 24.0
+content_margin_top = 16.0
+content_margin_right = 24.0
+content_margin_bottom = 16.0
+bg_color = Color(0.55, 0.09, 0.13, 1)
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_unselected"]
+content_margin_left = 22.0
+content_margin_top = 8.0
+content_margin_right = 22.0
+content_margin_bottom = 8.0
+bg_color = Color(0.18, 0.18, 0.22, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_hovered"]
+content_margin_left = 22.0
+content_margin_top = 8.0
+content_margin_right = 22.0
+content_margin_bottom = 8.0
+bg_color = Color(0.26, 0.26, 0.32, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_selected"]
+content_margin_left = 22.0
+content_margin_top = 8.0
+content_margin_right = 22.0
+content_margin_bottom = 8.0
+bg_color = Color(0.55, 0.09, 0.13, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_money"]
+content_margin_left = 16.0
+content_margin_top = 6.0
+content_margin_right = 16.0
+content_margin_bottom = 6.0
+bg_color = Color(0.12, 0.12, 0.15, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.95, 0.75, 0.2, 0.85)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_close_normal"]
+bg_color = Color(0.18, 0.18, 0.22, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.35)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_close_pressed"]
+bg_color = Color(0.55, 0.08, 0.08, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.7, 0.7, 0.7, 0.6)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_close_hover"]
+bg_color = Color(0.88, 0.18, 0.18, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.85)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [node name="Shop" type="Node2D" unique_id=2027449129]
 script = ExtResource("1_lx5au")
@@ -25,81 +168,152 @@ script = ExtResource("1_lx5au")
 [node name="UI" type="CanvasLayer" parent="." unique_id=567261572]
 
 [node name="ShopButton" type="Button" parent="UI" unique_id=237048292]
+custom_minimum_size = Vector2(155, 44)
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -110.0
-offset_top = -31.0
+offset_left = -170.0
+offset_top = -58.0
 grow_horizontal = 0
 grow_vertical = 0
 offset_transform_enabled = true
-offset_transform_position = Vector2(-10, -10)
+offset_transform_position = Vector2(-14, -14)
 offset_transform_visual_only = false
+focus_mode = 0
+theme_override_colors/font_color = Color(0.95, 0.82, 0.25, 1)
+theme_override_colors/font_pressed_color = Color(0.85, 0.72, 0.15, 1)
+theme_override_colors/font_hover_color = Color(1, 0.95, 0.45, 1)
+theme_override_constants/h_separation = 10
+theme_override_constants/icon_max_width = 26
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_shop_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_shop_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_shop_hover")
 text = "Yükseltmeler"
+icon = ExtResource("3_shop_icon")
+expand_icon = true
 
-[node name="ShopPanel" type="PanelContainer" parent="UI" unique_id=270314962]
-custom_minimum_size = Vector2(900, 500)
+[node name="ShopPopup" type="Control" parent="UI" unique_id=2027793945]
+custom_minimum_size = Vector2(900, 520)
+layout_mode = 3
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -436.0
-offset_top = -264.0
-offset_right = 464.0
+offset_left = -450.0
+offset_top = -260.0
+offset_right = 450.0
 offset_bottom = 260.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="UI/ShopPanel" unique_id=77095018]
-layout_mode = 2
+[node name="ShopPanel" type="PanelContainer" parent="UI/ShopPopup" unique_id=270314962]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
-[node name="TabContainer" type="TabContainer" parent="UI/ShopPanel/VBoxContainer" unique_id=1422134732]
+[node name="TabContainer" type="TabContainer" parent="UI/ShopPopup/ShopPanel" unique_id=1422134732]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_font_sizes/font_size = 30
-theme_override_styles/panel = SubResource("StyleBoxFlat_by5y6")
-theme_override_styles/tab_unselected = SubResource("StyleBoxFlat_hma7u")
-theme_override_styles/tab_hovered = SubResource("StyleBoxFlat_wwfqp")
-theme_override_styles/tab_selected = SubResource("StyleBoxFlat_be76b")
-tab_alignment = 1
+theme_override_font_sizes/font_size = 24
+theme_override_styles/panel = SubResource("StyleBoxFlat_tab_panel")
+theme_override_styles/tab_unselected = SubResource("StyleBoxFlat_tab_unselected")
+theme_override_styles/tab_hovered = SubResource("StyleBoxFlat_tab_hovered")
+theme_override_styles/tab_selected = SubResource("StyleBoxFlat_tab_selected")
 current_tab = 0
 
-[node name="Hazırlık" type="ScrollContainer" parent="UI/ShopPanel/VBoxContainer/TabContainer" unique_id=938470568]
+[node name="Hazırlık" type="ScrollContainer" parent="UI/ShopPopup/ShopPanel/TabContainer" unique_id=938470568]
 layout_mode = 2
 horizontal_scroll_mode = 0
 metadata/_tab_index = 0
 
-[node name="Content" type="VBoxContainer" parent="UI/ShopPanel/VBoxContainer/TabContainer/Hazırlık" unique_id=1335857902]
+[node name="Content" type="VBoxContainer" parent="UI/ShopPopup/ShopPanel/TabContainer/Hazırlık" unique_id=1335857902]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 12
 
-[node name="Farkındalık" type="ScrollContainer" parent="UI/ShopPanel/VBoxContainer/TabContainer" unique_id=768731096]
+[node name="Farkındalık" type="ScrollContainer" parent="UI/ShopPopup/ShopPanel/TabContainer" unique_id=768731096]
 visible = false
 layout_mode = 2
 horizontal_scroll_mode = 0
 metadata/_tab_index = 1
 
-[node name="Content" type="VBoxContainer" parent="UI/ShopPanel/VBoxContainer/TabContainer/Farkındalık" unique_id=1230763055]
+[node name="Content" type="VBoxContainer" parent="UI/ShopPopup/ShopPanel/TabContainer/Farkındalık" unique_id=1230763055]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 12
 
-[node name="Kamu Binaları" type="ScrollContainer" parent="UI/ShopPanel/VBoxContainer/TabContainer" unique_id=1273752237]
+[node name="Kamu Binaları" type="ScrollContainer" parent="UI/ShopPopup/ShopPanel/TabContainer" unique_id=1273752237]
 visible = false
 layout_mode = 2
 horizontal_scroll_mode = 0
 metadata/_tab_index = 2
 
-[node name="Content" type="VBoxContainer" parent="UI/ShopPanel/VBoxContainer/TabContainer/Kamu Binaları" unique_id=1556454265]
+[node name="Content" type="VBoxContainer" parent="UI/ShopPopup/ShopPanel/TabContainer/Kamu Binaları" unique_id=1556454265]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 12
 
-[node name="CloseButton" type="Button" parent="UI/ShopPanel/VBoxContainer" unique_id=1723553054]
+[node name="MoneyContainer" type="PanelContainer" parent="UI/ShopPopup" unique_id=757544372]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -214.0
+offset_top = 7.0
+offset_right = -54.0
+offset_bottom = 43.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_money")
+
+[node name="MoneyHBox" type="HBoxContainer" parent="UI/ShopPopup/MoneyContainer" unique_id=1650954204]
 layout_mode = 2
-size_flags_vertical = 0
-text = "Kapat"
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="MoneyLabel" type="Label" parent="UI/ShopPopup/MoneyContainer/MoneyHBox" unique_id=1242219781]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 18
+text = "Para: 500"
+vertical_alignment = 1
+
+[node name="CoinIcon" type="TextureRect" parent="UI/ShopPopup/MoneyContainer/MoneyHBox" unique_id=1704045612]
+custom_minimum_size = Vector2(22, 22)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("2_coin")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CloseButton" type="Button" parent="UI/ShopPopup" unique_id=1967643151]
+custom_minimum_size = Vector2(34, 34)
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -44.0
+offset_top = 8.0
+offset_right = -10.0
+offset_bottom = 42.0
+grow_horizontal = 0
+focus_mode = 0
+theme_override_colors/font_color = Color(1, 1, 1, 0.95)
+theme_override_colors/font_pressed_color = Color(0.85, 0.85, 0.85, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_close_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_close_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_close_hover")
+text = "X"
 
 [connection signal="pressed" from="UI/ShopButton" to="." method="_on_shop_button_pressed"]
-[connection signal="pressed" from="UI/ShopPanel/VBoxContainer/CloseButton" to="." method="_on_close_button_pressed"]
+[connection signal="pressed" from="UI/ShopPopup/CloseButton" to="." method="_on_close_button_pressed"]
