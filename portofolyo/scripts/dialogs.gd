@@ -39,7 +39,7 @@ const TUTORIAL := [
 	{"id": "tut_01", "who": "nermin", "mood": "neutral", "anim": "point", "focus": "money",
 		"text": "Sol üstte kasamız. Vergiler her sabah gelir, binaların bakımı ve onarımı da her gün para yer. Para gelir, para gider, Nermin kalır."},
 	{"id": "tut_nufus", "who": "nermin", "mood": "worried", "anim": "warn", "focus": "pop",
-		"text": "İşte bu da nüfus barı. Nüfus iki binin altına inerse şehri kaybederiz! Afette can kaybı olursa ya da halk kendini güvende hissetmezse aileler toplanıp gider."},
+		"text": "İşte bu da nüfus barı. Nüfus iki bin beş yüzün altına inerse şehri kaybederiz! Afette can kaybı olursa ya da halk kendini güvende hissetmezse aileler toplanıp gider."},
 	{"id": "tut_02", "who": "nermin", "mood": "happy", "focus": "aw",
 		"text": "Bu yeşil kalkan halkın farkındalığı. Halk ne kadar bilinçliyse afette o kadar az can kaybederiz."},
 	{"id": "tut_03", "who": "baskan", "mood": "neutral",

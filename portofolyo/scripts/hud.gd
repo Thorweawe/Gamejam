@@ -11,14 +11,14 @@ extends CanvasLayer
 ## Nufus sistemi:
 ##   Sehrin maksimum nufusu MAX_POP (10.000). Oyun %40 nufusla (4.000) baslar:
 ##   ilk okunan gercek nufus 4.000'e olceklenir, sonraki degisimler ayni oranla yansir.
-##   Nufus %20'nin altina duserse oyun biter.
+##   Nufus %25'in (2.500) altina duserse oyun biter.
 ##   Basari yuzdesi = nufus orani x farkindalik orani / 100
 
 signal action_pressed(id: String)
 signal building_action(id: String)
 signal precaution_pressed(id: String)
 signal risk_toggled(on: bool)
-signal game_over  # nufus %20'nin altina dustu (GameManager dinleyebilir)
+signal game_over  # nufus %25'in (2.500) altina dustu (GameManager dinleyebilir)
 signal _modal_done(result: int)
 
 ## Renk paleti oyunun kendi dokusundan (KayKit citybits_texture.png): krem, ten, hardal, turuncu,
@@ -44,7 +44,7 @@ const RISK_TEXT := {"fire": "Yangın", "forest": "Orman yangını", "flood": "Se
 
 const MAX_POP := 10000           # sehrin maksimum nufusu
 const START_POP_RATIO := 40.0    # oyun %40 nufusla baslar (4.000)
-const MIN_POP_RATIO := 20.0      # bunun alti = oyun biter
+const MIN_POP_RATIO := 25.0      # bunun alti = oyun biter (2.500 kisi; Nermin ogreticide boyle soyler)
 const ARRIVALS_PER_AW := 4       # her yeni gun, farkindaligin her yuzdesi icin gelen kisi (%100 = 400)
 const MONEY_PER_AW := 20         # farkindalik 1 puan artinca kasaya +20 TL, azalinca -20 TL
 const EMIGRATION_AW := 25        # farkindalik bunun altindaysa her sabah aileler sehri terk eder
@@ -540,7 +540,7 @@ static func success_rate(pop: int, awareness: float) -> float:
 	return p * a / 100.0
 
 
-## Nufus %20'nin altina duserse oyun biter (mevcut oyun sonu penceresi acilir).
+## Nufus %25'in (2.500) altina duserse oyun biter (mevcut oyun sonu penceresi acilir).
 func _check_population(g: Node, pop: int) -> void:
 	if _game_over or _pop_scale <= 0.0:
 		return
@@ -1671,7 +1671,7 @@ func _choice_card(parent: Node, choice: Dictionary, index: int, locked := false)
 	p.mouse_exited.connect(func(): p.add_theme_stylebox_override("panel", normal))
 
 
-## Oyun sonu. failed = true ise nufus %20'nin altina dustugu icin erken bitti (sadece baslik degisir).
+## Oyun sonu. failed = true ise nufus %25'in altina dustugu icin erken bitti (sadece baslik degisir).
 func show_end(g: Node, failed := false) -> void:
 	_game_over = true  # normal bitiste nufus kontrolu artik tetiklenmesin
 	var gr: Array = g.grade()

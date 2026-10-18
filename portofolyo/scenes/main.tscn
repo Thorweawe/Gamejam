@@ -1,12 +1,12 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene format=3 uid="uid://dkxjshjnr33d0"]
 
 [ext_resource type="PackedScene" path="res://scenes/city_map.tscn" id="1_map"]
-[ext_resource type="Script" path="res://scripts/day_cycle.gd" id="2_day"]
-[ext_resource type="Script" path="res://scripts/sun_moon_dial.gd" id="3_dial"]
-[ext_resource type="Script" path="res://scripts/disasters.gd" id="4_dis"]
-[ext_resource type="Script" path="res://scripts/hud.gd" id="5_hud"]
-[ext_resource type="Script" path="res://scripts/game_manager.gd" id="6_game"]
-[ext_resource type="Script" path="res://scripts/audio.gd" id="7_audio"]
+[ext_resource type="Script" uid="uid://d2o6k8u7upq5y" path="res://scripts/day_cycle.gd" id="2_day"]
+[ext_resource type="Script" uid="uid://cxai83gksnl05" path="res://scripts/sun_moon_dial.gd" id="3_dial"]
+[ext_resource type="Script" uid="uid://bmoxn503jgf68" path="res://scripts/disasters.gd" id="4_dis"]
+[ext_resource type="Script" uid="uid://fhb64312q3g3" path="res://scripts/hud.gd" id="5_hud"]
+[ext_resource type="Script" uid="uid://c3fonk577siv8" path="res://scripts/game_manager.gd" id="6_game"]
+[ext_resource type="Script" uid="uid://emhiue2ku31g" path="res://scripts/audio.gd" id="7_audio"]
 
 [sub_resource type="StyleBoxFlat" id="panel_style"]
 content_margin_left = 16.0
@@ -32,6 +32,17 @@ corner_radius_top_right = 12
 corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
 
+[sub_resource type="StyleBoxFlat" id="btn_pressed"]
+content_margin_left = 20.0
+content_margin_top = 12.0
+content_margin_right = 20.0
+content_margin_bottom = 8.0
+bg_color = Color(0.85, 0.45, 0.1, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
 [sub_resource type="StyleBoxFlat" id="btn_hover"]
 content_margin_left = 20.0
 content_margin_top = 10.0
@@ -40,17 +51,6 @@ content_margin_bottom = 10.0
 bg_color = Color(1, 0.65, 0.25, 1)
 border_width_bottom = 4
 border_color = Color(0.7, 0.35, 0.05, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
-
-[sub_resource type="StyleBoxFlat" id="btn_pressed"]
-content_margin_left = 20.0
-content_margin_top = 12.0
-content_margin_right = 20.0
-content_margin_bottom = 8.0
-bg_color = Color(0.85, 0.45, 0.1, 1)
 corner_radius_top_left = 12
 corner_radius_top_right = 12
 corner_radius_bottom_right = 12
@@ -67,21 +67,21 @@ corner_radius_top_right = 12
 corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
 
-[node name="Main" type="Node"]
+[node name="Main" type="Node" unique_id=1813520544]
 
-[node name="CityMap" parent="." instance=ExtResource("1_map")]
+[node name="CityMap" parent="." unique_id=492885650 instance=ExtResource("1_map")]
 
-[node name="DayCycle" type="Node3D" parent="."]
+[node name="DayCycle" type="Node3D" parent="." unique_id=1399218641]
 script = ExtResource("2_day")
 
-[node name="Moon" type="DirectionalLight3D" parent="DayCycle"]
+[node name="Moon" type="DirectionalLight3D" parent="DayCycle" unique_id=1487585391]
 transform = Transform3D(-0.866025, 0.383022, -0.321394, 0, 0.642788, 0.766044, 0.5, 0.663414, -0.55667, 0, 20, 0)
 light_color = Color(0.55, 0.65, 1, 1)
 light_energy = 0.0
 
-[node name="UI" type="CanvasLayer" parent="."]
+[node name="UI" type="CanvasLayer" parent="." unique_id=274385691]
 
-[node name="ClockPanel" type="PanelContainer" parent="UI"]
+[node name="ClockPanel" type="PanelContainer" parent="UI" unique_id=578284027]
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
@@ -93,26 +93,27 @@ grow_horizontal = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("panel_style")
 
-[node name="HBox" type="HBoxContainer" parent="UI/ClockPanel"]
+[node name="HBox" type="HBoxContainer" parent="UI/ClockPanel" unique_id=167658382]
 layout_mode = 2
-alignment = 1
 theme_override_constants/separation = 16
+alignment = 1
 
-[node name="Dial" type="Control" parent="UI/ClockPanel/HBox"]
+[node name="Dial" type="Control" parent="UI/ClockPanel/HBox" unique_id=1907738431]
 custom_minimum_size = Vector2(104, 54)
+clip_contents = true
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
 script = ExtResource("3_dial")
 
-[node name="DayLabel" type="Label" parent="UI/ClockPanel/HBox"]
+[node name="DayLabel" type="Label" parent="UI/ClockPanel/HBox" unique_id=2012073042]
 layout_mode = 2
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.6)
 theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 30
 text = "Gün 1"
 
-[node name="EndDayButton" type="Button" parent="UI"]
+[node name="EndDayButton" type="Button" parent="UI" unique_id=1825007399]
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
@@ -126,17 +127,17 @@ grow_horizontal = 0
 grow_vertical = 0
 focus_mode = 0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
 theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
 theme_override_colors/font_disabled_color = Color(0.8, 0.8, 0.85, 1)
 theme_override_font_sizes/font_size = 26
 theme_override_styles/normal = SubResource("btn_normal")
-theme_override_styles/hover = SubResource("btn_hover")
 theme_override_styles/pressed = SubResource("btn_pressed")
+theme_override_styles/hover = SubResource("btn_hover")
 theme_override_styles/disabled = SubResource("btn_disabled")
 text = "Günü Geç ▶"
 
-[node name="DayBanner" type="Label" parent="UI"]
+[node name="DayBanner" type="Label" parent="UI" unique_id=400260038]
 modulate = Color(1, 1, 1, 0)
 anchors_preset = 8
 anchor_left = 0.5
@@ -149,7 +150,6 @@ offset_right = 300.0
 offset_bottom = 70.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.92, 0.6, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
 theme_override_constants/outline_size = 16
@@ -158,14 +158,14 @@ text = "GÜN 2"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Audio" type="Node" parent="."]
+[node name="Audio" type="Node" parent="." unique_id=297372552]
 script = ExtResource("7_audio")
 
-[node name="Disasters" type="Node" parent="."]
+[node name="Disasters" type="Node" parent="." unique_id=1870469885]
 script = ExtResource("4_dis")
 
-[node name="HUD" type="CanvasLayer" parent="."]
+[node name="HUD" type="CanvasLayer" parent="." unique_id=2065612690]
 script = ExtResource("5_hud")
 
-[node name="Game" type="Node" parent="."]
+[node name="Game" type="Node" parent="." unique_id=1141902939]
 script = ExtResource("6_game")
