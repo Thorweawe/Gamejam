@@ -785,10 +785,14 @@ func _finale() -> void:
 
 ## Sehrin guvenlik notu (oyun sonu).
 func grade() -> Array:
-	# nufus: baslangic %40; sehir buyuduyse puan artar, insanlar gittiyse duser
-	var pop_ratio: float = hud.pop_ratio(hud.city_pop(self))
-	var score := clampf(95.0 - totals.casualties * 0.5 - totals.collapsed * 0.5 + totals.saved * 0.08
-		+ awareness * 0.2 + flood_protection * 3 + (pop_ratio - 40.0) * 0.6, 0.0, 100.0)
+	# not, oyun sonu ekranindaki BASARI yuzdesine (nufus orani x farkindalik) dayanir; kurtarilan canlar
+	# artirir, kayiplar ve yikimlar dusurur. Ornek: nufus %70, farkindalik %85 (basari %60) + iyi mudahale -> A;
+	# nufus %40, farkindalik %30 (basari %12) -> D/F.
+	var success: float = hud.success_rate(hud.city_pop(self), awareness)
+	var score := clampf(30.0 + success * 0.9 + totals.saved * 0.05 - totals.casualties * 0.6
+		- totals.collapsed * 0.25 + flood_protection * 2.0, 0.0, 100.0)
+	if hud.lost:
+		return ["F", mini(int(score), 30)]  # sehir bosaldi: oyun kaybedildi, iyi not alinamaz
 	var letter := "F"
 	for g in [[85, "A"], [70, "B"], [55, "C"], [40, "D"]]:
 		if score >= g[0]:

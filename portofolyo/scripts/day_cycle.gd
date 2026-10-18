@@ -151,13 +151,14 @@ func apply_time(h: float) -> void:
 	sky.ground_horizon_color = horizon
 	sky.ground_bottom_color = top.darkened(0.4)
 	env.ambient_light_energy = lerpf(0.3, 0.52, day_k) * (1.0 - gloom * 0.45)  # golgeler gok renginde serin, belirgin
-	# sabah pusu: gun dogarken alcakta beyazimsi sis; saat ilerledikce ve yeni gunun ilk saniyelerinde dagilir
-	var mist := maxf(smoothstep(4.0, 6.0, h) * (1.0 - smoothstep(7.5, 10.5, h)), mist_linger) * (1.0 - gloom)
-	env.fog_density = float(env.get_meta("fog_base", env.fog_density)) + mist * 0.005
-	env.fog_aerial_perspective = lerpf(float(env.get_meta("fog_ap", env.fog_aerial_perspective)), 0.4, mist)
-	env.fog_light_color = Color(0.72, 0.84, 0.95).lerp(Color(0.93, 0.91, 0.87), mist)
-	env.fog_height = 0.8
-	env.fog_height_density = mist * 0.12
+	# sabah pusu: sadece gun dogumu animasyonunda (05-09), cok hafif ve yere yakin. Renkleri soldurmasin diye
+	# yogunluk dusuk, rengi gok rengine yakin; gun baslayinca (11:00) tamamen yok (karar karti arkasi gri olmasin).
+	var mist := smoothstep(4.5, 6.0, h) * (1.0 - smoothstep(7.0, 9.0, h)) * (1.0 - gloom)
+	env.fog_density = float(env.get_meta("fog_base", env.fog_density)) + mist * 0.0015
+	env.fog_aerial_perspective = float(env.get_meta("fog_ap", env.fog_aerial_perspective))
+	env.fog_light_color = Color(0.72, 0.84, 0.95).lerp(Color(0.95, 0.88, 0.8), mist * 0.5)
+	env.fog_height = 0.6
+	env.fog_height_density = mist * 0.05
 	sea_material.set_shader_parameter("light", lerpf(0.3, 1.0, day_k) * (1.0 - gloom * 0.35))
 	if traffic:
 		traffic.set_night(1.0 - day_k)  # gece sokaklar sakinlesir
@@ -219,17 +220,7 @@ func _add_street_lamp_lights() -> void:
 
 
 # ------------------------------------------------------------------ arayuz
-var mist_linger := 0.0  # yeni gun basladiginda 1 -> 0 (pus yavasca dagilir)
-
-
-func _set_mist(v: float) -> void:
-	mist_linger = v
-	apply_time(hour)
-
-
 func _on_day_started(d: int) -> void:
-	_set_mist(1.0)
-	create_tween().tween_method(_set_mist, 1.0, 0.0, 14.0).set_trans(Tween.TRANS_SINE).set_delay(2.0)
 	banner.text = "GÜN %d" % d
 	banner.pivot_offset = banner.size / 2.0
 	banner.scale = Vector2(0.7, 0.7)
