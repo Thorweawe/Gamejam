@@ -10,6 +10,8 @@ extends Node
 const GROUND_SHADER := preload("res://assets/shaders/ground.gdshader")
 const OUTLINE_SHADER := preload("res://assets/shaders/outline.gdshader")
 const GraphicsQuality := preload("res://scripts/graphics_quality.gd")
+## Oyun "Uyumluluk Modu" ile (OpenGL, eski / zayif ekran kartlari) mi calisiyor?
+static var COMPAT: bool = RenderingServer.get_current_rendering_method() == "gl_compatibility"
 const MEADOW := Color(0.46, 0.6, 0.32)  # dag eteklerindeki soluk haki zemin bu cayir tonuna yaklasir (cimene yakin, keskin gecis olmasin)
 ## Karo / model adi on eki -> shader ayarlari
 ## terrain: renk karo basina degil arazi maskesine gore (orman / dag etegi yumusak gecis, kare kare gorunmez)
@@ -56,8 +58,11 @@ func _ready() -> void:
 	_keep_on_sand(city.get_node_or_null("Props"))
 	_tune_environment((city.get_node("WorldEnvironment") as WorldEnvironment).environment)
 	(city.get_node("Sun") as DirectionalLight3D).shadow_blur = 1.5  # kesik golge kenarlari yerine yumusak gecis
-	_add_outline(city.get_node("CameraRig/Camera3D"))
-	_add_tilt_shift(city.get_node("CameraRig/Camera3D"))
+	# Uyumluluk (OpenGL) modunda kontur shader'i desteklenmez (normal/derinlik dokusu yok), minyatur
+	# bulaniklik da agir: ikisi de sadece Forward+ ile
+	if not COMPAT:
+		_add_outline(city.get_node("CameraRig/Camera3D"))
+		_add_tilt_shift(city.get_node("CameraRig/Camera3D"))
 	if TOON:
 		_city = city
 		for m in city.find_children("*", "MeshInstance3D", true, false):
@@ -241,11 +246,10 @@ func _apply_group(parent: Node, rules: Dictionary, coast := false) -> void:
 				var settings: Dictionary = rules[prefix]
 				if coast and _sea_mat:
 					settings = settings.merged({"coast_cut": COAST_CUT})
-				_apply(n, settings)
-				# duz nehir karolari kivrimli akar (ground.gdshader meander); koseler oldugu gibi
+				# duz nehir karolari kivrimli akar (ground.gdshader meander, ayri malzeme); koseler oldugu gibi
 				if prefix == "river_" and n.scene_file_path.contains("straight"):
-					for m in n.find_children("*", "MeshInstance3D", true, false):
-						(m as MeshInstance3D).set_instance_shader_parameter("meander", 1.0)
+					settings = settings.merged({"meander": 1.0})
+				_apply(n, settings)
 				break
 
 
@@ -331,3 +335,11 @@ func _tune_environment(env: Environment) -> void:
 	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT
 	for lv in 7:
 		env.set_glow_level(lv, 1.0 if lv in [2, 3, 4] else (0.5 if lv == 5 else 0.0))
+	if COMPAT:
+		# Uyumluluk (OpenGL) modu: sis hava perspektifini desteklemiyor (her seyi beyaza boyar), renk egrisi
+		# ve parlama farkli calisiyor -> sis kapali, sade ton esleme
+		env.fog_enabled = false
+		env.adjustment_color_correction = null
+		env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+		env.tonemap_exposure = 1.0
+		env.glow_enabled = false

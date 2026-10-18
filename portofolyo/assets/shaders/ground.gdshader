@@ -29,7 +29,9 @@ uniform float river_mode = 0.0;
 // duz nehir karolari (map_visuals.gd karo basina 1 yapar; kose karolarinda 0): karo duzlestirilir, su
 // kanali karonun ortasindaki duz serit yerine kivrimli bir cizgiyi izler. Kivrim her karo sinirinda
 // sifira iner -> kopru, kose karolari ve komsu karolarla kesintisiz birlesir.
-instance uniform float meander = 0.0;
+// (instance uniform degil: eski / Compatibility ekran kartlarinda ornek basina degisken siniri asiliyordu;
+// duz dere karolari kendi malzemesini kullanir, bkz. map_visuals.gd)
+uniform float meander = 0.0;
 const float RIVER_HALF = 0.51;  // tile_river_straight kanal yari genisligi (modelden olculdu)
 varying vec3 tile_c;
 varying vec3 tile_x;

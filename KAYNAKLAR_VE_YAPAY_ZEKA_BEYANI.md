@@ -82,7 +82,8 @@ Modellerin tek tek listesi ve kaynakları: [`portofolyo/assets/ASSETS.md`](porto
 ### 2.4 Arayüz görselleri
 - Oyun içi ikonlar: `scripts/ui_icon.gd`, kodla çizilen vektör ikonlar (Claude)
 - Mağaza ikonları: `assets/ui_icons/*.svg`, `tools/ui_icons.py` ile üretildi (Claude). Renk paleti Tailwind CSS'ten alındı.
-- Oyun ikonu: `portofolyo/icon.svg`, `icon.png`, `icon.ico` (Claude ile üretildi)
+- Oyun ikonu: `portofolyo/icon.png`, `icon.ico`. `tools/make_icon.py` ile üretildi (Claude): oyunun kendi şehir
+  görüntüsü üzerine kalkan, ev ve onay rozeti çizilir.
 - Menü arka plan videoları: `videolar/menu_arkaplan_v1.mp4`, `v2.mp4`. Oyunun kendisinden kaydedildi
   (Godot Movie Maker); yani yapay zekâ ile üretilmiş görüntü değil, oyunun ekran kaydı.
 - **Kullanılmayan deneme:** `assets/_kaynak/ai_ui_deneme/magaza_onizleme.png`. Oyunda **kullanılmıyor**, sadece
@@ -153,5 +154,6 @@ Modellerin tek tek listesi ve kaynakları: [`portofolyo/assets/ASSETS.md`](porto
 | `ui_icons.py` | Mağaza SVG ikonları | Claude |
 | `ui_icon_cut.py` | Deneme ikon sayfalarını 4 ikona bölen, arka planı şeffaf yapan yardımcı betik | Claude |
 | `font_add_turkish.py` | Fredoka'ya Türkçe harfler | Claude |
+| `make_icon.py` | Oyun ikonunu (`icon.png`, `icon.ico`) üretir | Claude |
 | `elevenlabs_tts.py`, `make_voice_md.py`, `voices.json` | Seslendirmeleri ElevenLabs ile üretir | Ekibimiz tarafından yapıldı |
 | `preview/` | Modelleri tarayıcıda önizleme sayfası | Claude |
