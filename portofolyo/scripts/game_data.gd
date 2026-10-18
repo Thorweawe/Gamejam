@@ -57,14 +57,14 @@ const UPGRADES := {
 	"house_lv0_gecekondu": ["house_lv1", 2500, 1],
 	"house_lv1": ["house_lv2", 5000, 1],
 	"house_lv2": ["house_lv3", 9000, 2],
-	"building_townhall_lv1": ["building_townhall_lv2", 7000, 1],
-	"building_townhall_lv2": ["building_townhall_lv3", 12000, 2],
-	"building_firestation": ["building_firestation_lv2", 5000, 1],
-	"building_firestation_lv2": ["building_firestation_lv3", 8000, 2],
-	"building_hospital": ["building_hospital_lv2", 5000, 1],
-	"building_hospital_lv2": ["building_hospital_lv3", 8000, 2],
-	"building_afad": ["building_afad_lv2", 5000, 1],
-	"building_afad_lv2": ["building_afad_lv3", 8000, 2],
+	"building_townhall_lv1": ["building_townhall_lv2", 4200, 1],
+	"building_townhall_lv2": ["building_townhall_lv3", 7200, 2],
+	"building_firestation": ["building_firestation_lv2", 3000, 1],
+	"building_firestation_lv2": ["building_firestation_lv3", 4800, 2],
+	"building_hospital": ["building_hospital_lv2", 3000, 1],
+	"building_hospital_lv2": ["building_hospital_lv3", 4800, 2],
+	"building_afad": ["building_afad_lv2", 3000, 1],
+	"building_afad_lv2": ["building_afad_lv3", 4800, 2],
 }
 const UPGRADE_DAYS := 1  # gelistirme / guclendirme ertesi gun hazir
 const REINFORCE := {"house_lv1": 1800, "house_lv2": 3000}
@@ -165,11 +165,11 @@ const SHOP_ITEMS := [
 		"icon": "res://assets/ui_icons/tv.svg", "desc": "Çök-Kapan-Tutun anlatılır. Tüm şehirde farkındalık +7."},
 	{"id": "volunteers", "cat": "farkindalik", "name": "Mahalle Afet Gönüllüleri", "cost": 4000, "once": true, "req": {"afad": 2},
 		"icon": "res://assets/ui_icons/volunteers.svg", "desc": "Eğitimli gönüllüler AFAD'a destek olur: enkaz kurtarma %20 hızlanır."},
-	{"id": "museum_deprem", "cat": "farkindalik", "name": "Deprem Müzesi", "cost": 6000, "once": true, "req": {"belediye": 2},
-		"icon": "res://assets/textures/deprem_muze_1_klasik.png", "desc": "Haritadaki arsaya müze kurulur. Farkındalık +6, halk depremde daha doğru davranır (tahliye artar)."},
-	{"id": "museum_sel", "cat": "farkindalik", "name": "Sel Müzesi", "cost": 6000, "once": true, "req": {"belediye": 2},
+	{"id": "museum_deprem", "cat": "farkindalik", "name": "Deprem Müzesi", "cost": 5000, "once": true, "req": {"belediye": 2},
+		"icon": "res://assets/textures/deprem_muze_1_klasik.png", "desc": "Haritadaki arsaya müze kurulur. Farkındalık +6, halk depremde daha doğru davranır."},
+	{"id": "museum_sel", "cat": "farkindalik", "name": "Sel Müzesi", "cost": 5000, "once": true, "req": {"belediye": 2},
 		"icon": "res://assets/textures/sel_muze_1_klasik.png", "desc": "Haritadaki arsaya müze kurulur. Farkındalık +6, sel riski %15 azalır."},
-	{"id": "museum_yangin", "cat": "farkindalik", "name": "Yangın Müzesi", "cost": 6000, "once": true, "req": {"belediye": 2, "itfaiye": 2},
+	{"id": "museum_yangin", "cat": "farkindalik", "name": "Yangın Müzesi", "cost": 5000, "once": true, "req": {"belediye": 2, "itfaiye": 2},
 		"icon": "res://assets/textures/yangin_muze_1_klasik.png", "desc": "Haritadaki arsaya müze kurulur. Farkındalık +6, ev ve orman yangını riski %15 azalır."},
 ]
 const SHOP_CATS := {"deprem": "Deprem", "sel": "Sel", "yangin": "Yangın", "farkindalik": "Farkındalık"}

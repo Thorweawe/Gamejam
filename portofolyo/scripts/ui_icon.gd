@@ -144,12 +144,14 @@ func _draw() -> void:
 			draw_rect(Rect2(c + Vector2(-r * 0.6, -r * 0.75), Vector2(r * 0.42, r * 1.5)), color)
 			draw_rect(Rect2(c + Vector2(r * 0.18, -r * 0.75), Vector2(r * 0.42, r * 1.5)), color)
 		"gear":
+			# 8 dis (yamuk) + kalin halka; ortasi bos (zemin gorunur)
 			for i in 8:
 				var a := i * TAU / 8.0
 				var d := Vector2(cos(a), sin(a))
-				draw_line(c + d * r * 0.55, c + d * r * 0.98, color, w * 2.0)
-			draw_circle(c, r * 0.68, color)
-			draw_circle(c, r * 0.28, Color(0, 0, 0, 0.45))
+				var t := Vector2(-d.y, d.x)
+				draw_colored_polygon(PackedVector2Array([c + d * r * 0.6 - t * r * 0.2, c + d * r * 0.98 - t * r * 0.13,
+					c + d * r * 0.98 + t * r * 0.13, c + d * r * 0.6 + t * r * 0.2]), color)
+			draw_arc(c, r * 0.52, 0, TAU, 32, color, r * 0.36, true)
 		"exit":
 			draw_rect(Rect2(c + Vector2(-r * 0.85, -r * 0.9), Vector2(r * 0.95, r * 1.8)), color.darkened(0.25))
 			draw_line(c + Vector2(-r * 0.1, 0), c + Vector2(r * 0.9, 0), color, w * 1.5)
@@ -161,6 +163,12 @@ func _draw() -> void:
 			draw_circle(c + Vector2(-r * 0.42, -r * 0.2), r * 0.48, color)
 			draw_circle(c + Vector2(r * 0.42, -r * 0.2), r * 0.48, color)
 			draw_colored_polygon(PackedVector2Array([c + Vector2(-r * 0.88, 0), c + Vector2(r * 0.88, 0), c + Vector2(0, r * 0.9)]), color)
+		"keyboard":
+			draw_rect(Rect2(c + Vector2(-r, -r * 0.6), Vector2(r * 2, r * 1.2)), color)
+			for row in 2:
+				for i in 5:
+					draw_rect(Rect2(c + Vector2(-r * 0.82 + i * r * 0.34, -r * 0.42 + row * r * 0.32), Vector2(r * 0.24, r * 0.22)), Color(0, 0, 0, 0.3))
+			draw_rect(Rect2(c + Vector2(-r * 0.5, r * 0.24), Vector2(r, r * 0.2)), Color(0, 0, 0, 0.3))
 		"check":
 			draw_polyline(PackedVector2Array([c + Vector2(-r * 0.6, 0), c + Vector2(-r * 0.15, r * 0.5), c + Vector2(r * 0.7, -r * 0.5)]), color, w * 1.6)
 		_:

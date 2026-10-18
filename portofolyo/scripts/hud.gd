@@ -286,12 +286,21 @@ func _style_day_ui() -> void:
 	if btn:
 		var col := Color("#12935a")
 		btn.add_theme_font_override("font", bold)
-		btn.add_theme_font_size_override("font_size", 24)
-		btn.add_theme_stylebox_override("normal", sb(col, 16, 0, Color.TRANSPARENT, 16, 8, 6))
-		btn.add_theme_stylebox_override("hover", sb(col.lightened(0.12), 16, 0, Color.TRANSPARENT, 16, 8, 6))
-		btn.add_theme_stylebox_override("pressed", sb(col.darkened(0.15), 16, 0, Color.TRANSPARENT, 16, 8, 6))
-		btn.add_theme_stylebox_override("disabled", sb(Color("#c9b8a6"), 16, 0, Color.TRANSPARENT, 16, 8, 6))
-		btn.text = "Günü Bitir  ›"
+		btn.add_theme_font_size_override("font_size", 22)
+		btn.add_theme_stylebox_override("normal", sb(C_BG, 16, 3, col, 16, 8, 6))
+		btn.add_theme_stylebox_override("hover", sb(col.lerp(C_CARD, 0.85), 16, 3, col, 16, 8, 6))
+		btn.add_theme_stylebox_override("pressed", sb(col.lerp(C_CARD, 0.7), 16, 3, col.darkened(0.15), 16, 8, 6))
+		btn.add_theme_stylebox_override("disabled", sb(Color(0.93, 0.9, 0.85, 0.85), 16, 2, C_LINE, 16, 8, 6))
+		for k in ["font_color", "font_hover_color", "font_pressed_color"]:
+			btn.add_theme_color_override(k, col.darkened(0.15))
+		btn.add_theme_color_override("font_disabled_color", Color("#b3a18f"))
+		btn.text = "Günü Bitir"
+		for st in ["normal", "hover", "pressed", "disabled"]:
+			(btn.get_theme_stylebox(st) as StyleBoxFlat).content_margin_left = 64
+		var badge := _panel(btn, col, Color.TRANSPARENT, 7, 7, 13)
+		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		badge.position = Vector2(14, 11)
+		_icon(badge, "play", Color.WHITE, 28)
 	var banner: Label = ui.get_node_or_null("DayBanner")
 	if banner:
 		banner.add_theme_font_override("font", bold)
@@ -653,22 +662,19 @@ func _build_buttons() -> void:
 	row.offset_top = -158
 	row.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	row.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_shop_btn = _big_button(row, "shop", "Mağaza", Color("#d76f34"))
+	_shop_btn = _chip_button(row, "shop", "Mağaza", Color("#d76f34"))
 	_shop_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_shop_btn.pressed.connect(func():
 		_sfx("click")
 		open_shop())
-	_risk_btn = _big_button(row, "map", "Risk", Color("#577893"))
-	_risk_btn.custom_minimum_size.x = 96
+	_risk_btn = _chip_button(row, "map", "Risk", Color("#577893"))
+	_risk_btn.custom_minimum_size.x = 104
 	_risk_btn.toggle_mode = true
 	_risk_btn.toggled.connect(func(on):
 		_sfx("click")
 		risk_toggled.emit(on))
 	_risk_btn.tooltip_text = "Risk haritası (R): kırmızı binalar depremde en tehlikeli olanlar"
-	var gear := _button(_root, "", C_BG, 16)
-	gear.add_theme_stylebox_override("normal", sb(C_BG, 14, 2, C_LINE, 8, 8, 6))
-	gear.add_theme_stylebox_override("hover", sb(C_CARD, 14, 2, C_ACCENT, 8, 8, 6))
-	gear.add_theme_stylebox_override("pressed", sb(C_LINE, 14, 2, C_ACCENT, 8, 8, 6))
+	var gear := _chip_button(_root, "gear", "", Color("#577893"))
 	gear.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 	gear.offset_right = -262
 	gear.offset_left = -262 - 62
@@ -676,11 +682,38 @@ func _build_buttons() -> void:
 	gear.offset_bottom = 76
 	gear.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	gear.tooltip_text = "Ayarlar: ses, müzik, efektler, tam ekran (ESC: menü)"
-	var gi := _icon(gear, "gear", C_TEXT, 30)
-	gi.position = Vector2(16, 16)
 	gear.pressed.connect(func():
 		_sfx("click")
 		open_settings())
+
+
+## HUD kartlariyla ayni tarz buton: krem zemin, ten rengi kenar, golge, renkli rozet icinde beyaz ikon,
+## koyu kahve kalin yazi. Uzerine gelince / basiliyken kenar rozetin rengini alir.
+func _chip_button(parent: Node, icon: String, text: String, color: Color, size := 16) -> Button:
+	var b := Button.new()
+	b.focus_mode = Control.FOCUS_NONE
+	b.custom_minimum_size = Vector2(62, 62)
+	b.add_theme_stylebox_override("normal", sb(C_BG, 14, 2, C_LINE, 10, 6, 6))
+	b.add_theme_stylebox_override("hover", sb(C_CARD, 14, 2, color, 10, 6, 6))
+	b.add_theme_stylebox_override("pressed", sb(color.lerp(C_CARD, 0.82), 14, 3, color, 10, 6, 6))
+	b.add_theme_stylebox_override("hover_pressed", sb(color.lerp(C_CARD, 0.78), 14, 3, color, 10, 6, 6))
+	b.add_theme_stylebox_override("disabled", sb(Color(0.93, 0.9, 0.85, 0.85), 14, 2, C_LINE, 10, 6, 6))
+	b.mouse_entered.connect(func(): _sfx("hover"))
+	parent.add_child(b)
+	var h := _hbox(b, 8)
+	h.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	h.alignment = BoxContainer.ALIGNMENT_CENTER
+	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var badge := _panel(h, color, Color.TRANSPARENT, 6, 6, 12)
+	badge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_icon(badge, icon, Color.WHITE, 24)
+	if text != "":
+		var l := _label(h, text, size, C_TEXT, true)
+		l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		b.set_meta("label", l)
+	b.set_meta("badge", badge)
+	return b
 
 
 ## Ikonlu buyuk buton (ikon ustte, yazi altta).
@@ -704,7 +737,7 @@ func _big_button(parent: Node, icon: String, text: String, color: Color) -> Butt
 func set_actions_enabled(on: bool) -> void:
 	_actions_enabled = on
 	_shop_btn.disabled = not on
-	_shop_btn.modulate = Color.WHITE if on else Color(1, 1, 1, 0.5)
+	_shop_btn.modulate = Color.WHITE if on else Color(1, 1, 1, 0.6)
 	if not on:
 		close_shop()
 
@@ -1640,48 +1673,17 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		return
 	get_viewport().set_input_as_handled()
 	if _pause:
-		_close_pause()
+		# ayarlar acik: kontroller sayfasindaysa ayarlara don, degilse kapat
+		var panel := _pause.find_children("*", "SettingsPanel", true, false)
+		if not panel.is_empty() and panel[0]._controls and panel[0]._controls.visible:
+			panel[0]._show_controls(false)
+		else:
+			_sfx("click")
+			_close_pause()
 	elif shop_open():
 		close_shop()
 	elif _modal_root.get_child_count() == 0:
-		_open_pause()
-
-
-func _open_pause() -> void:
-	_sfx("click")
-	get_tree().paused = true
-	_pause = ColorRect.new()
-	(_pause as ColorRect).color = Color(0.02, 0.03, 0.06, 0.6)
-	_pause.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_pause.mouse_filter = Control.MOUSE_FILTER_STOP
-	_root.add_child(_pause)
-	var center := CenterContainer.new()
-	center.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_pause.add_child(center)
-	var card := _panel(center, C_CARD, C_TINT, 26, 22, 20)
-	card.custom_minimum_size = Vector2(340, 0)
-	var v := _vbox(card, 12)
-	var head := _hbox(v, 12)
-	var badge := _panel(head, Color("#577893"), Color.TRANSPARENT, 8, 8, 14)
-	_icon(badge, "pause", Color.WHITE, 24)
-	_label(head, "Duraklatıldı", 26, C_TEXT, true)
-	for item in [["play", "Devam", C_ACCENT, _close_pause], ["gear", "Ayarlar", Color("#577893"), _pause_settings],
-			["home", "Ana Menü", Color("#577893"), _to_menu], ["exit", "Oyundan Çık", Color("#bd5a46"), func(): get_tree().quit()]]:
-		var b := _button(v, "", item[2], 18)
-		b.custom_minimum_size = Vector2(0, 48)
-		var h := _hbox(b, 12)
-		h.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		h.offset_left = 18
-		h.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_icon(h, item[0], Color.WHITE, 20)
-		var l := _label(h, item[1], 18, Color.WHITE, true)
-		l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		var action: Callable = item[3]
-		b.pressed.connect(func():
-			_sfx("click")
-			action.call())
-	_pause.modulate.a = 0.0
-	create_tween().tween_property(_pause, "modulate:a", 1.0, 0.15)
+		open_settings()  # ESC = ayarlar (ayri duraklatma menusu yok)
 
 
 func _close_pause() -> void:
@@ -1691,12 +1693,14 @@ func _close_pause() -> void:
 	get_tree().paused = false
 
 
-## Oyun ici ayarlar: oyun durur, ayar penceresi acilir; "Tamam" ile devam.
+## Oyun ici ayarlar (disli butonu ya da ESC): oyun durur; "Tamam" ya da ESC ile devam.
 func open_settings() -> void:
 	if _pause or get_tree().paused:
 		return
+	_sfx("click")
 	get_tree().paused = true
 	var holder := ColorRect.new()
+	_pause = holder
 	holder.color = Color(0.1, 0.06, 0.03, 0.45)
 	holder.set_anchors_preset(Control.PRESET_FULL_RECT)
 	holder.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -1708,9 +1712,7 @@ func open_settings() -> void:
 	panel.in_game = true  # oyun icinde: "Ana Menüye Dön" butonu da olsun
 	center.add_child(panel)
 	panel.to_menu.connect(_to_menu)
-	panel.closed.connect(func():
-		holder.queue_free()
-		get_tree().paused = false)
+	panel.closed.connect(_close_pause)
 
 
 ## Ogretici: "Meteoroloji uyarisi" anlatilirken ornek bir uyari karti gosterilir (butonlar pasif).
@@ -1727,22 +1729,6 @@ func demo_forecast(on: bool) -> void:
 	elif not on and _demo_forecast:
 		_demo_forecast = false
 		hide_forecast()
-
-
-func _pause_settings() -> void:
-	var holder := ColorRect.new()
-	holder.color = Color(0, 0, 0, 0.35)
-	holder.set_anchors_preset(Control.PRESET_FULL_RECT)
-	holder.mouse_filter = Control.MOUSE_FILTER_STOP
-	_pause.add_child(holder)
-	var center := CenterContainer.new()
-	center.set_anchors_preset(Control.PRESET_FULL_RECT)
-	holder.add_child(center)
-	var panel := SettingsPanel.new()
-	panel.in_game = true
-	center.add_child(panel)
-	panel.to_menu.connect(_to_menu)
-	panel.closed.connect(holder.queue_free)
 
 
 func _to_menu() -> void:
