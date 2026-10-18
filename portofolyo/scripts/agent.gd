@@ -375,17 +375,74 @@ func set_kit(on: bool) -> void:
 		_kit.visible = on
 
 func _add_headlights() -> void:
+	# aracin boyu modelden (otobus / kamyon uzun): farlar onde, stoplar arkada
+	var box := AABB()
+	var first := true
+	for mi in _model.find_children("*", "MeshInstance3D", true, false):
+		var m3 := mi as MeshInstance3D
+		if m3.mesh == null:
+			continue
+		var b: AABB = (global_transform.affine_inverse() * m3.global_transform) * m3.mesh.get_aabb()  # araca gore
+		box = b if first else box.merge(b)
+		first = false
+	var front := box.end.z if not first else 0.5
+	var back := box.position.z if not first else -0.5
+	var half := (box.size.x * 0.5 if not first else 0.22) * 0.62
+	var y := (box.position.y + box.size.y * 0.32) if not first else 0.15
+	var k := WindowLights.night()  # gece yeni cikan arac da isiklari acik dogsun
 	var lamp := SpotLight3D.new()
-	lamp.position = Vector3(0.0, 0.14, 0.45)
+	lamp.position = Vector3(0.0, y, front - 0.05)
 	lamp.rotation = Vector3(-0.3, PI, 0.0)  # spot -Z'ye bakar, araba +Z'ye
 	lamp.light_color = Color(1.0, 0.93, 0.75)
 	lamp.spot_range = 2.4
 	lamp.spot_angle = 32.0
-	lamp.light_energy = 0.0
-	lamp.visible = false
 	lamp.set_meta("energy", 3.0)
+	lamp.light_energy = 3.0 * k
+	lamp.visible = k > 0.01
 	lamp.add_to_group("night_lights")
 	add_child(lamp)
+	# gorunen far ve stop lambalari (parlama ile isildar)
+	var bulbs := Node3D.new()
+	bulbs.visible = k > 0.15
+	bulbs.add_to_group("night_meshes")
+	add_child(bulbs)
+	for side in [-1.0, 1.0]:
+		var hl := MeshInstance3D.new()
+		hl.mesh = _bulb_mesh()
+		hl.material_override = _bulb_mat(Color(3.2, 2.9, 2.2))
+		hl.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		hl.position = Vector3(side * half, y, front + 0.005)
+		bulbs.add_child(hl)
+		var tl := MeshInstance3D.new()
+		tl.mesh = _bulb_mesh()
+		tl.material_override = _bulb_mat(Color(2.4, 0.12, 0.08))
+		tl.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		tl.position = Vector3(side * half, y + 0.03, back - 0.005)
+		tl.scale = Vector3(1.1, 0.7, 1.0)
+		bulbs.add_child(tl)
+
+
+static var _bulb: SphereMesh
+static var _bulb_mats := {}
+
+
+static func _bulb_mesh() -> SphereMesh:
+	if _bulb == null:
+		_bulb = SphereMesh.new()
+		_bulb.radius = 0.048
+		_bulb.height = 0.096
+		_bulb.radial_segments = 8
+		_bulb.rings = 4
+	return _bulb
+
+
+static func _bulb_mat(c: Color) -> StandardMaterial3D:
+	if not _bulb_mats.has(c):
+		var m := StandardMaterial3D.new()
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.albedo_color = c  # 1'in ustu: HDR parlama (glow) esigini gecer
+		_bulb_mats[c] = m
+	return _bulb_mats[c]
 
 
 ## Yagmurda yayalarin elinde semsiye (modeller arasi paylasilan mesh / malzemeler).

@@ -264,6 +264,7 @@ func _start_day(d: int) -> void:
 	_set_busy(true)
 	place_mode = ""
 	if d > 1:
+		disasters.fade_marks()  # dunku deprem catlaklari kapanir
 		var repairs := 0
 		for b in city.buildings():
 			repairs += b.tick_day()
@@ -1139,6 +1140,10 @@ func _apply_targeted(id: String, p: Vector3) -> void:
 
 # ------------------------------------------------------------------ tiklama: bina / isaret / hedef
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion:
+		var free := not busy and not game_over and not risk_view and place_mode == "" and not disasters.responding
+		_hover_building(city.building_at(city.ground_point(event.position)) if free else null)
+		return
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_RIGHT and place_mode != "":
 			_end_place_mode()
@@ -1309,9 +1314,24 @@ func do_building_action(id: String) -> void:
 		_select(b)
 
 
+## Fareyle uzerine gelinen bina hafifce aydinlanir (tiklanabilir oldugu belli olsun).
+var _hovered: Building
+
+
+func _hover_building(b: Building) -> void:
+	if b == _hovered:
+		return
+	if _hovered and is_instance_valid(_hovered) and not risk_view:
+		_hovered.set_overlay(null)  # risk haritasi acikken renkler onun: dokunma
+	_hovered = b
+	if b:
+		b.set_overlay(Color(1.0, 0.96, 0.82, 0.17))
+
+
 # ------------------------------------------------------------------ risk haritasi
 func set_risk_view(on: bool) -> void:
 	risk_view = on
+	_hovered = null  # risk renkleri vurguyu ezer; kapaninca hepsi zaten temizlenir
 	for b in city.buildings():
 		if not on:
 			b.set_overlay(null)

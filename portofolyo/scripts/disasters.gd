@@ -215,7 +215,9 @@ func earthquake(magnitude: float, post_fire := true) -> Dictionary:
 				r.held.append(b)
 	r.collapsed = collapsed.size()
 	r.damaged = damaged.size()
-	await _wait(2.6)
+	await _wait(1.0)
+	_spawn_cracks(collapsed, damaged, magnitude)
+	await _wait(1.6)
 	var blocks := 0
 	for c in collapsed:
 		if blocks < 4 and randf() < 0.55 and block_road_near(c[0]):
@@ -230,6 +232,42 @@ func earthquake(magnitude: float, post_fire := true) -> Dictionary:
 	await respond(r)
 	life.after_quake(r)
 	return r
+
+
+## Deprem catlaklari: yikilan binalarin onunde buyuk, hasarlilarin bir kisminda kucuk, yollarda birkac
+## yarik. Ertesi sabah (onarimlar baslayinca) solarak kaybolur.
+var _marks: Array[Decal] = []
+
+
+func _spawn_cracks(collapsed: Array, damaged: Array, magnitude: float) -> void:
+	var fx := effects
+	for c in collapsed:
+		var b: Node3D = c[0]
+		var off := Vector3(randf_range(-0.6, 0.6), 0, randf_range(-0.6, 0.6))
+		_marks.append(GroundMarks.spawn_crack(fx, b.global_position + off, randf_range(2.8, 3.6)))
+	for d in damaged:
+		if randf() < 0.45:
+			var b: Node3D = d[0]
+			_marks.append(GroundMarks.spawn_crack(fx, b.global_position + Vector3(randf_range(-0.8, 0.8), 0, randf_range(-0.8, 0.8)), randf_range(1.8, 2.4)))
+	var roads: Array = traffic.road.keys().filter(func(k): return not traffic.dirt.has(k) and absf(k.x) < 20 and absf(k.y - 4) < 18)
+	roads.shuffle()
+	for i in mini(roads.size(), int(3 + magnitude * 4)):
+		var k: Vector2i = roads[i]
+		_marks.append(GroundMarks.spawn_crack(fx, Vector3(k.x, 0, k.y), randf_range(2.2, 3.0)))
+	while _marks.size() > 40:  # cok fazla decal: en eskiler gider
+		var old: Decal = _marks.pop_front()
+		if is_instance_valid(old):
+			old.queue_free()
+
+
+## Yeni gun: catlaklar solup kaybolur (sehir onarildi).
+func fade_marks() -> void:
+	for d in _marks:
+		if is_instance_valid(d):
+			var tw := d.create_tween()
+			tw.tween_property(d, "modulate:a", 0.0, 2.5)
+			tw.tween_callback(d.queue_free)
+	_marks.clear()
 
 
 ## Deprem sonrasi yangin: devrilen soba / gaz kacagi ayakta kalan kucuk bir evi (gecekondu, mustakil ev)
@@ -377,6 +415,7 @@ func _ignite(b: Building, r: Dictionary, seconds: float) -> void:
 	_spread_while_burning(b, inc, r)
 	inc.resolved.connect(func(_i, saved, _lost):
 		b.set_on_fire(false)
+		b.add_soot()  # sonduruldu ya da coktu: duvarlarda is izi kalir
 		traffic.release_onlookers(b.global_position)
 		if saved > 0:
 			if b.state == Building.State.NORMAL:
@@ -816,6 +855,34 @@ func _set_rain(on: bool) -> void:
 	Agent.hurry = 1.6 if on else 1.0  # yagmurda yayalar kosar adim, semsiye acar
 	Agent.raining = on
 	game.audio.set_rain(on)
+	if on and not _storm:
+		_storm = true
+		_lightning_loop()
+	elif not on:
+		_storm = false
+
+
+## Saganak: ara ara simsek (ekran kisa sure aydinlanir) ve biraz sonra gok gurultusu.
+## Ayarlarda "Ekran sarsintisi" kapaliysa simsek parlamasi da olmaz (ani isik degisimi istemeyenler icin).
+var _storm := false
+
+
+func _lightning_loop() -> void:
+	var env := (city.get_node("WorldEnvironment") as WorldEnvironment).environment
+	while _storm:
+		await _wait(randf_range(5.0, 11.0))
+		if not _storm or not is_inside_tree():
+			return
+		if bool(Settings.values.get("shake", true)):
+			var base := env.adjustment_brightness
+			var tw := create_tween()
+			tw.tween_property(env, "adjustment_brightness", base + 0.5, 0.06)
+			tw.tween_property(env, "adjustment_brightness", base + 0.08, 0.1)
+			tw.tween_property(env, "adjustment_brightness", base + 0.35, 0.05)
+			tw.tween_property(env, "adjustment_brightness", base, 0.4)
+		await _wait(randf_range(0.35, 1.1))  # isik sesten once gelir (uzaklik)
+		if _storm:
+			game.audio.play("thunder", randf_range(0.88, 1.08))  # her gok gurultusu biraz farkli
 
 
 # ------------------------------------------------------------------ final (20. gun)

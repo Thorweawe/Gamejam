@@ -52,10 +52,12 @@ func _ready() -> void:
 			_set_river_mouth(city.get_node_or_null("MapInfo") as MapInfo)
 	_apply_group(city.get_node_or_null("Ground"), GROUND, true)
 	_apply_group(city.get_node_or_null("Nature"), NATURE)
+	_add_wind(city.get_node_or_null("Nature"))
 	_keep_on_sand(city.get_node_or_null("Props"))
 	_tune_environment((city.get_node("WorldEnvironment") as WorldEnvironment).environment)
 	(city.get_node("Sun") as DirectionalLight3D).shadow_blur = 1.5  # kesik golge kenarlari yerine yumusak gecis
 	_add_outline(city.get_node("CameraRig/Camera3D"))
+	_add_tilt_shift(city.get_node("CameraRig/Camera3D"))
 	if TOON:
 		_city = city
 		for m in city.find_children("*", "MeshInstance3D", true, false):
@@ -84,6 +86,63 @@ func _toon(mi: MeshInstance3D) -> void:
 			continue
 		mat.diffuse_mode = BaseMaterial3D.DIFFUSE_TOON
 		mat.specular_mode = BaseMaterial3D.SPECULAR_DISABLED  # parlak lekeler yollari / catilari beyaza bogmasin
+
+
+## Ruzgar: agac ve calilar hafifce sallanir (foliage.gdshader). Ayni dokuyu kullananlar tek malzemeyi paylasir.
+const FOLIAGE_SHADER := preload("res://assets/shaders/foliage.gdshader")
+var _foliage := {}  # doku -> ShaderMaterial
+
+
+func _add_wind(parent: Node) -> void:
+	if parent == null:
+		return
+	for n in parent.get_children():
+		var nm := String(n.name)
+		if not (nm.begins_with("tree_") or nm.begins_with("bush_")):
+			continue
+		for m in n.find_children("*", "MeshInstance3D", true, false):
+			var mi := m as MeshInstance3D
+			if mi.mesh == null or mi.mesh.get_surface_count() == 0:
+				continue
+			var src := mi.mesh.surface_get_material(0) as BaseMaterial3D
+			if src == null or src.albedo_texture == null:
+				continue
+			if not _foliage.has(src.albedo_texture):
+				var mat := ShaderMaterial.new()
+				mat.shader = FOLIAGE_SHADER
+				mat.set_shader_parameter("albedo_tex", src.albedo_texture)
+				_foliage[src.albedo_texture] = mat
+			mi.material_override = _foliage[src.albedo_texture]
+
+
+## Minyatur (tilt-shift) etkisi: kameranin baktigi nokta net, cok yakin / cok uzak (ekranin ust ve alt
+## kenari) hafif bulanik -> "maket sehir" hissi. Netlik mesafesi yakinlastirmayla birlikte guncellenir.
+## Yavas makinede (grafik kalitesi >= 2) kapali.
+var _dof_cam: Camera3D
+var _dof: CameraAttributesPractical
+
+
+func _add_tilt_shift(camera: Camera3D) -> void:
+	_dof_cam = camera
+	_dof = CameraAttributesPractical.new()
+	_dof.dof_blur_amount = 0.045
+	camera.attributes = _dof
+	set_process(true)
+
+
+func _process(_delta: float) -> void:
+	if _dof == null or not is_instance_valid(_dof_cam):
+		return
+	var on := GraphicsQuality.level < 2
+	_dof.dof_blur_far_enabled = on
+	_dof.dof_blur_near_enabled = on
+	if not on:
+		return
+	var d := _dof_cam.position.length()  # kamera -> bakilan nokta (rig merkezi)
+	_dof.dof_blur_far_distance = d * 1.18
+	_dof.dof_blur_far_transition = d * 0.7
+	_dof.dof_blur_near_distance = d * 0.72
+	_dof.dof_blur_near_transition = d * 0.35
 
 
 ## Cizgi film konturu: kameranin onunde tam ekran dortgen (outline.gdshader).
@@ -229,6 +288,46 @@ func set_burn_mask(tex: Texture2D) -> void:
 			mat.set_shader_parameter("use_burn", 1.0)
 
 
+## Isik / renk / atmosfer (menu ve oyun). Gun dongusu (day_cycle.gd) gunes ve ortam isigini saate gore
+## degistirir; burada ton eslemesi, renk derecelendirmesi, ortam golgesi, sis ve parlama ayarlanir.
 func _tune_environment(env: Environment) -> void:
-	env.adjustment_saturation = 1.06  # neon tonlar biraz yatissin (onceden 1.15)
-	env.adjustment_contrast = 1.05
+	# ton esleme: ACES, parlak gok / beyaz yollar yanmaz, renkler daha "sinematik"
+	env.tonemap_mode = Environment.TONE_MAPPER_ACES
+	env.tonemap_exposure = 1.08
+	env.tonemap_white = 6.0
+	# renk derecelendirmesi: golgeler hafif serin mavi, isiklar sicak (oyuncak sehir / gun isigi hissi)
+	env.adjustment_enabled = true
+	env.adjustment_saturation = 1.08
+	env.adjustment_contrast = 1.08
+	env.adjustment_brightness = 1.0
+	var grad := Gradient.new()
+	grad.offsets = PackedFloat32Array([0.0, 0.25, 0.6, 1.0])
+	grad.colors = PackedColorArray([Color(0.0, 0.015, 0.05), Color(0.23, 0.245, 0.27), Color(0.61, 0.6, 0.575), Color(1.0, 0.985, 0.95)])
+	var lut := GradientTexture1D.new()
+	lut.gradient = grad
+	lut.width = 256
+	env.adjustment_color_correction = lut
+	# ortam golgesi: binalarin dibi, agac alti, sokak kenarlari koyulasir -> binalar zemine "oturur"
+	env.ssao_radius = 1.6
+	env.ssao_intensity = 2.4
+	env.ssao_power = 1.6
+	env.ssao_detail = 0.6
+	env.ssao_light_affect = 0.15  # dogrudan gunes alan yuzde de hafif kalsin (toon isikta derinlik)
+	# atmosfer: uzak dag ve deniz gok renginde puslanir (hava perspektifi), yakin sehir net kalir
+	env.fog_enabled = true
+	env.fog_density = 0.0032
+	env.fog_aerial_perspective = 0.75
+	env.fog_sky_affect = 0.0
+	env.fog_light_energy = 1.0
+	env.set_meta("fog_base", env.fog_density)  # day_cycle.gd sabah pusunu bunun ustune ekler
+	env.set_meta("fog_ap", env.fog_aerial_perspective)
+	# parlama: ates, siren, lamba, pencere isiklari isildar; gunduz beyaz catilar parlamaz (esik)
+	env.glow_enabled = true
+	env.glow_intensity = 0.7
+	env.glow_strength = 1.0
+	env.glow_bloom = 0.02
+	env.glow_hdr_threshold = 1.05
+	env.glow_hdr_scale = 2.2
+	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT
+	for lv in 7:
+		env.set_glow_level(lv, 1.0 if lv in [2, 3, 4] else (0.5 if lv == 5 else 0.0))

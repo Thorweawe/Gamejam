@@ -132,9 +132,10 @@ func apply_time(h: float) -> void:
 	var day_k := smoothstep(-0.08, 0.3, elev)  # 0 gece, 1 gunduz
 	var dusk_k := clampf(1.0 - absf(elev) / 0.35, 0.0, 1.0)  # gun dogumu/batimi kizilligi
 
-	sun.rotation = Vector3(-deg_to_rad(maxf(elev * 65.0, 3.0)), deg_to_rad((h / 24.0 - 0.5) * 180.0 + 25.0), 0.0)
-	sun.light_energy = 1.35 * day_k
-	sun.light_color = Color(1.0, 0.55, 0.3).lerp(Color(1.0, 0.97, 0.92), smoothstep(0.0, 0.5, elev))
+	# gunes en fazla ~50 derece yukselir: ogle de golgeler kisa kalmasin (binalar derinlik kazanir)
+	sun.rotation = Vector3(-deg_to_rad(maxf(elev * 52.0, 3.0)), deg_to_rad((h / 24.0 - 0.5) * 180.0 + 25.0), 0.0)
+	sun.light_energy = 1.55 * day_k  # gunes alan yuz / golge farki belirgin (derinlik)
+	sun.light_color = Color(1.0, 0.55, 0.3).lerp(Color(1.0, 0.94, 0.84), smoothstep(0.0, 0.5, elev))  # sicak gun isigi
 	moon.light_energy = 0.3 * (1.0 - day_k)
 	moon.visible = day_k < 0.99
 
@@ -149,7 +150,14 @@ func apply_time(h: float) -> void:
 	sky.sky_horizon_color = horizon
 	sky.ground_horizon_color = horizon
 	sky.ground_bottom_color = top.darkened(0.4)
-	env.ambient_light_energy = lerpf(0.3, 0.7, day_k) * (1.0 - gloom * 0.45)  # daha az duz, golgeler belirgin
+	env.ambient_light_energy = lerpf(0.3, 0.52, day_k) * (1.0 - gloom * 0.45)  # golgeler gok renginde serin, belirgin
+	# sabah pusu: gun dogarken alcakta beyazimsi sis; saat ilerledikce ve yeni gunun ilk saniyelerinde dagilir
+	var mist := maxf(smoothstep(4.0, 6.0, h) * (1.0 - smoothstep(7.5, 10.5, h)), mist_linger) * (1.0 - gloom)
+	env.fog_density = float(env.get_meta("fog_base", env.fog_density)) + mist * 0.005
+	env.fog_aerial_perspective = lerpf(float(env.get_meta("fog_ap", env.fog_aerial_perspective)), 0.4, mist)
+	env.fog_light_color = Color(0.72, 0.84, 0.95).lerp(Color(0.93, 0.91, 0.87), mist)
+	env.fog_height = 0.8
+	env.fog_height_density = mist * 0.12
 	sea_material.set_shader_parameter("light", lerpf(0.3, 1.0, day_k) * (1.0 - gloom * 0.35))
 	if traffic:
 		traffic.set_night(1.0 - day_k)  # gece sokaklar sakinlesir
@@ -179,6 +187,9 @@ func _set_night_lights(k: float) -> void:
 	if is_equal_approx(k, _lights_k):
 		return
 	_lights_k = k
+	WindowLights.set_night(k)
+	for n in get_tree().get_nodes_in_group("night_meshes"):  # arac far / stop lambalari
+		n.visible = k > 0.15
 	for l in get_tree().get_nodes_in_group("night_lights"):
 		l.light_energy = float(l.get_meta("energy", 1.0)) * k
 		l.visible = k > 0.01
@@ -208,7 +219,17 @@ func _add_street_lamp_lights() -> void:
 
 
 # ------------------------------------------------------------------ arayuz
+var mist_linger := 0.0  # yeni gun basladiginda 1 -> 0 (pus yavasca dagilir)
+
+
+func _set_mist(v: float) -> void:
+	mist_linger = v
+	apply_time(hour)
+
+
 func _on_day_started(d: int) -> void:
+	_set_mist(1.0)
+	create_tween().tween_method(_set_mist, 1.0, 0.0, 14.0).set_trans(Tween.TRANS_SINE).set_delay(2.0)
 	banner.text = "GÜN %d" % d
 	banner.pivot_offset = banner.size / 2.0
 	banner.scale = Vector2(0.7, 0.7)

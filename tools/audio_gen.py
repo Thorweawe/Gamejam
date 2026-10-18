@@ -192,6 +192,31 @@ def sfx():
     save("end", en, 0.7)
 
 
+# ------------------------------------------------------------------ gok gurultusu (saganak)
+def thunder():
+    """Simsek sesi: keskin catirti (yakin yildirim) + yuvarlanan, dalga dalga sonen derin gurleme."""
+    sec = 5.5
+    n = int(SR * sec)
+    out = np.zeros(n)
+    # catirti: yuksek frekansli kirik kirik patlama (birkac ust uste carpma)
+    for st, amp in ((0.0, 0.28), (0.05, 0.2), (0.13, 0.15), (0.24, 0.1)):
+        k = lowpass_fast(noise(0.35), 3500)
+        hi = k - lowpass_fast(k, 900)
+        place(out, hi * decay(len(hi), 16) * amp, st)
+    # derin gurleme: kahverengi gurultu, birkac kabarma ile yuvarlanir ve uzun kuyrukla soner
+    rum = lowpass_fast(lowpass_fast(noise(sec, "brown"), 220), 220) * 2.6 + lowpass_fast(lowpass_fast(noise(sec), 90), 90) * 1.4
+    x = t(sec)
+    swell = np.zeros(n)
+    for c, w, a in ((0.25, 0.5, 1.0), (0.95, 0.7, 0.8), (1.8, 0.9, 0.65), (2.9, 1.2, 0.45)):
+        swell += a * np.exp(-((x - c) / w) ** 2)
+    swell = np.maximum(swell, decay(n, 0.9) * 0.35)
+    out += rum * swell
+    # en dipte gumburtu
+    boom = np.sin(2 * np.pi * np.cumsum(np.linspace(62, 28, int(SR * 1.6))) / SR) * decay(int(SR * 1.6), 2.2)
+    place(out, boom * 0.6, 0.05)
+    save("thunder", out * env(n, 0.002, 1.2), 0.9)
+
+
 # ------------------------------------------------------------------ ortam donguleri
 def ambience():
     save("rain_loop", loopable(lowpass_fast(noise(6.3), 4000) * 0.8 + noise(6.3) * 0.15), 0.5)
@@ -331,6 +356,7 @@ if __name__ == "__main__":
             globals()[name]()
         sys.exit(0)
     sfx()
+    thunder()
     start_game()
     babble()
     wind()

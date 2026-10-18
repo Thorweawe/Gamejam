@@ -4,7 +4,7 @@ extends Node
 ## Kullanim: audio.play("coins"), audio.set_music("calm" / "tense"), audio.set_rain(true)
 
 const DIR := "res://assets/audio/"
-const VOLUMES := {"hover": -22.0, "click": -10.0, "quake": 0.0, "alarm": -4.0, "collapse": -3.0}
+const VOLUMES := {"hover": -22.0, "click": -10.0, "quake": 0.0, "alarm": -4.0, "collapse": -3.0, "thunder": -2.0}
 
 @export var music_db := -13.0
 @export var sfx_db := -5.0

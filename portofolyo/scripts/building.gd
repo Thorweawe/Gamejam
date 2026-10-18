@@ -241,15 +241,33 @@ func collapse() -> void:
 	tw.tween_callback(_finish)
 
 
+## Yangin sonrasi duvarlarda is (kurum) izi; onarilinca / gelistirilince kalkar.
+var _soot: Decal
+
+
+func add_soot() -> void:
+	if _soot and is_instance_valid(_soot):
+		return
+	_soot = GroundMarks.spawn_soot(self, top_height())
+
+
+func _clear_soot() -> void:
+	if _soot and is_instance_valid(_soot):
+		_soot.queue_free()
+	_soot = null
+
+
 func repair() -> void:
 	if state == State.NORMAL or _busy:
 		return
+	_clear_soot()
 	_rebuild_anim(func(): state = State.NORMAL)
 
 
 func upgrade_to(new_model: String) -> void:
 	if _busy or find_model(new_model) == "":
 		return
+	_clear_soot()
 	_rebuild_anim(func():
 		state = State.NORMAL
 		model_name = new_model)
@@ -314,6 +332,7 @@ func _ensure_model(s: State) -> bool:
 		return false
 	var model := (load(_paths[s]) as PackedScene).instantiate() as Node3D
 	_visual.add_child(model)
+	WindowLights.apply(model)  # gece yanan pencereler
 	_models[s] = model
 	return true
 

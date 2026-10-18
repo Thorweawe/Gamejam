@@ -27,6 +27,7 @@ var mood := "neutral"
 var head: Node3D
 var _eyes: Array[Node3D] = []
 var _brows: Array[Node3D] = []
+var _brow_y := 0.165  # kaslarin dinlenme yuksekligi
 var _mouth: MeshInstance3D
 var _mouth_mat: ShaderMaterial
 var _arms: Array[Node3D] = []  # omuz pivotlari [sol, sag]
@@ -136,9 +137,16 @@ func build(l: Dictionary) -> void:
 		_part(eye, _sphere(0.016), Color(1, 1, 1), Vector3(0.018, 0.02, 0.06), Vector3.ZERO, Vector3.ONE, true)
 		_eyes.append(eye)
 		var brow := Node3D.new()
-		brow.position = Vector3(side * 0.14, 0.165, 0.372)
+		brow.position = Vector3(side * 0.14, _brow_y, 0.372)
+		# gunes gozlugu kas hizasina kadar cikiyor: kas camin ustunde ikinci bir cerceve gibi duruyordu -> gizli
+		brow.visible = String(l.get("glasses", "")) != "sun"
 		head.add_child(brow)
-		_part(brow, _box(Vector3(0.16, 0.04, 0.045), 0.7), hair_col.darkened(0.2), Vector3.ZERO)
+		if String(l.get("brow", "")) == "unibrow":
+			# Selim Karatas: kalin tek kas; iki yarim ortada birlesir (ifadelerle yine ayri ayri oynar)
+			_part(brow, _box(Vector3(0.23, 0.075, 0.06), 0.6), hair_col.darkened(0.45), Vector3(side * -0.04, 0.0, 0.0))
+			_part(brow, _box(Vector3(0.1, 0.066, 0.058), 0.5), hair_col.darkened(0.45), Vector3(side * -0.13, -0.004, -0.002))
+		else:
+			_part(brow, _box(Vector3(0.16, 0.04, 0.045), 0.7), hair_col.darkened(0.2), Vector3.ZERO)
 		_brows.append(brow)
 		if l.get("blush", false):
 			var b := _part(head, _sphere(0.06), Color(1.0, 0.55, 0.55), Vector3(side * 0.22, -0.1, 0.32), Vector3.ZERO, Vector3(1.2, 0.6, 0.4))
@@ -623,7 +631,9 @@ func _glasses(kind: String) -> void:
 			_part(head, _box(Vector3(0.08, 0.02, 0.02), 0.7), Color(0.15, 0.12, 0.12), Vector3(0, 0.07, 0.41))
 		"sun":
 			_part(head, _box(Vector3(0.52, 0.13, 0.05), 0.5), Color(0.05, 0.05, 0.1), Vector3(0, 0.06, 0.41))
-			_part(head, _box(Vector3(0.54, 0.025, 0.055), 0.7), Color(1.0, 0.8, 0.25), Vector3(0, 0.13, 0.41))
+			for side in [-1.0, 1.0]:  # altin menteseler (ustteki altin cubuk kas gibi duruyordu)
+				_part(head, _box(Vector3(0.05, 0.035, 0.05), 0.6), Color(1.0, 0.8, 0.25), Vector3(side * 0.27, 0.09, 0.39))
+			_part(head, _box(Vector3(0.36, 0.022, 0.03), 0.7), Color(0.55, 0.6, 0.75), Vector3(-0.03, 0.095, 0.437), Vector3(0, 0, 0.12), Vector3.ONE, true)  # cam yansimasi
 
 
 func _hat(kind: String) -> void:
@@ -637,8 +647,12 @@ func _hat(kind: String) -> void:
 			_part(head, _hemi(0.45), Color(0.97, 0.97, 0.95), Vector3(0, 0.1, -0.02), Vector3(-0.2, 0, 0), Vector3(1.0, 0.9, 1.05))
 			_part(head, _cyl(0.5, 0.5, 0.03), Color(0.92, 0.92, 0.9), Vector3(0, 0.1, 0.03), Vector3(-0.2, 0, 0))
 		"cap":
-			_part(head, _cyl(0.42, 0.44, 0.14), Color(0.35, 0.3, 0.28), Vector3(0, 0.27, -0.02))
-			_part(head, _box(Vector3(0.5, 0.03, 0.22), 0.6), Color(0.32, 0.27, 0.25), Vector3(0, 0.22, 0.38))
+			var tweed := Color(0.36, 0.31, 0.27)
+			_part(head, _hemi(0.44), tweed, Vector3(0, 0.17, -0.02), Vector3(-0.12, 0, 0), Vector3(1.04, 0.62, 1.04))  # tepe
+			_part(head, _sphere(0.3), tweed.lightened(0.04), Vector3(0, 0.35, 0.14), Vector3(-0.3, 0, 0), Vector3(1.32, 0.42, 1.0))  # one tasan kubbe
+			_part(head, _box(Vector3(0.5, 0.035, 0.2), 0.75), tweed.darkened(0.2), Vector3(0, 0.225, 0.4), Vector3(0.22, 0, 0))  # siperlik
+			_part(head, _torus(0.425, 0.455), tweed.darkened(0.12), Vector3(0, 0.18, -0.02), Vector3(-0.12, 0, 0), Vector3(1.0, 0.6, 1.0))  # bant
+			_part(head, _sphere(0.035), tweed.darkened(0.25), Vector3(0, 0.44, 0.0))  # dugme
 
 
 # ------------------------------------------------------------------ animasyon
@@ -761,7 +775,7 @@ func _apply() -> void:
 	for i in _brows.size():
 		var side := -1.0 if i == 0 else 1.0
 		_brows[i].rotation.z = brow_angle * -side
-		_brows[i].position.y = 0.165 + _cur[1] + _open * 0.012
+		_brows[i].position.y = _brow_y + _cur[1] + _open * 0.012
 	# goz kirpma: yumusak egriyle kapanip acilir
 	var blink := 1.0
 	if _blink > 0.0:

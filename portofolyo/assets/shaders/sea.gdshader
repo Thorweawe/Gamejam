@@ -52,6 +52,13 @@ float land_soft(vec2 p) {
 	return s;
 }
 
+// bulut golgeleri: genis, yumusak lekeler yavasca kayar (deniz shader'inda ayni formul -> kiyida kesintisiz)
+float cloud_shade(vec2 p) {
+	vec2 q = p * 0.04 + vec2(TIME * 0.011, TIME * 0.006);
+	float c = noise(q) * 0.6 + noise(q * 2.1 + 5.0) * 0.28 + noise(q * 4.3 + 11.0) * 0.12;
+	return 1.0 - smoothstep(0.48, 0.68, c) * 0.26;
+}
+
 float shore_wave(vec2 p) {
 	return (noise(p * 0.33) - 0.5) * 0.08 + (noise(p * 1.4 + 3.0) - 0.5) * 0.03;
 }
@@ -91,9 +98,16 @@ void fragment() {
 	float flowline = smoothstep(0.85, 0.98, sin((wpos.z - river_z) * 7.0 + noise(wpos.xz * 0.6) * 2.0) * 0.5 + 0.5);
 	col += vec3(0.05) * flowline * plume * smoothstep(-1.0, 3.0, dx);
 
+	// sig suda isik desenleri (kostik): kiyiya yakin turkuaz suda kayan ag deseni
+	float ca = noise(wpos.xz * 1.7 + vec2(TIME * 0.25, TIME * 0.18)) + noise(wpos.xz * 2.3 - vec2(TIME * 0.2, -TIME * 0.15));
+	ca = 1.0 - abs(ca - 1.0);
+	col += shallow * 0.16 * smoothstep(0.88, 0.98, ca) * smoothstep(0.08, 0.3, m) * (1.0 - smoothstep(0.3, 0.42, m)) * (1.0 - clamp(foam, 0.0, 1.0));
+	// gunes parıltisi: acik denizde kayan kucuk parlak noktalar (dalgaların tepesinde daha cok)
+	float glint = noise(wpos.xz * 6.5 + vec2(TIME * 0.55, -TIME * 0.35)) * noise(wpos.xz * 9.1 - vec2(TIME * 0.42, TIME * 0.28));
+	col += vec3(1.0, 0.97, 0.9) * smoothstep(0.68, 0.86, glint) * 0.45 * (1.0 - smoothstep(0.2, 0.45, m));
 	col = mix(col, vec3(0.95, 0.98, 1.0), clamp(foam, 0.0, 1.0) * 0.8);
 	col += wave * 0.035;
-	ALBEDO = col * light;
+	ALBEDO = col * light * cloud_shade(wpos.xz);
 	ROUGHNESS = 0.2;
 	SPECULAR = 0.45;
 }

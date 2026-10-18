@@ -72,6 +72,13 @@ float fbm(vec2 p) {
 	return noise(p) * 0.55 + noise(p * 2.03 + 17.0) * 0.3 + noise(p * 4.1 + 31.0) * 0.15;
 }
 
+// bulut golgeleri: genis, yumusak lekeler yavasca kayar (deniz shader'inda ayni formul -> kiyida kesintisiz)
+float cloud_shade(vec2 p) {
+	vec2 q = p * 0.04 + vec2(TIME * 0.011, TIME * 0.006);
+	float c = noise(q) * 0.6 + noise(q * 2.1 + 5.0) * 0.28 + noise(q * 4.3 + 11.0) * 0.12;
+	return 1.0 - smoothstep(0.48, 0.68, c) * 0.26;
+}
+
 // sea.gdshader'daki ile ayni olmali (kopuk tam kumun bittigi yerde dursun)
 float shore_wave(vec2 p) {
 	return (noise(p * 0.33) - 0.5) * 0.08 + (noise(p * 1.4 + 3.0) - 0.5) * 0.03;
@@ -153,6 +160,9 @@ void fragment() {
 	float flow = sin(wpos.x * 0.9 + wpos.z * 1.6 + TIME * 1.4 + mid * 5.0) * 0.5 + 0.5;
 	vec3 w = mix(water_deep, water_light, 0.2 + 0.4 * big);
 	w += vec3(0.5, 0.55, 0.6) * smoothstep(0.93, 0.99, flow) * 0.25;
+	// gunes parıltisi: akintiyla kayan kucuk parlak noktalar
+	float glint = noise(wpos.xz * 8.0 + vec2(TIME * 0.9, TIME * 0.5)) * noise(wpos.xz * 11.3 - vec2(TIME * 0.4, TIME * 0.7));
+	w += vec3(1.0, 0.97, 0.9) * smoothstep(0.66, 0.85, glint) * 0.4;
 	col = mix(col, w, water);
 
 	if (coast_cut > 0.0) {
@@ -201,7 +211,7 @@ void fragment() {
 			col = mix(grassc, col, to_sand);
 		}
 	}
-	ALBEDO = col;
+	ALBEDO = col * cloud_shade(wpos.xz);
 	ROUGHNESS = mix(mix(0.88, 0.96, max(grass, path)), 0.12, water);
 	SPECULAR = mix(0.25, 0.5, water);
 }

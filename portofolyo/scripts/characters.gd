@@ -14,7 +14,7 @@ const CHARS := {
 			"outfit": Color(0.55, 0.32, 0.65), "outfit2": Color(0.98, 0.92, 0.85), "glasses": "round", "extra": "pearls", "blush": true, "style": "blouse"}},
 	"selim": {"name": "Selim Karataş", "short": "Selim Bey", "title": "Müteahhit", "pitch": 0.95, "color": Color(1.0, 0.8, 0.3),
 		"look": {"skin": Color(0.8, 0.6, 0.45), "hair": "slick", "hair_color": Color(0.32, 0.2, 0.12),
-			"outfit": Color(0.93, 0.92, 0.88), "outfit2": Color(0.2, 0.2, 0.22), "glasses": "sun", "mustache": "thin", "extra": "chain", "style": "blazer"}},
+			"outfit": Color(0.93, 0.92, 0.88), "outfit2": Color(0.2, 0.2, 0.22), "mustache": "thin", "extra": "chain", "style": "blazer", "brow": "unibrow"}},
 	"husnu": {"name": "Hüsnü Amca", "short": "Muhtar Hüsnü", "title": "Dere Mahallesi Muhtarı", "pitch": 0.8, "color": Color(0.7, 0.55, 0.4),
 		"look": {"skin": Color(0.85, 0.66, 0.5), "hair": "bald_sides", "hair_color": Color(0.82, 0.82, 0.8),
 			"outfit": Color(0.45, 0.33, 0.22), "outfit2": Color(0.85, 0.85, 0.8), "hat": "cap", "mustache": "big", "style": "vest"}},
