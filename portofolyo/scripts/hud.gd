@@ -94,6 +94,7 @@ var _black: ColorRect
 var dialog: DialogPlayer
 var _pop_scale := 0.0     # gercek nufus -> oyun nufusu carpani (ilk okumada hesaplanir)
 var _game_over := false   # oyun sonu bir kez tetiklensin
+var lost := false         # nufus esigin altina dustu ("Şehir Boşaldı"): final konusmasi / ekrani gelmez
 var _pop_chip: Control
 var _migrants := 0        # farkindalik sayesinde sehre tasinanlar (oyun nufusuna eklenir)
 var _arrival_day := 0     # en son hangi gunun gocu islendi
@@ -544,8 +545,13 @@ static func success_rate(pop: int, awareness: float) -> float:
 func _check_population(g: Node, pop: int) -> void:
 	if _game_over or _pop_scale <= 0.0:
 		return
+	# afet mudahalesi surerken bekle: oyuncu ekip gonderip kurtarabilsin, raporu gorsun.
+	# Mudahale bitince show_response(false) -> update_stats bu kontrolu bir kez daha calistirir.
+	if g.disasters.responding:
+		return
 	if pop_ratio(pop) < MIN_POP_RATIO:
 		_game_over = true
+		lost = true
 		_end_by_population.call_deferred(g)
 
 
@@ -557,6 +563,10 @@ func _end_by_population(g: Node) -> void:
 	hide_building()
 	if _pause:
 		_close_pause()
+	# oynayan konusmayi kes (orn. finalin kapanis konusmasi): diyalog HUD'un parcasi oldugu icin
+	# oyun durdurulunca da devam ediyordu
+	if dialog and dialog.active:
+		dialog._skip = true
 	get_tree().paused = true  # afetler ve zaman dursun (HUD calismaya devam eder)
 	game_over.emit()
 	await show_end(g, true)

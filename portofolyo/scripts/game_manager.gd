@@ -768,8 +768,13 @@ func _finale() -> void:
 	await _prep_moment(report)
 	await hud.show_report(report, true)
 	city.traffic.end_evacuation()
+	# nufus yuzunden kaybedildiyse ("Şehir Boşaldı" acik) kapanis konusmasi ve ikinci oyun sonu ekrani gelmez
+	if hud.lost:
+		return
 	audio.play("end")
 	await hud.dialog.play_scene(Dialogs.ENDING_GOOD if grade()[0] in ["A", "B", "C"] else Dialogs.ENDING_BAD)
+	if hud.lost:
+		return
 	await hud.show_end(self)
 
 
