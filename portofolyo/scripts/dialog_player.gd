@@ -51,6 +51,7 @@ var _bark_text: Label
 var _bark_voice: AudioStreamPlayer
 var _bark_busy := false
 var _bark_speaking := false  # kisa replik su an konusuyor (yazi / ses akiyor)
+var _bark_cut := false  # cut_bark: konusan replik hemen biter
 var _saying := 0  # karar kartinda konusan karakter sayisi (say)
 var _bark_queue: Array = []
 var _bark_talk := 0.0
@@ -323,6 +324,7 @@ func _scene_line(line: Dictionary) -> void:
 	var info := Characters.info(who)
 	var col: Color = info.color
 	_name.text = info.name
+	_name_tag.reset_size()  # onceki uzun isimden ("Nermin Hanım") kalan genislik kalmasin
 	_name_tag.add_theme_stylebox_override("panel", HUD.sb(col.darkened(0.25), 10, 0, Color.TRANSPARENT, 14, 4, 4))
 	_box.add_theme_stylebox_override("panel", HUD.sb(Color("#fffaf2"), 18, 3, col, 24, 18, 10))
 	if hud and hud.has_method("demo_forecast"):
@@ -355,7 +357,7 @@ func _speak(p: Portrait, line: Dictionary, label: Label, player: AudioStreamPlay
 	var shown := 0.0
 	var last_blip := -10
 	while label.visible_characters < text.length():
-		if wait_click and (_skip or _advance):
+		if (wait_click and (_skip or _advance)) or (not wait_click and _bark_cut):
 			break
 		await get_tree().process_frame
 		shown += speed * get_process_delta_time()
@@ -392,7 +394,10 @@ func _speak(p: Portrait, line: Dictionary, label: Label, player: AudioStreamPlay
 			while player.playing:
 				await get_tree().process_frame
 		_bark_speaking = false  # sozu bitti; kutu okunsun diye biraz daha ekranda kalir
-		await get_tree().create_timer(1.6 + text.length() * 0.02).timeout
+		var t := 1.6 + text.length() * 0.02
+		while t > 0.0 and not _bark_cut:
+			await get_tree().process_frame
+			t -= get_process_delta_time()
 
 
 ## Herhangi bir portreyi konustur (karar karti): yazi akar, agiz oynar.
@@ -575,9 +580,13 @@ func bark(key_or_line: Variant) -> void:
 			_bark_queue.append(line)
 		return
 	_bark_busy = true
+	_bark_cut = false
 	# karar kartindaki karakter konusuyorsa sozunu kesme: bitmesini bekle
-	while _saying > 0:
+	while _saying > 0 and not _bark_cut:
 		await get_tree().process_frame
+	if _bark_cut:
+		_end_bark()
+		return
 	_bark_speaking = true
 	if _bark_portrait.char_id != line.who:
 		_bark_portrait.setup(line.who)
@@ -591,6 +600,9 @@ func bark(key_or_line: Variant) -> void:
 	tw.tween_property(_bark_box, "modulate:a", 1.0, 0.2)
 	tw.tween_property(_bark_box, "position:x", 10.0, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	await _speak(_bark_portrait, line, _bark_text, _bark_voice, false)
+	if _bark_cut:
+		_end_bark()
+		return
 	var out := create_tween()
 	out.tween_property(_bark_box, "modulate:a", 0.0, 0.3)
 	await out.finished
@@ -598,6 +610,25 @@ func bark(key_or_line: Variant) -> void:
 	_bark_busy = false
 	if not _bark_queue.is_empty():
 		bark(_bark_queue.pop_front())
+
+
+## Kisa repligi hemen kes (gunu bitir: Nermin'in konusmasi ve yazisi ekranda kalmasin).
+func cut_bark() -> void:
+	_bark_queue.clear()
+	if not _bark_busy:
+		return
+	_bark_cut = true
+	_bark_voice.stop()
+	_bark_box.visible = false
+
+
+func _end_bark() -> void:
+	_bark_voice.stop()
+	_bark_box.visible = false
+	_bark_speaking = false
+	_bark_talk = 0.0
+	_bark_busy = false
+	_bark_cut = false
 
 
 # ------------------------------------------------------------------ giris

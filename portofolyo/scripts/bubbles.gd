@@ -115,6 +115,9 @@ func _spawn(pos: Vector3, kind: String, icon_path: String, color: Color, life: f
 func _process(delta: float) -> void:
 	if camera == null or not is_instance_valid(camera):
 		return
+	if game != null and game.day >= GameData.TOTAL_DAYS:
+		_clear_all()  # son gun: baloncuk yok (muze baloncuklari dahil), sadece buyuk afet
+		return
 	_spawn_random(delta)
 	var mouse := get_viewport().get_mouse_position()
 	var hovered := -1 if _blocked_input() else _pick(mouse)
@@ -365,6 +368,16 @@ func _near_other(p: Vector3, sp: Vector2 = Vector2.ZERO) -> bool:
 			if camera.unproject_position(bp).distance_to(sp) < 140.0:
 				return true
 	return false
+
+
+func _clear_all() -> void:
+	if _bubbles.is_empty():
+		return
+	for b in _bubbles:
+		_fizzle(b)
+	_bubbles.clear()
+	_hovered = -1
+	Input.set_default_cursor_shape(Input.CURSOR_ARROW)
 
 
 func _clear_random() -> void:

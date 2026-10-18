@@ -117,12 +117,12 @@ static func info(model: String) -> Dictionary:
 ##   req     : gereken bina seviyeleri {belediye, itfaiye, hastane, afad}
 ##   once    : bir kez alinir ("Alındı" olur);  max: en fazla kac kez alinir
 ##   target  : satin alinca haritada bir mahalleye tiklanir
-##   cost    : TL (-1 = duruma gore hesaplanir: mahalle guclendirme, kacak kat operasyonu)
+##   cost    : TL (-1 = duruma gore hesaplanir: mahalle guclendirme)
 const SHOP_ITEMS := [
 	# --- DEPREM ---
 	{"id": "reinforce_district", "cat": "deprem", "name": "Mahalle Binalarını Güçlendir", "cost": -1, "target": true,
 		"icon": "res://assets/ui_icons/reinforce_district.svg", "desc": "Bir mahalleye tıkla: oradaki tüm evler depreme karşı güçlendirilir. Tek tek yaptırmaktan %50 ucuz."},
-	{"id": "kacak_all", "cat": "deprem", "name": "Kaçak Kat Operasyonu", "cost": -1,
+	{"id": "kacak_all", "cat": "deprem", "name": "Kaçak Kat Operasyonu", "cost": 9500,
 		"icon": "res://assets/ui_icons/kacak_all.svg", "desc": "Şehirdeki bütün kaçak katlar yıkılır; depremde ilk çöken binalar güvenli hâle gelir."},
 	{"id": "gas_valves", "cat": "deprem", "name": "Otomatik Gaz Kesme Vanası", "cost": 3000, "once": true,
 		"icon": "res://assets/ui_icons/gas_valves.svg", "desc": "Sarsıntıda gazı otomatik keser. Deprem sonrası çıkan yangınlar ve yangın riski azalır."},

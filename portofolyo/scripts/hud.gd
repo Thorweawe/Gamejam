@@ -549,6 +549,10 @@ func _check_population(g: Node, pop: int) -> void:
 	# Mudahale bitince show_response(false) -> update_stats bu kontrolu bir kez daha calistirir.
 	if g.disasters.responding:
 		return
+	# 20. gun finali: deprem -> yangin -> sel arasinda mudahale kisa sure "bitmis" gorunur; final kendi
+	# sonuc ekraniyla biter, nufus kontrolu oyunu yarida kesmesin (gecici evsizler de sayiliyordu)
+	if g.game_over:
+		return
 	if pop_ratio(pop) < MIN_POP_RATIO:
 		_game_over = true
 		lost = true
@@ -641,10 +645,30 @@ func show_forecast(type: String, title: String, text: String, actions: Array) ->
 	badge.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_icon(badge, FORECAST_ICONS.get(type, "warning"), Color.WHITE, 26)
 	var tv := _vbox(h, 0)
+	tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL  # carpi sag uste yaslansin
 	_label(tv, title.to_upper(), 12, C_ACCENT, true)
 	var l := _label(tv, text, 15, C_TEXT)
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	l.custom_minimum_size.x = 250
+	# kapat: hicbir onleme basmamakla ayni (uyari gecerli kalir, sadece kart kapanir)
+	var x := Button.new()
+	x.flat = true
+	x.focus_mode = Control.FOCUS_NONE
+	x.custom_minimum_size = Vector2(28, 20)
+	x.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	x.tooltip_text = "Kapat"
+	x.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	h.add_child(x)
+	var xi := _icon(x, "close", C_MUTED, 16)
+	xi.position = Vector2(10, -6)  # kartin sag ust kosesine yaslanir
+	xi.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	x.mouse_entered.connect(func(): xi.color = C_BAD)
+	x.mouse_exited.connect(func(): xi.color = C_MUTED)
+	x.pressed.connect(func():
+		_sfx("click")
+		var tw := _forecast.create_tween()
+		tw.tween_property(_forecast, "modulate:a", 0.0, 0.2)
+		tw.tween_callback(hide_forecast))
 	var row := _hbox(v, 6)
 	for a in actions:
 		var b := _button(row, "%s  ·  %s" % [a.name, GameManager.fmt_money(a.cost)], Color(0.85, 0.45, 0.12), 14)

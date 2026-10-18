@@ -72,6 +72,8 @@ func _ready() -> void:
 		district_aw.append(GameData.START_AWARENESS + (-6.0 if "Dağ" in map_info.district_names[i] else 0.0))
 	day_cycle.day_started.connect(func(d): _start_day(d))
 	day_cycle.day_ending.connect(func(_d):
+		hud.hide_forecast()  # gun bitti: uyari karti ve Nermin'in uyari konusmasi kapanir
+		hud.dialog.cut_bark()
 		_select(null)
 		_set_busy(true)
 		audio.play("day"))
@@ -282,7 +284,8 @@ func _start_day(d: int) -> void:
 	await _process_later(d)
 	stats_changed.emit()
 	hud.hide_forecast()
-	var ev := _pick_event() if d > 1 else {}  # ilk gun ogreticiden hemen sonra karar karti yok: oyuncu sehri tanisin
+	# ilk gun ogreticiden hemen sonra karar karti yok (oyuncu sehri tanisin); son gun de yok (sadece buyuk afet)
+	var ev := _pick_event() if d > 1 and d < GameData.TOTAL_DAYS else {}
 	if not ev.is_empty():
 		audio.play("popup")
 		var sp: Array = Characters.EVENT_SPEAKERS.get(ev.id, [])
@@ -751,6 +754,7 @@ func _finale() -> void:
 	game_over = true
 	_set_busy(true)
 	await hud.dialog.play_scene(Dialogs.FINALE)
+	city.camera_rig.focus(Vector3(0, 0, 4), 40.0, 0.8)  # buyuk deprem sehrin her yerinde: isaretler ekranda gorunsun
 	audio.play("alarm")
 	audio.set_music("tense")
 	hud.show_alert("BÜYÜK DEPREM!", "Tüm birimler göreve!", "warning")
@@ -830,8 +834,6 @@ func shop_cost(id: String) -> int:
 			# satir "X - Y" araligini gosterir, secerken her mahallenin ustunde kendi fiyati yazar
 			var costs := _district_costs()
 			return 0 if costs.is_empty() else costs.min()
-		"kacak_all":
-			return _kacak_cost(_kacak_list())
 		"river":
 			return 8000 if flood_protection == 0 else 7000
 	return int(GameData.shop_item(id).get("cost", 0))
@@ -943,13 +945,6 @@ func _district_reinforce_cost(list: Array) -> int:
 
 func _kacak_list() -> Array:
 	return city.buildings().filter(func(b): return GameData.REMOVE_KACAK.has(b.model_name) and b.state == Building.State.NORMAL)
-
-
-func _kacak_cost(list: Array) -> int:
-	var sum := 0
-	for b in list:
-		sum += GameData.REMOVE_KACAK[b.model_name]
-	return int(sum * 0.8 / 100.0) * 100
 
 
 ## Magazadan satin al (shop.gd cagirir). Doner: basarili mi.

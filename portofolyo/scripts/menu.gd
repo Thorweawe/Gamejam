@@ -42,9 +42,7 @@ func _ready() -> void:
 	audio = Node.new()
 	audio.set_script(load("res://scripts/audio.gd"))
 	add_child(audio)
-	audio.set_music("calm")
-	var crackle: AudioStreamPlayer = audio._ambient("fire_loop", -60.0)
-	create_tween().tween_property(crackle, "volume_db", -20.0, 3.0)
+	audio.set_music("calm")  # yangin citirtisi (fire_loop) menude cizirti gibi geliyordu: kaldirildi
 	_build_ui()
 
 
