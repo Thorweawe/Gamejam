@@ -513,13 +513,19 @@ func add_residents(n: int) -> void:
 
 ## Afette olen her kisi icin ailesi ve korkan komsulari da sehri terk eder (kalici nufus kaybi;
 ## yikilan binalar onarilir ama giden insan geri gelmez).
-func lose_residents(casualties: int) -> void:
+func lose_residents(casualties: int) -> int:
 	if casualties <= 0 or _pop_scale <= 0.0:
-		return
+		return 0
 	var n := int(round(casualties * _pop_scale * DEATH_FLIGHT))
 	_migrants -= n
 	_float_from(_pop_chip, "-%d kişi" % n, C_BAD)
 	_show_migration.call_deferred(-n)
+	return n
+
+
+## Gercek nufus -> oyun nufusu carpani (rapor hesaplari icin).
+func pop_scale() -> float:
+	return _pop_scale
 
 
 ## Nufus orani: 0-100 (10.000 nufus = %100)
@@ -1299,6 +1305,24 @@ func show_report(r: Dictionary, modal := false) -> void:
 		_stat(stats, "house", str(r.damaged), "hasarlı", C_GOLD)
 	if r.burned > 0:
 		_stat(stats, "tree", "%d ha" % (r.burned * 4), "yandı", C_ACCENT)
+	# nufus neden dustu: can kaybi gercek kisi; nufus gostergesindeki dusus evsizler + sehri terk edenler
+	var homeless: int = r.get("homeless", 0)
+	var fled: int = r.get("fled", 0)
+	if homeless + fled > 0:
+		var np := _panel(v, Color(0.85, 0.3, 0.25, 0.08), Color(0.85, 0.3, 0.25, 0.25), 10, 8, 10)
+		var nh := _hbox(np, 8)
+		_icon(nh, "people", C_BAD, 20)
+		var nv := _vbox(nh, 2)
+		_label(nv, "Nüfus -%d" % (homeless + fled), 15, C_BAD, true)
+		var lines := []
+		if homeless > 0:
+			lines.append("%d kişi evsiz kaldı (binalar onarılınca geri döner)" % homeless)
+		if fled > 0:
+			lines.append("%d kişi şehri terk etti (kaybedilenlerin yakınları)" % fled)
+		for t in lines:
+			var nl := _label(nv, t, 12, C_MUTED)
+			nl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			nl.custom_minimum_size.x = card.custom_minimum_size.x - 80
 	if r.get("prep_lives", 0) > 0 or r.get("held_count", 0) > 0:
 		var pb := _panel(v, Color(0.3, 0.9, 0.45, 0.12), Color(0.3, 0.9, 0.45, 0.35), 10, 8, 10)
 		var ph := _hbox(pb, 8)
@@ -1722,7 +1746,7 @@ var _demo_forecast := false
 func demo_forecast(on: bool) -> void:
 	if on and not _forecast.visible:
 		_demo_forecast = true
-		show_forecast("flood", "Meteoroloji Uyarısı · örnek", "Dağlarda yoğun yağış bekleniyor. 2 gün içinde sel riski %70!",
+		show_forecast("flood", "Meteoroloji Uyarısı · örnek", "Dağlarda yoğun yağış bekleniyor. 2 gün içinde dere taşabilir!",
 			[{"id": "evacuate_river", "name": "Kıyıyı Tahliye Et", "cost": 2500}, {"id": "sandbag", "name": "Kum Torbası Diz", "cost": 2000}])
 		for b in _forecast.find_children("*", "Button", true, false):
 			b.disabled = true

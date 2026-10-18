@@ -168,6 +168,8 @@ def build_plan():
     for row, c0, c1 in ((8, road_c - 8, road_c + 13), (11, road_c - 5, road_c)):
         carve([(c, row) for c in range(c0, c1 + 1)])
     carve([(road_c + 13, r) for r in range(8, river_r - 1)])  # dogu kolu nehre kadar iner
+    # dogu kolu ust patikaya ormanin icinden baglanir (8. satirin ucu kiyi kayaligi, oradan gecilmez)
+    carve([(road_c + 11, 9), (road_c + 12, 9)])
     return ["".join(row) for row in grid]
 
 

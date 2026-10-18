@@ -185,14 +185,14 @@ static func shop_item(id: String) -> Dictionary:
 # ------------------------------------------------------------------ uyarilar (deprem asla haber verilmez!)
 const FORECASTS := {
 	"forest_fire": {"days": 1, "title": "Meteoroloji Uyarısı",
-		"text": "Yarın çok sıcak ve rüzgarlı. Orman yangını riski %%%d!",
+		"text": "Yarın çok sıcak ve rüzgarlı. Ormanda yangın çıkabilir!",
 		"actions": [{"id": "picnic_ban", "name": "Piknik Yasağı", "cost": 1000}]},
 	"flood": {"days": 2, "title": "Meteoroloji Uyarısı",
-		"text": "Dağlarda yoğun yağış bekleniyor. 2 gün içinde sel riski %%%d!",
+		"text": "Dağlarda yoğun yağış bekleniyor. 2 gün içinde dere taşabilir!",
 		"actions": [{"id": "evacuate_river", "name": "Kıyıyı Tahliye Et", "cost": 2500},
 			{"id": "sandbag", "name": "Kum Torbası Diz", "cost": 2000}]},
 	"house_fire": {"days": 1, "title": "İtfaiye Uyarısı",
-		"text": "Soğuk hava nedeniyle soba ve ısıtıcı kullanımı artacak. Yangın riski %%%d!",
+		"text": "Soğuk hava nedeniyle soba ve ısıtıcı kullanımı artacak. Evlerde yangın çıkabilir!",
 		"actions": [{"id": "stove_check", "name": "Soba Denetimi", "cost": 1500}]},
 }
 

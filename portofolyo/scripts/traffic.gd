@@ -176,6 +176,26 @@ func _bfs(from: Vector2i, to: Vector2i, avoid: bool) -> Array[Vector2i]:
 	return dirs
 
 
+## from'dan yol uzerinden ulasilabilen (enkaz kapatmamis) karolar icinde p'ye en yakini.
+func reachable_road(from: Vector2i, p: Vector3) -> Vector2i:
+	var best := from
+	var best_d := INF
+	var seen := {from: true}
+	var queue: Array[Vector2i] = [from]
+	while not queue.is_empty():
+		var cur: Vector2i = queue.pop_front()
+		var d := Vector2(cur.x - p.x, cur.y - p.z).length_squared()
+		if d < best_d and not blocked.has(cur):
+			best_d = d
+			best = cur
+		for dd in neighbors(cur, false):
+			var n := cur + dd * 2
+			if not seen.has(n):
+				seen[n] = true
+				queue.append(n)
+	return best
+
+
 func nearest_road(p: Vector3, skip_blocked := false) -> Vector2i:
 	var best := Vector2i.ZERO
 	var best_d := INF

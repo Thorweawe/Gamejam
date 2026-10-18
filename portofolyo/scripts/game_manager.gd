@@ -87,7 +87,9 @@ func _ready() -> void:
 		hud.toast(t, k)
 		if k == "bad":
 			audio.play("error"))
-	disasters.incident_spawned.connect(func(inc): hud.add_incident(inc))
+	disasters.incident_spawned.connect(func(inc):
+		hud.add_incident(inc)
+		_watch_incident(inc))
 	stats_changed.connect(func(): hud.update_stats(self))
 	# tiklanabilir baloncuklar: muzeler + oyun sirasinda rastgele (bkz. bubbles.gd)
 	bubbles = preload("res://scripts/bubbles.gd").new()
@@ -220,6 +222,23 @@ func change_money(v: int, reason := "") -> int:
 		notify.emit("Kasa boş! %s ödenemedi (%s açık), halk tepkili: farkındalık -%d" % [
 			reason if reason != "" else "Giderler", fmt_money(unpaid), int(hit)], "bad")
 	return money - before
+
+
+## Ekip zamaninda yetismeyen (suresi dolan) her yardim isareti o mahallede farkindaligi biraz dusurur.
+## Orman karolari (hektar) daha az etkiler; bir yanginda cok karo yanabilir.
+const MISSED_AW := 1.0
+const MISSED_AW_FOREST := 0.5
+
+
+func _watch_incident(inc: Incident) -> void:
+	inc.resolved.connect(func(i: Incident, saved: int, lost: int):
+		if saved > 0 or lost <= 0 or game_over:
+			return
+		var v := MISSED_AW_FOREST if i.tile != Vector2i.ZERO else MISSED_AW
+		var at := i.global_position
+		add_awareness(-v, map_info.district_of(at))
+		hud.world_toast(at + Vector3.UP * 1.2, "Yetişilemedi · Farkındalık -%s" % ("%d" % v if v >= 1.0 else "%.1f" % v),
+			Color(1.0, 0.45, 0.35), "warning", 0.2))
 
 
 func add_awareness(v: float, district := -1) -> void:
@@ -503,7 +522,7 @@ func _plan_ahead(d: int) -> void:
 func _show_forecast(type: String, when: int, chance: int) -> void:
 	forecast = {"type": type, "day": when, "chance": chance}
 	var f: Dictionary = GameData.FORECASTS[type]
-	hud.show_forecast(type, f.title, f.text % chance, f.actions)
+	hud.show_forecast(type, f.title, f.text, f.actions)  # yuzde yazilmaz: belirsizlik kalsin
 	audio.play("alert_soft")
 	bark_once("first_forecast")
 
@@ -601,6 +620,7 @@ func run_disaster(type: String, minor := false) -> void:
 		_last_disaster_day = day
 		_last_type = type
 	var report := {}
+	var real0 := population()
 	audio.play("alert_soft" if minor else "alarm")
 	audio.set_music("tense")
 	match type:
@@ -630,7 +650,8 @@ func run_disaster(type: String, minor := false) -> void:
 			report = await disasters.flood(clampf(0.8 + day * 0.02 + randf() * 0.2, 0.8, 1.3))
 			report.cause = cause
 	report.minor = minor
-	_record(report)
+	await get_tree().create_timer(0.5).timeout  # son coken binanin animasyonu bitsin (nufus hesabi dogru olsun)
+	_record(report, real0)
 	audio.set_music("calm")
 	_calm_down()
 	if not minor:
@@ -638,13 +659,17 @@ func run_disaster(type: String, minor := false) -> void:
 	hud.show_report(report)
 
 
-func _record(r: Dictionary) -> void:
+## real0: afetten onceki (olceklenmemis) nufus. Rapordaki can kaybi gercek kisi sayisidir; nufus
+## gostergesi ise oyun olcegindedir (x _pop_scale). Raporda nufusun neden dustugu ayrica yazilir:
+## evsiz kalanlar (yikilan / hasarli binalar, onarilinca doner) + sehri terk edenler (olenlerin yakinlari).
+func _record(r: Dictionary, real0 := -1) -> void:
 	if not r.get("minor", false):
 		totals.disasters += 1
 	for k in ["casualties", "saved", "collapsed", "damaged", "burned", "evacuated"]:
 		totals[k] += int(r.get(k, 0))
 	totals.baseline += float(r.get("baseline", 0.0))
-	hud.lose_residents(int(r.get("casualties", 0)))  # olenlerin yakinlari sehri terk eder (kalici)
+	r.fled = hud.lose_residents(int(r.get("casualties", 0)))  # olenlerin yakinlari sehri terk eder (kalici)
+	r.homeless = maxi(0, int(round((real0 - population()) * hud.pop_scale()))) if real0 >= 0 else 0
 	add_awareness(2.0)  # afet sonrasi halk biraz bilinclenir
 	audio.play("success" if r.saved >= r.casualties else "fail")
 
@@ -733,9 +758,11 @@ func _finale() -> void:
 	_slowmo(0.7)
 	day_cycle.set_gloom(0.6, Color(0.35, 0.33, 0.36), 3.0)
 	audio.play("quake")
+	var real0 := population()
 	var report := await disasters.finale()
 	report.cause = "Şiddetli deprem, ardından yangınlar ve sel."
-	_record(report)
+	await get_tree().create_timer(0.5).timeout
+	_record(report, real0)
 	audio.set_music("calm")
 	_calm_down()
 	await _prep_moment(report)

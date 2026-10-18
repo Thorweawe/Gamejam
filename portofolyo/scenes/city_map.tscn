@@ -3536,6 +3536,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, -23)
 [node name="path_36_9" type="Node3D" parent="Roads" unique_id=1256324567]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27, 0, -23)
 
+[node name="path_34_9" type="Node3D" parent="Roads" unique_id=1934502117]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23, 0, -23)
+
+[node name="path_35_9" type="Node3D" parent="Roads" unique_id=1934502118]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 0, -23)
+
 [node name="path_23_10" type="Node3D" parent="Roads" unique_id=310036391]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, -21)
 
@@ -6274,9 +6280,6 @@ transform = Transform3D(0.0908255, 0, -0.272937, 0, 0.287653, 0, 0.272937, 0, 0.
 [node name="tree_34_9_0" parent="Nature" unique_id=861919609 instance=ExtResource("24_r")]
 transform = Transform3D(-0.00506083, 0, 0.304337, 0, 0.304379, 0, -0.304337, 0, -0.00506083, 22.5197, 0.1, -22.3359)
 
-[node name="tree_34_9_1" parent="Nature" unique_id=1458687698 instance=ExtResource("26_r")]
-transform = Transform3D(0.14025, 0, 0.227694, 0, 0.267422, 0, -0.227694, 0, 0.14025, 22.7008, 0.1, -23.2273)
-
 [node name="tree_34_9_2" parent="Nature" unique_id=1777230679 instance=ExtResource("28_r")]
 transform = Transform3D(0.0228986, 0, -0.294945, 0, 0.295833, 0, 0.294945, 0, 0.0228986, 22.4944, 0.1, -22.33)
 
@@ -6285,12 +6288,6 @@ transform = Transform3D(0.0773342, 0, -0.220776, 0, 0.233929, 0, 0.220776, 0, 0.
 
 [node name="tree_35_9_0" parent="Nature" unique_id=1076889857 instance=ExtResource("29_r")]
 transform = Transform3D(0.31462, 0, -0.170646, 0, 0.357919, 0, 0.170646, 0, 0.31462, 24.8686, 0.1, -23.7186)
-
-[node name="tree_35_9_1" parent="Nature" unique_id=1721668756 instance=ExtResource("29_r")]
-transform = Transform3D(0.131454, 0, -0.456758, 0, 0.475298, 0, 0.456758, 0, 0.131454, 24.7431, 0.1, -22.5944)
-
-[node name="tree_35_9_2" parent="Nature" unique_id=114693488 instance=ExtResource("29_r")]
-transform = Transform3D(-0.433196, 0, 0.220721, 0, 0.486186, 0, -0.220721, 0, -0.433196, 25.048, 0.1, -23.5927)
 
 [node name="tree_35_9_3" parent="Nature" unique_id=1810937394 instance=ExtResource("28_r")]
 transform = Transform3D(0.116601, 0, 0.186607, 0, 0.220041, 0, -0.186607, 0, 0.116601, 24.7554, 0.1, -23.6536)

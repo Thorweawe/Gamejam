@@ -178,7 +178,7 @@ func earthquake_cause(magnitude: float) -> String:
 	return GameData.CAUSES.quake[0] % ("%.1f" % (5.2 + magnitude * 1.6))
 
 
-func earthquake(magnitude: float) -> Dictionary:
+func earthquake(magnitude: float, post_fire := true) -> Dictionary:
 	var r := _report("quake", "Deprem", earthquake_cause(magnitude))
 	camera_rig.shake(2.0 + magnitude * 1.5)
 	traffic.panic(5.0)
@@ -223,11 +223,33 @@ func earthquake(magnitude: float) -> Dictionary:
 	r.roads = blocks
 	_spawn_clustered("rubble", collapsed, 0.5, rescue_time(), r, 3 + game.units_total("rescue"))
 	_spawn_clustered("injured", damaged.filter(func(_d): return randf() < 0.45), 0.12, 30.0 + game.service_level("medic") * 3.0, r, 3)
+	if post_fire:
+		_post_quake_fire(r)
 	if magnitude > 1.3 or randf() < 0.7:
 		_aftershock(r, magnitude)
 	await respond(r)
 	life.after_quake(r)
 	return r
+
+
+## Deprem sonrasi yangin: devrilen soba / gaz kacagi ayakta kalan kucuk bir evi (gecekondu, mustakil ev)
+## tutusturur. Hasar goren kucuk evler once secilir.
+func _post_quake_fire(r: Dictionary) -> void:
+	var small: Array = []
+	var hit: Array = []
+	for b in city.buildings():
+		if b.state == Building.State.COLLAPSED or b.on_fire or b.closed_days > 0:
+			continue
+		if b.model_name.begins_with("house_lv0") or b.model_name == "house_lv1" or b.model_name == "house_lv1_reinforced":
+			small.append(b)
+			if b.state == Building.State.DAMAGED:
+				hit.append(b)
+	if small.is_empty():
+		return
+	var b: Building = (hit if not hit.is_empty() else small).pick_random()
+	game.notify.emit("Depremde devrilen soba bir evde yangın çıkardı: %s alevler içinde! İtfaiye gönder" % b.display_name(), "disaster")
+	get_tree().call_group("audio", "play", "alert_soft")
+	_ignite(b, r, 18.0)
 
 
 ## Artci deprem: mudahale surerken gelir, hasarli binalarin bazilari coker, yeni isaretler cikar.
@@ -801,7 +823,7 @@ func _set_rain(on: bool) -> void:
 func finale() -> Dictionary:
 	var total := _report("quake", "Büyük Afet Zinciri", "")
 	var parts: Array[Dictionary] = []
-	parts.append(await earthquake(1.45))
+	parts.append(await earthquake(1.45, false))  # finalin kendi yanginlari var
 	game.notify.emit("Deprem sonrası gaz kaçakları ve devrilen sobalar yangın çıkardı!", "disaster")
 	var fires := _report("house_fire", "Yangınlar", "")
 	for i in (1 if game.gas_valves else 3):  # gaz vanalari deprem sonrasi yanginlari azaltir
@@ -916,6 +938,7 @@ func build_feature(fx: Dictionary) -> Vector3:
 	match where:
 		"forest", "park", "beach":
 			_clear_area(c, 1.5)
+			_hide_ground(c)
 			if where == "park":
 				_remove_assembly_at(spot)
 			var b := Building.new()
@@ -1023,6 +1046,14 @@ func _place(path: String, pos: Vector3, yaw: float) -> Node3D:
 	n.rotation.y = yaw
 	effects.add_child(n)
 	return n
+
+
+## Binanin kendi gri arsa zemini var (sehirdeki binalarin altinda karo yok): alttaki cimen / kum
+## karosu gizlenir, yoksa ayni yukseklikteki iki zemin birbirine girip titrer.
+func _hide_ground(c: Vector3) -> void:
+	for g in city.get_node("Ground").get_children():
+		if g is Node3D and Vector2(g.position.x - c.x, g.position.z - c.z).length() < 0.5:
+			g.visible = false
 
 
 ## Alandaki agac, bank, semsiye vb. kucultup gizle.

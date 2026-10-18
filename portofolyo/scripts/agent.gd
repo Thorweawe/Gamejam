@@ -176,7 +176,12 @@ func end_evacuation() -> void:
 func respond(goal: Vector2i) -> void:
 	emergency = true
 	mode = Mode.RESPOND
-	route = traffic.find_route(tile + _next * 2, goal)
+	var from := tile + _next * 2
+	route = traffic.find_route(from, goal)
+	if route.is_empty() and from != goal:
+		# hedef yol agina bagli degil (kopuk patika): rota bos kalirsa arac hemen "vardim" sanip
+		# sehrin icinde calisirdi. Ulasilabilen en yakin noktaya git.
+		route = traffic.find_route(from, traffic.reachable_road(from, Vector3(goal.x, 0, goal.y)))
 	set_siren(true)
 
 
